@@ -25,22 +25,12 @@ the plan and explicitly set the correct device state before finishing.
 from datetime import datetime
 from typing import Optional
 
-from vplan.engine.interface import RefreshResult, VacationPlan
+from vplan.engine.interface import RefreshResult, TriggerResult, TriggerRule, VacationPlan
 
 
 # pylint: disable=unused-argument
 def refresh_plan(pat_token: str, current: Optional[VacationPlan], new: VacationPlan) -> RefreshResult:
-    """
-    Refresh the vacation plan in SmartThings.
-
-    Args:
-        pat_token(str): The SmartThings PAT token (personal access token)
-        current(VacationPlan): The current vacation plan, possibly None
-        new(VacationPlan): The new vacation plan
-
-    Returns:
-        RefreshResult: The result of the refresh operation
-    """
+    """Refresh the vacation plan in SmartThings."""
     # TODO: implement refresh_plan()
     return RefreshResult(
         id=new.id,
@@ -48,4 +38,16 @@ def refresh_plan(pat_token: str, current: Optional[VacationPlan], new: VacationP
         time_zone="America/Chicago",  # TODO: fix this to come from retrieved data
         finalized_date=datetime.utcnow(),
         rules=[],
+    )
+
+
+# pylint: disable=unused-argument
+def execute_trigger_actions(pat_token: str, trigger_id: str, plan: VacationPlan) -> TriggerResult:
+    """Manually execute the actions associated with a trigger, for testing the device setup."""
+    # TODO: implement execute_trigger_actions()
+    return TriggerResult(
+        id=plan.id,
+        locatin=plan.location,
+        time_zone="America/Chicago",  # TODO: fix this to come from retrieved data
+        rule=TriggerRule(trigger_id=trigger_id, rule_id="XXX", rule_name="YYY"),  # TODO: fix trigger rule
     )

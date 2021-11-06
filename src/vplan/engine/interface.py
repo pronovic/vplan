@@ -125,8 +125,15 @@ class TriggerRule(BaseModel):
     rule_name: str = Field(..., title="Name of the rule at SmartThings")
 
 
+class RefreshRequest(BaseModel):
+    """Vacation plan refresh request."""
+
+    current: Optional[VacationPlan] = Field(default=None, title="Current vacation plan, possibly unset")
+    new: VacationPlan = Field(..., title="New vacation plan")
+
+
 class RefreshResult(BaseModel):
-    """The result of a plan request refresh request."""
+    """The result from a plan request refresh request."""
 
     id: str = Field(..., title="Plan identifier")
     location: str = Field(..., title="Name of the location")
@@ -135,8 +142,10 @@ class RefreshResult(BaseModel):
     rules: List[TriggerRule] = Field(..., title="List of the SmartThings rules that implement the plan triggers")
 
 
-class RefreshRequest(BaseModel):
-    """Vacation plan refresh request."""
+class TriggerResult(BaseModel):
+    """The result from a trigger test request."""
 
-    current: Optional[VacationPlan] = Field(default=None, title="Current vacation plan, possibly unset")
-    new: VacationPlan = Field(..., title="New vacation plan")  # required
+    id: str = Field(..., title="Plan identifier")
+    location: str = Field(..., title="Name of the location")
+    time_zone: str = Field(..., title="Time zone that the trigger was executed in")
+    rule: TriggerRule = Field(..., title="The trigger rule that was tested")
