@@ -12,7 +12,7 @@ A coding standard is enforced using [Black](https://github.com/psf/black), [isor
 
 ## Continuous Integration (CI)
 
-We use [GitHub Actions](https://docs.github.com/en/actions/quickstart) for CI.  See [.github/workflows/tox.yml](.github/workflows/tox.yml) for the definition of the workflow, and go to the [Actions tab](https://github.com/pronovic/vacation-plan-manager/actions) to see what actions have been executed.  
+We use [GitHub Actions](https://docs.github.com/en/actions/quickstart) for CI.  See [.github/workflows/tox.yml](.github/workflows/tox.yml) for the definition of the workflow, and go to the [Actions tab](https://github.com/pronovic/vplan/actions) to see what actions have been executed.  
 
 ## Third-Party Integration
 
@@ -32,14 +32,8 @@ checks, so the build will fail.
 ## Line Endings
 
 The [`.gitattributes`](.gitattributes) file controls line endings for the files
-in this repository.  It would be simplest to have files in the Git working copy
-use native line endings.  However, I develop this code on multiple platforms,
-and the files in the published PyPI package get the line endings from the
-working copy.  If we use native line endings, the format of the published
-package will vary depending on where the publish step was run.  This is
-confusing, and can cause problems for downstream users who expect the PyPI
-package to have a consistent format.  Instead of relying on automatic behavior,
-the `.gitattributes` file forces most files to have UNIX line endings.  
+in this repository.  Instead of relying on automatic behavior, the
+`.gitattributes` file forces most files to have UNIX line endings.  
 
 ## Prerequisites
 
@@ -145,9 +139,9 @@ $ run install && run checks && run test
 ### Open the Project
 
 Once you have a working shell development environment, **Open** (do not
-**Import**) the `vacation-plan-manager` directory in PyCharm, then follow the
-remaining instructions below.  By using **Open**, the existing `.idea`
-directory will be retained and all of the existing settings will be used.
+**Import**) the `vplan` directory in PyCharm, then follow the remaining
+instructions below.  By using **Open**, the existing `.idea` directory will be
+retained and all of the existing settings will be used.
 
 ### Interpreter
 
@@ -160,9 +154,9 @@ environment.
 
 ### Project Structure
 
-Go to the PyCharm settings and find the `vacation-plan-manager` project.  Under
-**Project Structure**, mark both `src` and `tests` as source folders.  In the
-**Exclude Files** box, enter the following:
+Go to the PyCharm settings and find the `vplan` project.  Under **Project
+Structure**, mark both `src` and `tests` as source folders.  In the **Exclude
+Files** box, enter the following:
 
 ```
 LICENSE;NOTICE;PyPI.md;.coverage;.coveragerc;.github;.gitignore;.gitattributes;.htmlcov;.idea;.isort.cfg;.mypy.ini;.mypy_cache;.pre-commit-config.yaml;.pylintrc;.pytest_cache;.readthedocs.yml;.tox;.toxrc;.tabignore;build;dist;docs/_build;out;poetry.lock;poetry.toml;run;
@@ -280,13 +274,13 @@ source ~/.bash_profile
 
 ### Documentation
 
-Documentation at [Read the Docs](https://.readthedocs.io/en/stable/)
+Documentation at [Read the Docs](https://vplan.readthedocs.io/en/stable/)
 is generated via a GitHub hook each time code is pushed to master.  So, there
 is no formal release process for the documentation.
 
 ### Code
 
-Code is released to [PyPI](https://pypi.org/project/vacation-plan-manager/).  There is a
+Code is released to [PyPI](https://pypi.org/project/vplan/).  There is a
 partially-automated process to publish a new release.  
 
 > _Note:_ In order to publish code, you must must have push permissions to the

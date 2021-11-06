@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "vacation-plan-manager"
+name = "vplan"
 version = "0.1.0"
-description = "Vacation plan manager daemon for SmartThings"
+description = "Vacation plan manager service for SmartThings"
 authors = ["Kenneth J. Pronovici <pronovic@ieee.org>"]
 license = "Apache-2.0"
 readme = "PyPI.md"
 homepage = "unset"
 repository = "unset"
 include = [ "Changelog", "LICENSE", "README.md", "docs", "tests", ]
-packages = [ { include = "vacationplan", from = "src" } ]
+packages = [ { include = "vplan", from = "src" } ]
 classifiers=[
    "Programming Language :: Python :: 3",
    "License :: OSI Approved :: Apache Software License",

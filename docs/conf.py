@@ -24,7 +24,7 @@ import toml
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
 
-# Insert vacationplan path into the system.
+# Insert code into the system path
 sys.path.insert(0, os.path.abspath("../src"))
 sys.path.insert(0, os.path.abspath("_themes"))
 
@@ -150,7 +150,7 @@ html_theme = "alabaster"
 html_theme_options = {
     "show_powered_by": False,
     "github_user": "pronovic",
-    "github_repo": "vacation-plan-manager",
+    "github_repo": "vplan",
     "github_banner": True,
     "show_related": False,
     "note_bg": "#FFF59C",
@@ -241,7 +241,7 @@ html_show_copyright = True
 # html_search_scorer = 'scorer.js'
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = "vacationplan"
+htmlhelp_basename = "vplan"
 
 # -- Options for LaTeX output ---------------------------------------------
 
@@ -259,7 +259,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
-latex_documents = [(master_doc, "VacationPlan.tex", "Vacation Plan Manager Documentation", "Kenneth J. Pronovici", "manual")]
+latex_documents = [(master_doc, "vplan.tex", "Vacation Plan Manager Documentation", "Kenneth J. Pronovici", "manual")]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -286,7 +286,7 @@ latex_documents = [(master_doc, "VacationPlan.tex", "Vacation Plan Manager Docum
 
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
-man_pages = [(master_doc, "vacationplan", "Vacation Plan Manager Documentation", [author], 1)]
+man_pages = [(master_doc, "vplan", "Vacation Plan Manager Documentation", [author], 1)]
 
 # If true, show URL addresses after external links.
 # man_show_urls = False
@@ -300,10 +300,10 @@ man_pages = [(master_doc, "vacationplan", "Vacation Plan Manager Documentation",
 texinfo_documents = [
     (
         master_doc,
-        "vacationplan",
+        "vplan",
         "Vacation Plan Manager Documentation",
         author,
-        "vacationplan",
+        "vplan",
         "Python library that implements a game similar to the Sorry board game",
         "Miscellaneous",
     )

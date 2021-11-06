@@ -3,7 +3,7 @@ source = src
 
 [run]
 branch = true
-source = src/vacationplan
+source = src/vplan
 
 [report]
 show_missing = false
