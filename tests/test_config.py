@@ -12,6 +12,7 @@ from vplan.engine.interface import (
     TriggerTime,
     TriggerVariation,
     VacationPlan,
+    VariationDirection,
     VariationUnit,
 )
 
@@ -38,47 +39,52 @@ PLAN_EXPECTED = VacationConfig(
         location="My House",
         triggers=[
             Trigger(
+                id="living-room-on",
                 days=[TriggerDay.ALL],
                 time=TriggerTime.SUNRISE,
                 action=TriggerAction.SWITCH_ON,
-                variation=TriggerVariation(period=5, unit=VariationUnit.MINUTES),
+                variation=TriggerVariation(period=5, unit=VariationUnit.MINUTES, direction=VariationDirection.BEFORE),
                 devices=[
                     TriggerDevice(room="Living Room", device="Sofa Table Lamp"),
                     TriggerDevice(room="Dining Room", device="China Cabinet"),
                 ],
             ),
             Trigger(
+                id="ken-office-off",
                 days=[TriggerDay.WEEKDAYS],
                 time=TriggerTime.SUNSET,
                 action=TriggerAction.SWITCH_OFF,
-                variation=TriggerVariation(period=0, unit=VariationUnit.MINUTES),
+                variation=TriggerVariation(period=0, unit=VariationUnit.MINUTES, direction=VariationDirection.BOTH),
                 devices=[
                     TriggerDevice(room="Ken's Office", device="Desk Lamp"),
                 ],
             ),
             Trigger(
+                id="basement-on",
                 days=[TriggerDay.WEEKENDS],
                 time=TriggerTime.NOON,
                 action=TriggerAction.SWITCH_ON,
-                variation=TriggerVariation(period=30, unit=VariationUnit.SECONDS),
+                variation=TriggerVariation(period=30, unit=VariationUnit.SECONDS, direction=VariationDirection.BOTH),
                 devices=[
                     TriggerDevice(room="Basement", device="Lamp Under Window"),
                 ],
             ),
             Trigger(
+                id="julie-office-off",
                 days=[TriggerDay.MONDAY, TriggerDay.TUESDAY, TriggerDay.FRIDAY],
                 time=TriggerTime.MIDNIGHT,
                 action=TriggerAction.SWITCH_OFF,
-                variation=TriggerVariation(period=0, unit=VariationUnit.MINUTES),
+                variation=TriggerVariation(period=0, unit=VariationUnit.MINUTES, direction=VariationDirection.BOTH),
                 devices=[
                     TriggerDevice(room="Julie's Office", device="Dresser Lamp"),
                 ],
             ),
             Trigger(
+                id="christmas-lights-off",
                 days=[TriggerDay.THURSDAY, TriggerDay.WEEKENDS],
                 time=time(hour=14, minute=32, second=18),
                 action=TriggerAction.SWITCH_OFF,
-                variation=TriggerVariation(period=3, unit=VariationUnit.HOURS),
+                variation=TriggerVariation(period=3, unit=VariationUnit.HOURS, direction=VariationDirection.AFTER),
                 devices=[
                     TriggerDevice(room="Front Porch", device="Christmas Lights"),
                 ],

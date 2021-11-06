@@ -73,16 +73,26 @@ class VariationUnit(str, YamlEnum):
     HOURS = "hours"
 
 
+class VariationDirection(str, YamlEnum):
+    """Direction of the variation, before and/or after the trigger time."""
+
+    BEFORE = "before"
+    AFTER = "after"
+    BOTH = "both"
+
+
 class TriggerVariation(YamlModel):
-    """A variation for a trigger."""
+    """A variation for a trigger, a period of time before and/or after the trigger time."""
 
     period: NonNegativeInt = Field(..., title="The variation period")
     unit: VariationUnit = Field(title="The variation unit", default=VariationUnit.MINUTES)
+    direction: VariationDirection = Field(title="The variation direction", default=VariationDirection.BOTH)
 
 
 class Trigger(YamlModel):
-    """A trigger for a lighting action"""
+    """A trigger for a plan action"""
 
+    id: str = Field(..., title="Identifier for this trigger", min_length=1)
     days: List[TriggerDay] = Field(..., title="Days of the week that the trigger executes")
     time: Union[TriggerTime, datetime.time] = Field(..., title="Time that a trigger executes, in the location's time zone")
     variation: TriggerVariation = Field(title="Trigger in minutes", default=TriggerVariation(period=0))
@@ -107,11 +117,12 @@ class VacationPlan(YamlModel):
     triggers: List[Trigger] = Field(title="List of lighting action triggers", default_factory=lambda: [])
 
 
-class PlanRule(BaseModel):
-    """Identifies a rule that is a part of a plan implementation."""
+class TriggerRule(BaseModel):
+    """Identifies a rule that implements a trigger."""
 
-    id: str = Field(..., title="Opaque SmartThings identifier for the rule")
-    name: str = Field(..., title="Name of the rule")
+    trigger_id: str = Field(..., title="Id of the trigger this rule is associated with")
+    rule_id: str = Field(..., title="Identifier for the rule at SmartThings")
+    rule_name: str = Field(..., title="Name of the rule at SmartThings")
 
 
 class RefreshResult(BaseModel):
@@ -121,7 +132,7 @@ class RefreshResult(BaseModel):
     location: str = Field(..., title="Name of the location")
     time_zone: str = Field(..., title="Time zone that the plan will execute in")
     finalized_date: datetime.datetime = Field(..., title="Date the plan was finalized in the SmartThings infrastructure")
-    rules: List[PlanRule] = Field(..., title="List of the SmartThings rules that implement the plan")
+    rules: List[TriggerRule] = Field(..., title="List of the SmartThings rules that implement the plan triggers")
 
 
 class RefreshRequest(BaseModel):

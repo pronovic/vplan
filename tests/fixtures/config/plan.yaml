@@ -5,24 +5,27 @@ plan:
   id: my-house
   location: My House
   triggers:
-    - days: [ all ]
+    - id: living-room-on
+      days: [ all ]
       time: sunrise
       action: switch_on
       variation:
         period: 5
-        unit: minutes
+        direction: before
       devices:
         - room: Living Room
           device: Sofa Table Lamp
         - room: Dining Room
           device: China Cabinet
-    - days: [ weekdays ]
+    - id: ken-office-off
+      days: [ weekdays ]
       time: sunset
       action: switch_off
       devices:
         - room: Ken's Office
           device: Desk Lamp
-    - days: [ weekends ]
+    - id: basement-on
+      days: [ weekends ]
       time: noon
       action: switch_on
       variation:
@@ -31,18 +34,21 @@ plan:
       devices:
         - room: Basement
           device: Lamp Under Window
-    - days: [ mon, tue, fri ]
+    - id: julie-office-off
+      days: [ mon, tue, fri ]
       time: midnight
       action: switch_off
       devices:
         - room: Julie's Office
           device: Dresser Lamp
-    - days: [ thu, weekends ]
+    - id: christmas-lights-off
+      days: [ thu, weekends ]
       time: 14:32:18
       action: switch_off
       variation:
         period: 3
         unit: hours
+        direction: after
       devices:
         - room: Front Porch
           device: Christmas Lights
