@@ -1,0 +1,48 @@
+# vim: set ft=yaml ts=2 sw=2
+version: 1.0.0
+credential_id: whatever
+plan:
+  id: my-house
+  location: My House
+  triggers:
+    - days: [ all ]
+      time: sunrise
+      action: switch_on
+      variation:
+        period: 5
+        unit: minutes
+      devices:
+        - room: Living Room
+          device: Sofa Table Lamp
+        - room: Dining Room
+          device: China Cabinet
+    - days: [ weekdays ]
+      time: sunset
+      action: switch_off
+      devices:
+        - room: Ken's Office
+          device: Desk Lamp
+    - days: [ weekends ]
+      time: noon
+      action: switch_on
+      variation:
+        period: 30
+        unit: seconds
+      devices:
+        - room: Basement
+          device: Lamp Under Window
+    - days: [ mon, tue, fri ]
+      time: midnight
+      action: switch_off
+      devices:
+        - room: Julie's Office
+          device: Dresser Lamp
+    - days: [ thu, weekends ]
+      time: 14:32:18
+      action: switch_off
+      variation:
+        period: 3
+        unit: hours
+      devices:
+        - room: Front Porch
+          device: Christmas Lights

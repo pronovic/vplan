@@ -25,26 +25,27 @@ the plan and explicitly set the correct device state before finishing.
 from datetime import datetime
 from typing import Optional
 
-from vplan.engine.interface import PlanImplementation, PlanLocation, VacationPlan
+from vplan.engine.interface import RefreshResult, VacationPlan
 
 
 # pylint: disable=unused-argument
-def refresh_plan(pat_token: str, current: Optional[VacationPlan], new: VacationPlan) -> PlanImplementation:
+def refresh_plan(pat_token: str, current: Optional[VacationPlan], new: VacationPlan) -> RefreshResult:
     """
     Refresh the vacation plan in SmartThings.
 
     Args:
         pat_token(str): The SmartThings PAT token (personal access token)
-        current(VacationPlan): The current vacation plan, possibly unset
+        current(VacationPlan): The current vacation plan, possibly None
         new(VacationPlan): The new vacation plan
 
     Returns:
-        PlanImplementation: Description of the plan implementation at SmartThings
+        RefreshResult: The result of the refresh operation
     """
     # TODO: implement refresh_plan()
-    return PlanImplementation(
+    return RefreshResult(
         id=new.id,
+        location=new.location,
+        time_zone="America/Chicago",  # TODO: fix this to come from retrieved data
         finalized_date=datetime.utcnow(),
-        location=PlanLocation(id=new.id, name=new.location_name, time_zone="America/Chicago"),
         rules=[],
     )

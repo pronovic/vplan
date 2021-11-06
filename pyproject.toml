@@ -24,6 +24,7 @@ classifiers=[
 python = ">=3.7,<4"
 fastapi = "^0.70.0"
 uvicorn = "^0.15.0"
+pydantic-yaml = "^0.4.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"

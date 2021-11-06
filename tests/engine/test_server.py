@@ -9,7 +9,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from vplan.engine.interface import PlanImplementation, PlanLocation, RefreshRequest, VacationPlan
+from vplan.engine.interface import RefreshRequest, RefreshResult, VacationPlan
 from vplan.engine.server import API, API_VERSION
 
 CLIENT = TestClient(API)
@@ -23,10 +23,9 @@ TIME_ZONE = "America/Chicago"
 PAT_TOKEN = "xxx"
 UNAUTHORIZED: Dict[str, str] = {}
 AUTHORIZED = {"Authorization": "Bearer %s" % PAT_TOKEN}
-LOCATION = PlanLocation(id="loc", name="location", time_zone=TIME_ZONE)
-CURRENT = VacationPlan(id="current", location_name="location", last_modified=datetime.now())
-NEW = VacationPlan(id="new", location_name="location", last_modified=NOW)
-IMPLEMENTATION = PlanImplementation(id="result", finalized_date=NOW, location=LOCATION, rules=[])
+CURRENT = VacationPlan(id="current", location="location", last_modified=NOW, triggers=[])
+NEW = VacationPlan(id="new", location="location", last_modified=NOW, triggers=[])
+RESULT = RefreshResult(id="result", location="whatever", time_zone="America/Chicago", finalized_date=NOW, rules=[])
 
 
 class TestApi:
@@ -49,17 +48,17 @@ class TestApi:
 
     @pytest.mark.it("/refresh")
     @pytest.mark.parametrize(
-        "headers,current,new,status,response",
+        "headers,current,new,status,result",
         [
             (UNAUTHORIZED, CURRENT, NEW, 401, None),
-            (AUTHORIZED, None, NEW, 200, IMPLEMENTATION),
-            (AUTHORIZED, CURRENT, NEW, 200, IMPLEMENTATION),
+            (AUTHORIZED, None, NEW, 200, RESULT),
+            (AUTHORIZED, CURRENT, NEW, 200, RESULT),
         ],
         ids=["unauthorized", "no current", "with current"],
     )
     @patch("vplan.engine.server.refresh_plan")
-    def test_api_refresh(self, refresh_plan, headers, current, new, status, response):
-        refresh_plan.return_value = response
+    def test_api_refresh(self, refresh_plan, headers, current, new, status, result):
+        refresh_plan.return_value = result
         request = RefreshRequest(current=current, new=new)
         response = CLIENT.post(url=REFRESH_URL, data=request.json(), headers=headers)
         assert response.status_code == status

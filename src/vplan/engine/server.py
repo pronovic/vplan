@@ -10,7 +10,7 @@ from importlib.metadata import version as metadata_version
 from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordBearer
 
-from .interface import Health, PlanImplementation, RefreshRequest, Version
+from .interface import Health, RefreshRequest, RefreshResult, Version
 from .plan import refresh_plan
 
 API_VERSION = "1.0.0"
@@ -31,7 +31,7 @@ def api_version() -> Version:
 
 
 @API.post("/refresh")
-def api_refresh(request: RefreshRequest, pat_token: str = Depends(BEARER_TOKEN)) -> PlanImplementation:
+def api_refresh(request: RefreshRequest, pat_token: str = Depends(BEARER_TOKEN)) -> RefreshResult:
     """
     Refresh the vacation plan in SmartThings.
 
