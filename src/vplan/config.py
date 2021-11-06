@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# vim: set ft=python ts=4 sw=4 expandtab:
+
+"""
+Configuration for the vacation plan manager.
+"""
+
 from typing import List
 
 from pydantic import Field, SecretStr  # pylint: disable=no-name-in-module

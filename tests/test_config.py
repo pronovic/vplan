@@ -37,6 +37,7 @@ PLAN_EXPECTED = VacationConfig(
     plan=VacationPlan(
         id="my-house",
         location="My House",
+        enabled=False,
         triggers=[
             Trigger(
                 id="living-room-on",

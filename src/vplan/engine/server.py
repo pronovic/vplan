@@ -2,7 +2,7 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 
 """
-The RESTful API, a thin wrapper over business logic.
+The RESTful API provided by the engine.
 """
 
 from importlib.metadata import version as metadata_version

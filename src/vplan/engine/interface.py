@@ -114,6 +114,7 @@ class VacationPlan(YamlModel):
 
     id: str = Field(..., title="Plan identifier", min_length=1)
     location: str = Field(..., title="Name of the location", min_length=1)
+    enabled: bool = Field(..., title="Whether the plan is enabled")
     triggers: List[Trigger] = Field(title="List of lighting action triggers", default_factory=lambda: [])
 
 
