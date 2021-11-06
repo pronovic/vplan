@@ -2,70 +2,46 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 
 """
-The RESTful API
+The RESTful API, a thin wrapper over business logic.
 """
 
-from http import HTTPStatus
 from importlib.metadata import version as metadata_version
-from typing import Any
 
-from fastapi import FastAPI, Request
-from fastapi.encoders import jsonable_encoder
-from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi import Depends, FastAPI
+from fastapi.security import OAuth2PasswordBearer
 
-from .interface import ApiException, Error, FailureReason, Health, Version
+from .interface import Health, PlanImplementation, RefreshRequest, Version
+from .plan import refresh_plan
 
 API_VERSION = "1.0.0"
-
-api = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger or ReDoc
-
-
-def _build_error(status_code: int, content: Any) -> JSONResponse:
-    """Build a JSONResponse to include error content."""
-    return JSONResponse(
-        status_code=status_code,
-        content=jsonable_encoder(content),
-    )
+API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger or ReDoc endpoints
+BEARER_TOKEN = OAuth2PasswordBearer("")
 
 
-# noinspection PyUnusedLocal
-@api.exception_handler(Exception)
-async def general_exception_handler(r: Request, e: Exception) -> JSONResponse:  # pylint: disable=unused-argument
-    """Override general exceptions to look like other errors."""
-    return _build_error(
-        status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-        content=Error(code=FailureReason.INTERNAL_ERROR.name, message=FailureReason.INTERNAL_ERROR.value),
-    )
-
-
-# noinspection PyUnusedLocal
-@api.exception_handler(RequestValidationError)
-async def validation_handler(r: Request, e: RequestValidationError) -> JSONResponse:  # pylint: disable=unused-argument
-    """Override validation errors to look like other errors."""
-    return _build_error(
-        status_code=HTTPStatus.BAD_REQUEST,
-        content=Error(code=FailureReason.INVALID_REQUEST.name, message=FailureReason.INVALID_REQUEST.value),
-    )
-
-
-# noinspection PyUnusedLocal
-@api.exception_handler(ApiException)
-async def api_exception_handler(r: Request, e: ApiException) -> JSONResponse:  # pylint: disable=unused-argument
-    """Handle API exceptions."""
-    return _build_error(
-        status_code=e.status.value,
-        content=Error(code=e.reason.name, message=e.reason.value),
-    )
-
-
-@api.get("/health")
+@API.get("/health")
 def api_health() -> Health:
-    """API health check."""
+    """Return an API health indicator."""
     return Health()
 
 
-@api.get("/version")
+@API.get("/version")
 def api_version() -> Version:
-    """API version, including both the package version and the API version"""
-    return Version(package=metadata_version("vplan"), api=api.version)
+    """Return the API version, including both the package version and the API version"""
+    return Version(package=metadata_version("vplan"), api=API.version)
+
+
+@API.post("/refresh")
+def api_refresh(request: RefreshRequest, pat_token: str = Depends(BEARER_TOKEN)) -> PlanImplementation:
+    """
+    Refresh the vacation plan in SmartThings.
+
+    The refresh request includes a current vacation plan (which might be empty)
+    and a new vacation plan.  The underlying business logic establishes the
+    differences between the two plans and implements the result in the
+    SmartThings infrastructure.
+
+    Args:
+        pat_token(str): The SmartThings PAT token (personal access token)
+        request(RefreshRequest): The vacation plan refresh request
+    """
+    return refresh_plan(pat_token=pat_token, current=request.current, new=request.new)
