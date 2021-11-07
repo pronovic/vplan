@@ -4,14 +4,6 @@
 
 This code runs as a daemon and is intended for use Linux and UNIX-like platforms.
 
-## Systemd Design
-
-The systemd design is heavily based on the excellent [python-systemd-tutorial](https://github.com/torfsen/python-systemd-tutorial).  See also the [specifiers](https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Specifiers) documentation (for constructs like `%h`).  
-
-Uvicorn is using a user-private UNIX socket rather than opening a port like 8080.  For the socket setup, I followed notes [here](https://gist.github.com/kylemanna/d193aaa6b33a89f649524ad27ce47c4b) and [here](https://stackoverflow.com/questions/52507089/running-uvicorn-with-unix-socket).  I'm using [requests-unixsocket](https://pypi.org/project/requests-unixsocket/) to make requests to the UNIX socket.
-
-For file watching in the manager, I'm using [watchdog](https://pypi.org/project/watchdog/).
-
 ## Packaging and Dependencies
 
 This project uses [Poetry](https://python-poetry.org/) to manage Python packaging and dependencies.  Most day-to-day tasks (such as running unit tests from the command line) are orchestrated through Poetry.  
