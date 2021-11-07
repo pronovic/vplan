@@ -3,7 +3,6 @@ credential_id: whatever
 plan:
   id: my-house
   location: My House
-  enabled: false
   triggers:
     - id: living-room-on
       days: [ all ]

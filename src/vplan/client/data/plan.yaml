@@ -3,4 +3,3 @@ credential_id: smartthings
 plan:
   id: vacation-plan
   location: My Location
-  enabled: false

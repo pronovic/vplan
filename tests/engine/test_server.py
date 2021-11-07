@@ -24,8 +24,8 @@ TIME_ZONE = "America/Chicago"
 PAT_TOKEN = "xxx"
 UNAUTHORIZED: Dict[str, str] = {}
 AUTHORIZED = {"Authorization": "Bearer %s" % PAT_TOKEN}
-CURRENT = VacationPlan(id="current", location="location", enabled=True, last_modified=NOW, triggers=[])
-NEW = VacationPlan(id="new", location="location", enabled=True, last_modified=NOW, triggers=[])
+CURRENT = VacationPlan(id="current", location="location", last_modified=NOW, triggers=[])
+NEW = VacationPlan(id="new", location="location", last_modified=NOW, triggers=[])
 RULE = TriggerRule(trigger_id="trigger", rule_id="rule_id", rule_name="rule_name")
 REFRESH_RESULT = RefreshResult(id="result", location="whatever", time_zone="America/Chicago", finalized_date=NOW, rules=[RULE])
 TRIGGER_RESULT = TriggerResult(id="trigger-id", location="whatever", time_zone="America/Chicago", rule=RULE)
