@@ -4,13 +4,19 @@
 """
 Configuration for the vacation plan manager.
 """
-
+import os
+from pathlib import Path
 from typing import List
 
 from pydantic import Field, SecretStr  # pylint: disable=no-name-in-module
 from pydantic_yaml import SemVer, VersionedYamlModel, YamlModel
 
 from .engine.interface import VacationPlan
+
+CONFIG_DIR = os.path.join(str(Path.home()), ".config")
+VPLAN_DIR = os.path.join(CONFIG_DIR, "vplan")
+RUN_DIR = os.path.join(VPLAN_DIR, "run")
+SYSTEMD_DIR = os.path.join(CONFIG_DIR, "systemd", "user")
 
 
 class SmartThingsCredential(YamlModel):
