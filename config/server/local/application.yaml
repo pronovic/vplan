@@ -1,4 +1,7 @@
 database_dir: .runtime/db
 scheduler:
-   database_url: sqlite+pysqlite:///.runtime/db/jobs.sqlite
+   database_url: sqlite+pysqlite///.runtime/db/jobs.sqlite  # this is a relative path
    thread_pool: 10
+   daily_job:
+      time: 00:30:00    # pick a time that your lights are all expected to be off
+      jitter_sec: 300   # the job might run up to 300 seconds later than scheduled

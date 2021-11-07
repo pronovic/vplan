@@ -4,17 +4,25 @@
 """
 Server configuration
 """
+import datetime
 from os import R_OK, access, getenv
 from os.path import isfile
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, NonNegativeInt  # pylint: disable=no-name-in-module
 from pydantic_yaml import YamlModel
 
-# We read this environment variable to find the server configuration YAML file on disk
 from vplan.engine.interface import ServerException
 
+# We read this environment variable to find the server configuration YAML file on disk
 CONFIG_VAR = "VPLAN_CONFIG_PATH"
+
+
+class DailyJobConfig(YamlModel):
+    """Daily job configuration."""
+
+    time: datetime.time = Field(..., title="When to run the per-location daily job, HH:MM:SS in the location's tz")
+    jitter_sec: NonNegativeInt = Field(..., title="Jitter in seconds for the daily job time")
 
 
 class SchedulerConfig(YamlModel):
@@ -22,6 +30,7 @@ class SchedulerConfig(YamlModel):
 
     database_url: str = Field(..., title="The SQLAlchemy database URL to use for the APScheduler job store")
     thread_pool_size: int = Field(..., title="The size of the APScheduler thread pool")
+    daily_job: DailyJobConfig = Field(..., title="Daily job configuration")
 
 
 class ServerConfig(YamlModel):

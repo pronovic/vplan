@@ -1,4 +1,7 @@
 database_dir: .runtime/db
 scheduler:
-   database_url: sqlite+pysqlite:///.runtime/db/jobs.sqlite
+   database_url: sqlite+pysqlite:///.runtime/db/jobs.sqlite  # this is a relative path
    thread_pool_size: 10
+   daily_job:
+      time: 00:30:00
+      jitter_sec: 300

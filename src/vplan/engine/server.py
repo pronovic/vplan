@@ -9,8 +9,8 @@ from importlib.metadata import version as metadata_version
 
 from fastapi import FastAPI
 
-from .config import config
 from .interface import Health, Version
+from .scheduler import shutdown_scheduler, start_scheduler
 
 API_VERSION = "1.0.0"
 API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger or ReDoc endpoints
@@ -18,8 +18,14 @@ API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger 
 
 @API.on_event("startup")
 async def startup_event() -> None:
-    """Do setup at server start."""
-    config()  # forces an immediate load, so either other code can rely on it, or we'll get an error now
+    """Do setup at server startup."""
+    start_scheduler()
+
+
+@API.on_event("shutdown")
+async def shutdown_event() -> None:
+    """Do cleanup at server shutdown."""
+    shutdown_scheduler()
 
 
 @API.get("/health")

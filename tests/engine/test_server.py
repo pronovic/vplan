@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from vplan.engine.server import API, API_VERSION, startup_event
+from vplan.engine.server import API, API_VERSION, shutdown_event, startup_event
 
 CLIENT = TestClient(API)
 
@@ -15,15 +15,19 @@ VERSION_URL = "/version"
 REFRESH_URL = "/refresh"
 
 
-class TestStartup:
+class TestLifecycle:
 
     pytestmark = pytest.mark.asyncio
 
-    @pytest.mark.it("startup_event()")
-    @patch("vplan.engine.server.config")
-    async def test_startup_event(self, config):
+    @patch("vplan.engine.server.start_scheduler")
+    async def test_startup_event(self, start_scheduler):
         await startup_event()
-        config.assert_called_once()
+        start_scheduler.assert_called_once()
+
+    @patch("vplan.engine.server.shutdown_scheduler")
+    async def test_shutdown_event(self, shutdown_scheduler):
+        await shutdown_event()
+        shutdown_scheduler.assert_called_once()
 
 
 class TestApi:
