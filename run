@@ -317,7 +317,7 @@ run_server() {
       run_install
    fi
 
-   poetry run uvicorn vplan.engine.server:api --app-dir src --reload --port 8080
+   poetry run uvicorn vplan.engine.server:api --log-config config/server/logging.yaml --app-dir src --reload --port 8080
 }
 
 # Execute one of the developer tasks

@@ -15,6 +15,11 @@ API_VERSION = "1.0.0"
 api = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger or ReDoc endpoints
 
 
+@api.on_event("startup")
+async def startup_event() -> None:
+    """Do setup at server start."""
+
+
 @api.get("/health")
 def api_health() -> Health:
     """Return an API health indicator."""
