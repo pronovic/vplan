@@ -37,7 +37,7 @@ def _copy_datafile(source_file: str, target_dir: str, target_file: Optional[str]
 def _init_config(force: bool) -> None:
     """Initialize configuration files in the user's home directory."""
     for path in _CONFIG_DIRS:
-        os.makedirs(path)
+        os.makedirs(path, exist_ok=True)
     for path in _CONFIG_FILES:
         _copy_datafile(path, _VPLAN_DIR, force=force)
     for path in _SYSTEMD_FILES:
