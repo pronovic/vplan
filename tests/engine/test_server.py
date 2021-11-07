@@ -6,19 +6,27 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from vplan.engine.server import API_VERSION, api
+from vplan.engine.server import API, API_VERSION, startup_event
 
-CLIENT = TestClient(api)
+CLIENT = TestClient(API)
 
 HEALTH_URL = "/health"
 VERSION_URL = "/version"
 REFRESH_URL = "/refresh"
 
 
+class TestStartup:
+
+    pytestmark = pytest.mark.asyncio
+
+    @pytest.mark.it("startup_event()")
+    @patch("vplan.engine.server.config")
+    async def test_startup_event(self, config):
+        await startup_event()
+        config.assert_called_once()
+
+
 class TestApi:
-
-    """Test the public API endpoints via a client."""
-
     @pytest.mark.it("/health")
     def test_api_health(self):
         response = CLIENT.get(url=HEALTH_URL)

@@ -1,0 +1,4 @@
+database_dir: .runtime/db
+scheduler:
+   database_url: sqlite+pysqlite:///.runtime/db/jobs.sqlite
+   thread_pool_size: 10
