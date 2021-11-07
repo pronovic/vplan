@@ -3,14 +3,16 @@
 import os
 from datetime import time
 
-from vplan.config import CredentialsConfig, SmartThingsCredential, VacationConfig
-from vplan.engine.interface import (
+from vplan.config import (
+    CredentialsConfig,
+    SmartThingsCredential,
     Trigger,
     TriggerAction,
     TriggerDay,
     TriggerDevice,
     TriggerTime,
     TriggerVariation,
+    VacationConfig,
     VacationPlan,
     VariationDirection,
     VariationUnit,

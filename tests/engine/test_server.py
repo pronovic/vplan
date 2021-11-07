@@ -9,7 +9,8 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from vplan.engine.interface import RefreshRequest, RefreshResult, TriggerResult, TriggerRule, VacationPlan
+from vplan.config import VacationPlan
+from vplan.engine.interface import RefreshRequest, RefreshResult, TriggerResult, TriggerRule
 from vplan.engine.server import API, API_VERSION
 
 CLIENT = TestClient(API)

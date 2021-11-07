@@ -25,7 +25,8 @@ the plan and explicitly set the correct device state before finishing.
 from datetime import datetime
 from typing import Optional
 
-from vplan.engine.interface import RefreshResult, TriggerResult, TriggerRule, VacationPlan
+from vplan.config import VacationPlan
+from vplan.engine.interface import RefreshResult, TriggerResult, TriggerRule
 
 
 # pylint: disable=unused-argument

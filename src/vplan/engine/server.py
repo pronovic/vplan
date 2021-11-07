@@ -2,7 +2,7 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 
 """
-The RESTful API provided by the engine.
+The stateless RESTful API provided by the engine.
 """
 
 from importlib.metadata import version as metadata_version
@@ -10,7 +10,8 @@ from importlib.metadata import version as metadata_version
 from fastapi import Depends, FastAPI
 from fastapi.security import OAuth2PasswordBearer
 
-from .interface import Health, RefreshRequest, RefreshResult, TriggerResult, VacationPlan, Version
+from ..config import VacationPlan
+from .interface import Health, RefreshRequest, RefreshResult, TriggerResult, Version
 from .plan import execute_trigger_actions, refresh_plan
 
 API_VERSION = "1.0.0"
