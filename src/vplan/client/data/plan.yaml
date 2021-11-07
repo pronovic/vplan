@@ -1,5 +1,0 @@
-version: 1.0.0
-credential_id: smartthings
-plan:
-  id: vacation-plan
-  location: My Location

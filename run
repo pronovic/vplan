@@ -317,17 +317,7 @@ run_server() {
       run_install
    fi
 
-   poetry run uvicorn vplan.engine.server:API --app-dir src --reload --port 8080
-}
-
-# Run the vplan manager against the API at port :8080
-run_manager() {
-   poetry run which vplan_manager > /dev/null
-   if [ $? != 0 ]; then
-      run_install
-   fi
-
-   poetry run vplan_manager --local-port=8080
+   poetry run uvicorn vplan.engine.server:api --app-dir src --reload --port 8080
 }
 
 # Execute one of the developer tasks
@@ -393,9 +383,6 @@ case $1 in
    server)
       run_server
       ;;
-   manager)
-      run_manager
-      ;;
    *)
       echo ""
       echo "------------------------------------"
@@ -418,7 +405,6 @@ case $1 in
       echo "- run release: Release a specific version and tag the code"
       echo "- run publish: Publish the current code to PyPI and push to GitHub"
       echo "- run server: Run the vplan REST API server at port :8080"
-      echo "- run manager: Run the vplan manager against the API at port :8080"
       echo ""
       exit 1
 esac
