@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from fastapi.testclient import TestClient
@@ -20,12 +20,10 @@ class TestLifecycle:
     pytestmark = pytest.mark.asyncio
 
     @patch("vplan.engine.server.start_scheduler")
-    @patch("vplan.engine.server.makedirs")
-    @patch("vplan.engine.server.config")
-    async def test_startup_event(self, config, makedirs, start_scheduler):
-        config.return_value = MagicMock(database_dir="thedir")
+    @patch("vplan.engine.server.setup_directories")
+    async def test_startup_event(self, setup_directories, start_scheduler):
         await startup_event()
-        makedirs.assert_called_once_with("thedir", mode=0o700, exist_ok=True)
+        setup_directories.assert_called_once()
         start_scheduler.assert_called_once()
 
     @patch("vplan.engine.server.shutdown_scheduler")
