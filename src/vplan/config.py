@@ -145,3 +145,16 @@ class CredentialsConfig(VersionedYamlModel):
             if credential.id == credential_id:
                 return credential.token.get_secret_value()
         raise ValueError("Unknown credential id")
+
+
+class PlanState(VersionedYamlModel):
+    """State maintained for a plan."""
+
+    class Config:
+        min_version = "1.0.0"
+        max_version = "1.0.0"
+
+    version: SemVer = Field(..., title="Credential configuration version")
+    enabled: bool = Field(..., title="Whether the plan is enabled")
+    last_state_change: datetime.datetime = Field(..., title="The date the enabled/disabled state was last modified")
+    last_plan_change: datetime.datetime = Field(..., title="The date the plan contents were last modified")

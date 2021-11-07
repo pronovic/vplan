@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
 
+import datetime
 import json
-from datetime import datetime
 from typing import Dict
 from unittest.mock import patch
 
@@ -20,7 +20,7 @@ VERSION_URL = "/version"
 REFRESH_URL = "/refresh"
 TRIGGER_URL = "/trigger/%s"
 
-NOW = datetime.now()
+NOW = datetime.datetime.now()
 TIME_ZONE = "America/Chicago"
 PAT_TOKEN = "xxx"
 UNAUTHORIZED: Dict[str, str] = {}

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+import datetime
 import os
-from datetime import time
 
 from vplan.config import (
     CredentialsConfig,
@@ -84,7 +84,7 @@ PLAN_EXPECTED = VacationConfig(
             Trigger(
                 id="christmas-lights-off",
                 days=[TriggerDay.THURSDAY, TriggerDay.WEEKENDS],
-                time=time(hour=14, minute=32, second=18),
+                time=datetime.time(hour=14, minute=32, second=18),
                 action=TriggerAction.SWITCH_OFF,
                 variation=TriggerVariation(period=3, unit=VariationUnit.HOURS, direction=VariationDirection.AFTER),
                 devices=[

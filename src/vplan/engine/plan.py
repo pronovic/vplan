@@ -22,7 +22,7 @@ was scheduled to change.  This is why we toggle off devices removed from
 the plan and explicitly set the correct device state before finishing.
 """
 
-from datetime import datetime
+import datetime
 from typing import Optional
 
 from vplan.config import VacationPlan
@@ -37,7 +37,7 @@ def refresh_plan(pat_token: str, current: Optional[VacationPlan], new: VacationP
         id=new.id,
         location=new.location,
         time_zone="America/Chicago",  # TODO: fix this to come from retrieved data
-        finalized_date=datetime.utcnow(),
+        finalized_date=datetime.datetime.utcnow(),
         rules=[],
     )
 
