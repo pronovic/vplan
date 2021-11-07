@@ -57,7 +57,6 @@ def dump_instructions() -> None:
     click.secho("Configuration has been bootstrapped:")
     click.secho("")
     click.secho("  Vacation plan config...: %s/*.yaml" % VPLAN_DIR)
-    click.secho("  Shared run directory...: %s" % RUN_DIR)
     click.secho("  User systemd services..: %s" % SYSTEMD_DIR)
     click.secho("")
     click.secho("Next, get a PAT token from: https://account.smartthings.com/token")
