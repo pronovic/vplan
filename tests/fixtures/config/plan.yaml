@@ -1,4 +1,3 @@
-# vim: set ft=yaml ts=2 sw=2
 version: 1.0.0
 credential_id: whatever
 plan:
