@@ -25,6 +25,11 @@ def _init_scheduler(scheduler_config: SchedulerConfig) -> BackgroundScheduler:
     return BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone="UTC")
 
 
+def scheduler() -> Optional[BackgroundScheduler]:
+    """Retrieve the scheduler, intended mostly for unit testing purposes."""
+    return _SCHEDULER
+
+
 def start_scheduler() -> None:
     """Start the scheduler, if it is not alrady started."""
     global _SCHEDULER  # pylint: disable=global-statement
@@ -55,8 +60,11 @@ def schedule_daily_job(job_id: str, func: Callable[..., None], kwargs: Dict[str,
         raise ServerException("Scheduler has not been started.")
     time = config().scheduler.daily_job.time
     jitter = config().scheduler.daily_job.jitter_sec
+    grace = config().scheduler.daily_job.misfire_grace_sec
     trigger = CronTrigger(hour=time.hour, minute=time.minute, second=time.second, timezone=time_zone, jitter=jitter)
-    _SCHEDULER.add_job(id=job_id, jobstore="sqlite", func=func, trigger=trigger, kwargs=kwargs, replace_existing=True)
+    _SCHEDULER.add_job(
+        id=job_id, jobstore="sqlite", func=func, trigger=trigger, kwargs=kwargs, replace_existing=True, misfire_grace_time=grace
+    )
 
 
 def unschedule_daily_job(job_id: str) -> None:

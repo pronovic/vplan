@@ -4,11 +4,12 @@
 """
 The RESTful API.
 """
-
 from importlib.metadata import version as metadata_version
+from os import makedirs
 
 from fastapi import FastAPI
 
+from .config import config
 from .interface import Health, Version
 from .scheduler import shutdown_scheduler, start_scheduler
 
@@ -19,6 +20,7 @@ API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger 
 @API.on_event("startup")
 async def startup_event() -> None:
     """Do setup at server startup."""
+    makedirs(config().database_dir, mode=0o700, exist_ok=True)
     start_scheduler()
 
 

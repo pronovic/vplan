@@ -318,7 +318,7 @@ run_server() {
    fi
 
    poetry run uvicorn vplan.engine.server:API \
-      --port 8080
+      --port 8080 \
       --app-dir src --reload \
       --log-config config/server/local/logging.yaml \
       --env-file config/server/local/server.env

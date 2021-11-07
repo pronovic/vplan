@@ -23,6 +23,7 @@ class DailyJobConfig(YamlModel):
 
     time: datetime.time = Field(..., title="When to run the per-location daily job, HH:MM:SS in the location's tz")
     jitter_sec: NonNegativeInt = Field(..., title="Jitter in seconds for the daily job time")
+    misfire_grace_sec: NonNegativeInt = Field(..., title="Misfire grace period in seconds, if job can't be run on time")
 
 
 class SchedulerConfig(YamlModel):
