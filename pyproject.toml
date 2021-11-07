@@ -20,11 +20,15 @@ classifiers=[
    "Topic :: Home Automation",
 ]
 
+[tool.poetry.scripts]
+vplan = "vplan.client.cli:vplan"
+
 [tool.poetry.dependencies]
-python = ">=3.7,<4"
+python = ">=3.9,<4"
 fastapi = "^0.70.0"
 uvicorn = "^0.15.0"
 pydantic-yaml = "^0.4.2"
+click = "^8.0.3"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
