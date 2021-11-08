@@ -8,14 +8,14 @@ Database operations.
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
 
 import logging
-from typing import Optional
+from typing import List, Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from vplan.engine.config import config
+from vplan.engine.entity import Base
 from vplan.engine.interface import ServerException
-from vplan.engine.model import Base
 
 _ENGINE: Optional[Engine] = None
 
@@ -33,3 +33,8 @@ def setup_database() -> None:
     logging.getLogger("sqlalchemy").setLevel(logging.DEBUG)
     _ENGINE = create_engine(config().database_url, future=True)
     Base.metadata.create_all(_ENGINE)
+
+
+def get_tables() -> List[str]:
+    """Return a list of tables in the application database."""
+    return sorted(list(Base.metadata.tables.keys()))

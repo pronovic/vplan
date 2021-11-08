@@ -4,11 +4,13 @@
 import datetime
 from unittest.mock import MagicMock, patch
 
+import pytest
 from apscheduler.triggers.cron import CronTrigger
 from busypie import SECOND, wait
 from tzlocal import get_localzone
 
 from vplan.engine.config import DailyJobConfig, SchedulerConfig
+from vplan.engine.interface import ServerException
 from vplan.engine.scheduler import schedule_daily_job, scheduler, shutdown_scheduler, start_scheduler, unschedule_daily_job
 
 INDICATOR = None
@@ -49,7 +51,7 @@ def assert_job_definition(job_id, kwargs):
 
 class TestLifecycle:
     @patch("vplan.engine.scheduler.config")
-    def test_schedule_daily_job(self, config, tmpdir):
+    def test_scheduler_lifecycle(self, config, tmpdir):
         shutdown_scheduler()
 
         # this sets things up so the daily job is scheduled a few seconds from now, so we can check that it runs
@@ -61,6 +63,7 @@ class TestLifecycle:
 
         try:
             start_scheduler()
+            assert scheduler() is not None
 
             # Create the job and make sure it executes
             schedule_daily_job(job_id="test_job", func=job_function, kwargs={"message": "job #1"}, time_zone="%s" % tz)
@@ -77,3 +80,5 @@ class TestLifecycle:
 
         finally:
             shutdown_scheduler()
+            with pytest.raises(ServerException, match=r"Scheduler is not available"):
+                scheduler()

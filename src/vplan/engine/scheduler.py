@@ -28,7 +28,7 @@ def _init_scheduler(scheduler_config: SchedulerConfig) -> BackgroundScheduler:
 def scheduler() -> BackgroundScheduler:
     """Retrieve the scheduler, intended mostly for unit testing purposes."""
     if not _SCHEDULER:
-        raise ServerException("Scheduler is not availble")
+        raise ServerException("Scheduler is not available")
     return _SCHEDULER
 
 
