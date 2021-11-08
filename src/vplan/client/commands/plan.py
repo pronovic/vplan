@@ -54,6 +54,12 @@ def delete(plan_name: str) -> None:
 
 @plan.command()
 @click.argument("plan_name", metavar="<plan-name>")
+def status(plan_name: str) -> None:
+    """Check the enabled/disabled status of a plan"""
+
+
+@plan.command()
+@click.argument("plan_name", metavar="<plan-name>")
 def enable(plan_name: str) -> None:
     """Enable a plan, allowing it to execute if the account is enabled."""
 

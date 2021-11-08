@@ -62,6 +62,11 @@ def clear() -> None:
 
 
 @account.command()
+def status() -> None:
+    """Check the enabled/disabled status of your account."""
+
+
+@account.command()
 def enable() -> None:
     """Enable your account, allowing any enabled plans to execute."""
 
@@ -72,14 +77,5 @@ def disable() -> None:
 
 
 @account.command()
-@click.option(
-    "--token",
-    "-t",
-    "token",
-    is_flag=True,
-    required=False,
-    default=False,
-    help="Show the PAT token secret, rather than masking it",
-)
 def show(token: bool) -> None:
     """Show the account information stored in the plan engine."""
