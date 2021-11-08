@@ -46,5 +46,4 @@ class PlanEntity(BaseEntity):
     __tablename__ = "plan"
     plan_name = Column(String, primary_key=True)
     account_name = Column(Integer, ForeignKey("account.account_name"))
-    version = Column(Integer)
     definition = Column(NestedMutableJson)

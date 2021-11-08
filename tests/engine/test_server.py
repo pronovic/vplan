@@ -12,7 +12,6 @@ CLIENT = TestClient(API)
 
 HEALTH_URL = "/health"
 VERSION_URL = "/version"
-REFRESH_URL = "/refresh"
 
 
 class TestLifecycle:
@@ -34,16 +33,16 @@ class TestLifecycle:
         shutdown_scheduler.assert_called_once()
 
 
-class TestApi:
+class TestSystemEndpoints:
     @pytest.mark.it("/health")
-    def test_api_health(self):
+    def test_health(self):
         response = CLIENT.get(url=HEALTH_URL)
         assert response.status_code == 200
         assert response.json() == {"status": "OK"}
 
     @pytest.mark.it("/version")
     @patch("vplan.engine.server.metadata_version")
-    def test_api_version(self, metadata_version):
+    def test_version(self, metadata_version):
         metadata_version.return_value = "xxx"
         response = CLIENT.get(url=VERSION_URL)
         assert response.status_code == 200
