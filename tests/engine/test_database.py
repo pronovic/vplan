@@ -3,7 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 from vplan.engine.database import get_tables, setup_database
-from vplan.engine.entity import Account, Device, DeviceGroup, Plan, Trigger
+from vplan.engine.entity import AccountEntity, PlanEntity
 
 
 class TestLifecycle:
@@ -13,9 +13,6 @@ class TestLifecycle:
         config.return_value = MagicMock(database_url=database_url)
         setup_database()
         assert get_tables() == [
-            Account.__tablename__,
-            Device.__tablename__,
-            DeviceGroup.__tablename__,
-            Plan.__tablename__,
-            Trigger.__tablename__,
+            AccountEntity.__tablename__,
+            PlanEntity.__tablename__,
         ]

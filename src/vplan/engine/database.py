@@ -14,7 +14,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from vplan.engine.config import config
-from vplan.engine.entity import Base
+from vplan.engine.entity import BaseEntity
 from vplan.engine.interface import ServerException
 
 _ENGINE: Optional[Engine] = None
@@ -32,9 +32,9 @@ def setup_database() -> None:
     global _ENGINE  # pylint: disable=global-statement
     logging.getLogger("sqlalchemy").setLevel(logging.DEBUG)
     _ENGINE = create_engine(config().database_url, future=True)
-    Base.metadata.create_all(_ENGINE)
+    BaseEntity.metadata.create_all(_ENGINE)
 
 
 def get_tables() -> List[str]:
     """Return a list of tables in the application database."""
-    return sorted(list(Base.metadata.tables.keys()))
+    return sorted(list(BaseEntity.metadata.tables.keys()))

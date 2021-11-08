@@ -890,6 +890,18 @@ pymysql = ["pymysql (<1)", "pymysql"]
 sqlcipher = ["sqlcipher3-binary"]
 
 [[package]]
+name = "sqlalchemy-json"
+version = "0.4.0"
+description = "JSON type with nested change tracking for SQLAlchemy"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.dependencies]
+six = "*"
+sqlalchemy = ">=0.7"
+
+[[package]]
 name = "sqlalchemy2-stubs"
 version = "0.0.2a19"
 description = "Typing Stubs for SQLAlchemy 1.4"
@@ -1051,7 +1063,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<4"
-content-hash = "31fd7e4dad3f61d1ff325dbb677877a4fa46f79caef52f68a9557e86f80cbf62"
+content-hash = "da5285a40fc9c0f9c2e8b6b970efb8786b371416e8951cb932bcbaa713a6ae7e"
 
 [metadata.files]
 alabaster = [
@@ -1676,6 +1688,10 @@ sqlalchemy = [
     {file = "SQLAlchemy-1.4.26-cp39-cp39-win32.whl", hash = "sha256:b86f762cee3709722ab4691981958cbec475ea43406a6916a7ec375db9cbd9e9"},
     {file = "SQLAlchemy-1.4.26-cp39-cp39-win_amd64.whl", hash = "sha256:5c6774b34782116ad9bdec61c2dbce9faaca4b166a0bc8e7b03c2b870b121d94"},
     {file = "SQLAlchemy-1.4.26.tar.gz", hash = "sha256:6bc7f9d7d90ef55e8c6db1308a8619cd8f40e24a34f759119b95e7284dca351a"},
+]
+sqlalchemy-json = [
+    {file = "sqlalchemy-json-0.4.0.tar.gz", hash = "sha256:d8e72cac50724a17cc137c98bec5cb5990e9f1e8fc3eb30dd225fb47c087ea27"},
+    {file = "sqlalchemy_json-0.4.0-py2.py3-none-any.whl", hash = "sha256:0f52f24301aa3b5ea240b622facc489eff2e7bfddde931ba988bfabc306b1778"},
 ]
 sqlalchemy2-stubs = [
     {file = "sqlalchemy2-stubs-0.0.2a19.tar.gz", hash = "sha256:2117c48ce5acfe33bf9c9bfce2a981632d931949e68fa313aa5c2a3bc980ca7a"},
