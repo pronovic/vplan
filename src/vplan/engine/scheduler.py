@@ -4,6 +4,7 @@
 """
 Manage the runtime scheduler for periodic jobs.
 """
+import datetime
 from typing import Any, Callable, Dict, Optional
 
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -48,24 +49,36 @@ def shutdown_scheduler() -> None:
         _SCHEDULER = None
 
 
-def schedule_daily_job(job_id: str, func: Callable[..., None], kwargs: Dict[str, Any], time_zone: str) -> None:
+def schedule_daily_job(
+    job_id: str,
+    time: datetime.time,
+    func: Callable[..., None],
+    kwargs: Dict[str, Any],
+    time_zone: str,
+) -> None:
     """
     Create or replace a daily job that will run at a standard time forever, until removed.
 
     Args:
         job_id(str): Job identifier, unique across the entire system
+        time(str): The time when the job should be executed
         func(Callable): Job function to invoke on the schedule
         kwargs(Dict[str, Any]): Keyword arguments to pass to the job function when invoked
         time_zone: Time zone in which to execute the job
     """
     if not _SCHEDULER:
         raise ServerException("Scheduler has not been started.")
-    time = config().scheduler.daily_job.time
     jitter = config().scheduler.daily_job.jitter_sec
     grace = config().scheduler.daily_job.misfire_grace_sec
     trigger = CronTrigger(hour=time.hour, minute=time.minute, second=time.second, timezone=time_zone, jitter=jitter)
     _SCHEDULER.add_job(
-        id=job_id, jobstore="sqlite", func=func, trigger=trigger, kwargs=kwargs, replace_existing=True, misfire_grace_time=grace
+        id=job_id,
+        jobstore="sqlite",
+        func=func,
+        trigger=trigger,
+        kwargs=kwargs,
+        replace_existing=True,
+        misfire_grace_time=grace,
     )
 
 

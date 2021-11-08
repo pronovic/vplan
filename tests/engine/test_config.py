@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
-import datetime
 import os
 from unittest.mock import patch
 
@@ -55,6 +54,5 @@ class TestConfig:
         assert result.database_dir == ".runtime/db"
         assert result.scheduler.database_url == "sqlite+pysqlite:///.runtime/db/jobs.sqlite"
         assert result.scheduler.thread_pool_size == 10
-        assert result.scheduler.daily_job.time == datetime.time(hour=0, minute=30, second=0)
         assert result.scheduler.daily_job.jitter_sec == 300
         assert result.scheduler.daily_job.misfire_grace_sec == 1800

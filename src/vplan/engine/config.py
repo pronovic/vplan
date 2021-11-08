@@ -4,7 +4,6 @@
 """
 Server configuration
 """
-import datetime
 from os import R_OK, access, getenv
 from os.path import isfile
 from typing import Optional
@@ -21,7 +20,6 @@ CONFIG_VAR = "VPLAN_CONFIG_PATH"
 class DailyJobConfig(YamlModel):
     """Daily job configuration."""
 
-    time: datetime.time = Field(..., title="When to run the per-location daily job, HH:MM:SS in the location's tz")
     jitter_sec: NonNegativeInt = Field(..., title="Jitter in seconds for the daily job time")
     misfire_grace_sec: NonNegativeInt = Field(..., title="Misfire grace period in seconds, if job can't be run on time")
 

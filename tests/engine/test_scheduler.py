@@ -56,8 +56,10 @@ class TestLifecycle:
 
         # this sets things up so the daily job is scheduled a few seconds from now, so we can check that it runs
         tz = get_localzone()
+        time1 = in_future(seconds=JOB_DELAY_SEC, tz=tz)
+        time2 = in_future(seconds=JOB_DELAY_SEC * 2, tz=tz)
         database_url = "sqlite+pysqlite:///%s" % tmpdir.join("jobs.sqlite").realpath()
-        daily = DailyJobConfig(time=in_future(seconds=JOB_DELAY_SEC, tz=tz), jitter_sec=0, misfire_grace_sec=1)
+        daily = DailyJobConfig(jitter_sec=0, misfire_grace_sec=1)
         scheduler_config = SchedulerConfig(database_url=database_url, thread_pool_size=10, daily_job=daily)
         config.return_value = MagicMock(scheduler=scheduler_config)
 
@@ -66,13 +68,14 @@ class TestLifecycle:
             assert scheduler() is not None
 
             # Create the job and make sure it executes
-            schedule_daily_job(job_id="test_job", func=job_function, kwargs={"message": "job #1"}, time_zone="%s" % tz)
+            schedule_daily_job(job_id="test_job", time=time1, func=job_function, kwargs={"message": "job #1"}, time_zone="%s" % tz)
             assert_job_definition("test_job", {"message": "job #1"})
             wait().at_most(JOB_DELAY_SEC, SECOND).until(lambda: INDICATOR == "job #1")
 
-            # Recreate the job and make sure updates are reflected (but this one won't be executed)
-            schedule_daily_job(job_id="test_job", func=job_function, kwargs={"message": "job #2"}, time_zone="%s" % tz)
+            # Recreate the job and make sure updates are reflected
+            schedule_daily_job(job_id="test_job", time=time2, func=job_function, kwargs={"message": "job #2"}, time_zone="%s" % tz)
             assert_job_definition("test_job", {"message": "job #2"})
+            wait().at_most(JOB_DELAY_SEC, SECOND).until(lambda: INDICATOR == "job #2")
 
             # Remove the job and make sure the change takes effect
             unschedule_daily_job(job_id="test_job")
