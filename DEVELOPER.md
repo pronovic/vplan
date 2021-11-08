@@ -159,7 +159,7 @@ Structure**, mark both `src` and `tests` as source folders.  In the **Exclude
 Files** box, enter the following:
 
 ```
-LICENSE;NOTICE;PyPI.md;.coverage;.coveragerc;.github;.gitignore;.gitattributes;.htmlcov;.idea;.isort.cfg;.mypy.ini;.mypy_cache;.pre-commit-config.yaml;.pylintrc;.pytest_cache;.readthedocs.yml;.tox;.toxrc;.tabignore;build;dist;docs/_build;out;poetry.lock;poetry.toml;run;
+LICENSE;NOTICE;PyPI.md;.coverage;.coveragerc;.github;.gitignore;.gitattributes;.htmlcov;.idea;.isort.cfg;.mypy.ini;.mypy_cache;.pre-commit-config.yaml;.pylintrc;.pytest_cache;.readthedocs.yml;.tox;.toxrc;.tabignore;build;dist;docs/_build;out;poetry.lock;poetry.toml;run;.runtime
 ```
 
 When you're done, click **Ok**.  Then, go to the gear icon in the project panel 
