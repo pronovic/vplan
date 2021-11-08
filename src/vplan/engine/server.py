@@ -10,11 +10,14 @@ from fastapi import FastAPI
 
 from .database import setup_database
 from .interface import Health, Version
+from .routers import account, plan
 from .scheduler import shutdown_scheduler, start_scheduler
 from .util import setup_directories
 
 API_VERSION = "1.0.0"
 API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger or ReDoc endpoints
+API.include_router(account.ROUTER)
+API.include_router(plan.ROUTER)
 
 
 @API.on_event("startup")
@@ -32,12 +35,12 @@ async def shutdown_event() -> None:
 
 
 @API.get("/health")
-def api_health() -> Health:
+def health() -> Health:
     """Return an API health indicator."""
     return Health()
 
 
 @API.get("/version")
-def api_version() -> Version:
+def version() -> Version:
     """Return the API version, including both the package version and the API version"""
     return Version(package=metadata_version("vplan"), api=API.version)
