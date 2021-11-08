@@ -8,6 +8,7 @@ from importlib.metadata import version as metadata_version
 
 from fastapi import FastAPI
 
+from .database import setup_database
 from .interface import Health, Version
 from .scheduler import shutdown_scheduler, start_scheduler
 from .util import setup_directories
@@ -20,6 +21,7 @@ API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger 
 async def startup_event() -> None:
     """Do setup at server startup."""
     setup_directories()
+    setup_database()
     start_scheduler()
 
 

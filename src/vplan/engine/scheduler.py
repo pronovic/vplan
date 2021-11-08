@@ -25,8 +25,10 @@ def _init_scheduler(scheduler_config: SchedulerConfig) -> BackgroundScheduler:
     return BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone="UTC")
 
 
-def scheduler() -> Optional[BackgroundScheduler]:
+def scheduler() -> BackgroundScheduler:
     """Retrieve the scheduler, intended mostly for unit testing purposes."""
+    if not _SCHEDULER:
+        raise ServerException("Scheduler is not availble")
     return _SCHEDULER
 
 

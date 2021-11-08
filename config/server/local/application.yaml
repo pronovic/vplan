@@ -1,6 +1,7 @@
 database_dir: .runtime/db
+database_url: sqlite+pysqlite:///.runtime/db/vplan.sqlite
 scheduler:
-   database_url: sqlite+pysqlite:///.runtime/db/jobs.sqlite  # this is a relative path
+   database_url: sqlite+pysqlite:///.runtime/db/jobs.sqlite
    thread_pool_size: 10
    daily_job:
       time: 00:30:00           # pick a time that your lights are all expected to be off

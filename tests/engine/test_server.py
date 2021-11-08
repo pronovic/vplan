@@ -20,10 +20,12 @@ class TestLifecycle:
     pytestmark = pytest.mark.asyncio
 
     @patch("vplan.engine.server.start_scheduler")
+    @patch("vplan.engine.server.setup_database")
     @patch("vplan.engine.server.setup_directories")
-    async def test_startup_event(self, setup_directories, start_scheduler):
+    async def test_startup_event(self, setup_directories, setup_database, start_scheduler):
         await startup_event()
         setup_directories.assert_called_once()
+        setup_database.assert_called_once()
         start_scheduler.assert_called_once()
 
     @patch("vplan.engine.server.shutdown_scheduler")

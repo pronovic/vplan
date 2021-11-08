@@ -53,6 +53,7 @@ safety = "^1.10.3"
 coveralls = "^3.3.0"
 tzlocal = "^4.1"
 busypie = "^0.4.5"
+sqlalchemy2-stubs = "^0.0.2-alpha.19"
 
 [tool.black]
 line-length = 132

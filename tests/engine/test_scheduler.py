@@ -47,7 +47,7 @@ def assert_job_definition(job_id, kwargs):
     # we can't confirm much about the schedule, but the actual execution behavior should prove that's ok
 
 
-class TestConfig:
+class TestLifecycle:
     @patch("vplan.engine.scheduler.config")
     def test_schedule_daily_job(self, config, tmpdir):
         shutdown_scheduler()

@@ -1,4 +1,5 @@
 database_dir: .runtime/db
+database_url: sqlite+pysqlite:///.runtime/db/vplan.sqlite
 scheduler:
    database_url: sqlite+pysqlite:///.runtime/db/jobs.sqlite  # this is a relative path
    thread_pool_size: 10
