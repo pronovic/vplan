@@ -24,7 +24,7 @@ def create(yaml_path: str) -> None:
 
     Specify a path on disk for <yaml-file>, or use "-"
     to read from stdin.  The plan will be created with
-    the identifier in the YAML definition.
+    the name in the YAML definition.
     """
 
 
@@ -36,7 +36,7 @@ def modify(yaml_path: str) -> None:
 
     Specify a path on disk for <yaml-file>, or use "-"
     to read from stdin.  An existing plan will be
-    modified based on the identifier in the YAML
+    modified based on the name in the YAML
     definition.
     """
 
@@ -47,37 +47,37 @@ def list_plans() -> None:
 
 
 @plan.command()
-@click.argument("plan_id", metavar="<plan-id>")
-def delete(plan_id: str) -> None:
+@click.argument("plan_name", metavar="<plan-name>")
+def delete(plan_name: str) -> None:
     """Delete a plan."""
 
 
 @plan.command()
-@click.argument("plan_id", metavar="<plan-id>")
-def enable(plan_id: str) -> None:
+@click.argument("plan_name", metavar="<plan-name>")
+def enable(plan_name: str) -> None:
     """Enable a plan, allowing it to execute if the account is enabled."""
 
 
 @plan.command()
-@click.argument("plan_id", metavar="<plan-id>")
-def disable(plan_id: str) -> None:
+@click.argument("plan_name", metavar="<plan-name>")
+def disable(plan_name: str) -> None:
     """Disable a plan, preventing it from executing."""
 
 
 @plan.command()
-@click.argument("plan_id", metavar="<plan-id>")
-def refresh(plan_id: str) -> None:
+@click.argument("plan_name", metavar="<plan-name>")
+def refresh(plan_name: str) -> None:
     """Refresh the plan rules in the SmartThings infrastructure."""
 
 
 @plan.command()
-@click.argument("plan_id", metavar="<plan-id>")
-def show(plan_id: str) -> None:
+@click.argument("plan_name", metavar="<plan-name>")
+def show(plan_name: str) -> None:
     """Show information about a plan."""
 
 
 @plan.command()
-@click.argument("plan_id", metavar="<plan-id>")
+@click.argument("plan_name", metavar="<plan-name>")
 @click.option(
     "--output",
     "-o",
@@ -85,7 +85,7 @@ def show(plan_id: str) -> None:
     metavar="<yaml-path>",
     help="Generate output to a file rather than stdout",
 )
-def export(plan_id: str, yaml_path: Optional[str]) -> None:
+def export(plan_name: str, yaml_path: Optional[str]) -> None:
     """
     Export a plan definition to YAML.
 
@@ -100,9 +100,9 @@ def export(plan_id: str, yaml_path: Optional[str]) -> None:
 
 
 @plan.command()
-@click.argument("plan_id", metavar="<plan-id>")
+@click.argument("plan_name", metavar="<plan-name>")
 @click.argument("device_name", metavar="<device-name>")
-def test(plan_id: str, device_name: str) -> None:
+def test(plan_name: str, device_name: str) -> None:
     """
     Test a device that is part of a plan.
 
