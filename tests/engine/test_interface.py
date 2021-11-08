@@ -4,6 +4,9 @@ import pytest
 
 from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, ServerException, Trigger, Version
 
+VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
+TOO_LONG_NAME = "%sX" % VALID_NAME  # one carhacter too long
+
 
 class TestExceptions:
 
@@ -31,11 +34,11 @@ class TestModels:
     @pytest.mark.parametrize(
         "days,on_time,off_time,variation",
         [
-            ([], "midnight", "noon", "none"),
-            ([], "sunrise", "noon", "disabled"),
-            ([], "00:00", "23:59", "Disabled"),
-            ([], "00:00", "23:59", "+ 5 minutes"),
-            ([], "00:00", "23:59", "- 2 HOURS"),
+            ([], "midnight", "noon ", "none"),
+            ([], "sunrise", "noon", " disabled  "),
+            ([], "00:00", " 23:59", "Disabled"),
+            ([], "00:00 ", "23:59", "+ 5 minutes"),
+            ([], " 00:00 ", "23:59", "- 2 HOURS "),
             ([], "midnight", "noon", "+/- 45 Seconds"),
             (["weekday"], "midnight", "noon", "none"),
             (["Weekdays"], "midnight", "noon", "none"),
@@ -61,10 +64,10 @@ class TestModels:
     )
     def test_trigger_valid(self, days, on_time, off_time, variation):
         trigger = Trigger(days=days, on_time=on_time, off_time=off_time, variation=variation)
-        assert trigger.days == [day.lower() for day in days]
-        assert trigger.on_time == on_time.lower()
-        assert trigger.off_time == off_time.lower()
-        assert trigger.variation == variation.lower()
+        assert trigger.days == [day.strip().lower() for day in days]
+        assert trigger.on_time == on_time.strip().lower()
+        assert trigger.off_time == off_time.strip().lower()
+        assert trigger.variation == variation.strip().lower()
 
     @pytest.mark.parametrize(
         "days,on_time,off_time,variation",
@@ -79,10 +82,19 @@ class TestModels:
         with pytest.raises(ValueError):
             Trigger(days=days, on_time=on_time, off_time=off_time, variation=variation)
 
-    def test_device_valid(self):
-        model = Device(name="name", room="room")
-        assert model.name == "name"
-        assert model.room == "room"
+    @pytest.mark.parametrize(
+        "name,room",
+        [
+            ("n", "r"),
+            (" n ", " r "),
+            ("name", "room"),
+        ],
+        ids=["short", "whitespace", "normal"],
+    )
+    def test_device_valid(self, name, room):
+        model = Device(name=name, room=room)
+        assert model.name == name
+        assert model.room == room
 
     @pytest.mark.parametrize(
         "name,room",
@@ -98,25 +110,43 @@ class TestModels:
         with pytest.raises(ValueError):
             Device(name=name, room=room)
 
-    def test_device_group_valid(self):
-        model = DeviceGroup(name="name", devices=[], triggers=[])
-        assert model.name == "name"
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "n",
+            " n ",
+            VALID_NAME,
+        ],
+        ids=["short", "whitespace", "long"],
+    )
+    def test_device_group_valid(self, name):
+        model = DeviceGroup(name=name, devices=[], triggers=[])
+        assert model.name == name.strip()
         assert model.devices == []
         assert model.triggers == []
 
     @pytest.mark.parametrize(
         "name",
-        ["", None],
-        ids=["empty name", "no name"],
+        ["", None, TOO_LONG_NAME],
+        ids=["empty name", "no name", "long name"],
     )
     def test_device_group_invalid(self, name):
         with pytest.raises(ValueError):
             DeviceGroup(name=name, devices=[], triggers=[])
 
-    def test_plan_valid(self):
-        model = Plan(name="name", location="location", groups=[])
-        assert model.name == "name"
-        assert model.location == "location"
+    @pytest.mark.parametrize(
+        "name,location",
+        [
+            ("n", "l"),
+            (" n ", " l "),
+            (VALID_NAME, "location"),
+        ],
+        ids=["short", "whitespace", "long"],
+    )
+    def test_plan_valid(self, name, location):
+        model = Plan(name=name, location=location, groups=[])
+        assert model.name == name.strip()
+        assert model.location == location  # not stripped, it's a SmartThings identifier
         assert model.groups == []
 
     @pytest.mark.parametrize(
@@ -124,29 +154,40 @@ class TestModels:
         [
             ("", "location"),
             (None, "location"),
+            (TOO_LONG_NAME, "location"),
             ("name", ""),
             ("name", None),
         ],
-        ids=["empty name", "no name", "empty room", "no room"],
+        ids=["empty name", "no name", "long name", "empty room", "no room"],
     )
     def test_plan_invalid(self, name, location):
         with pytest.raises(ValueError):
             Plan(name=name, location=location, groups=[])
 
-    def test_account_valid(self):
-        model = Account(name="name", pat_token="token")
-        assert model.name == "name"
-        assert model.pat_token == "token"
+    @pytest.mark.parametrize(
+        "name,pat_token",
+        [
+            ("n", "t"),
+            (" n ", " t "),
+            (VALID_NAME, "token"),
+        ],
+        ids=["short", "whitespace", "long"],
+    )
+    def test_account_valid(self, name, pat_token):
+        model = Account(name=name, pat_token=pat_token)
+        assert model.name == name.strip()
+        assert model.pat_token == pat_token  # not stripped, it's a SmartThings identifier
 
     @pytest.mark.parametrize(
         "name,pat_token",
         [
             ("", "token"),
             (None, "token"),
+            (TOO_LONG_NAME, "token"),
             ("name", ""),
             ("name", None),
         ],
-        ids=["empty name", "no name", "empty token", "no token"],
+        ids=["empty name", "no name", "long name", "empty token", "no token"],
     )
     def test_account_invalid(self, name, pat_token):
         with pytest.raises(ValueError):
