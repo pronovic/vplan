@@ -10,7 +10,7 @@ import re
 from typing import List, Type
 
 from pydantic import ConstrainedList, ConstrainedStr, Field  # pylint: disable=no-name-in-module
-from pydantic_yaml import YamlModel
+from pydantic_yaml import SemVer, VersionedYamlModel, YamlModel
 
 
 class VplanName(ConstrainedStr):
@@ -28,7 +28,7 @@ class TriggerDay(ConstrainedStr):
     to_lower = True
     strip_whitespace = True
     regex = re.compile(
-        r"all|every|weekday(s)?|weekend(s)?|(sun(day)?)|mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?"
+        r"^(all|every|weekday(s)?|weekend(s)?|(sun(day)?)|mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?)$"
     )
 
 
@@ -44,15 +44,15 @@ class TriggerTime(ConstrainedStr):
 
     to_lower = True
     strip_whitespace = True
-    regex = re.compile(r"sunrise|sunset|midnight|noon|\d{2}:\d{2}")
+    regex = re.compile(r"^(sunrise|sunset|midnight|noon|\d{2}:\d{2})$")
 
 
 class TriggerVariation(ConstrainedStr):
-    """A trigger variation, either disabled or a description of the varation."""
+    """A trigger variation, either disabled or a description of the variation."""
 
     to_lower = True
     strip_whitespace = True
-    regex = re.compile(r"disabled|none|([+]/-|[+]|-) (\d+) (hours|minutes|seconds)")
+    regex = re.compile(r"^(disabled|none|([+]/-|[+]|-) (\d+) (hour(s)?|minute(s)?|second(s)?))$")
 
 
 class SmartThingsId(ConstrainedStr):
@@ -94,8 +94,8 @@ class Trigger(YamlModel):
 class Device(YamlModel):
     """A device, tied to a device group."""
 
-    name: SmartThingsId = Field(..., description="SmartThings device name")
-    room: SmartThingsId = Field(..., description="SmartThings room name, where the device lives")
+    room: SmartThingsId = Field(..., description="SmartThings room name where the device lives")
+    device: SmartThingsId = Field(..., description="SmartThings device name")
 
 
 class DeviceGroup(YamlModel):
@@ -103,12 +103,21 @@ class DeviceGroup(YamlModel):
 
     name: VplanName = Field(..., description="Device group name")
     devices: List[Device] = Field(..., description="List of devices in the group")
-    triggers: List[Device] = Field(..., description="List of triggers for the group")
+    triggers: List[Trigger] = Field(..., description="List of triggers for the group")
 
 
 class Plan(YamlModel):
+    """Vacation lighting plan."""
+
+    name: VplanName = Field(..., description="Vacation plan name")
+    location: SmartThingsId = Field(..., description="SmartThings location name, where the plan will execute")
+    groups: List[DeviceGroup] = Field(description="List of device groups managed by the plan", default_factory=lambda: [])
+
+
+class PlanSchema(VersionedYamlModel):
+
     """
-    A vacation lighting plan.
+    Versioned schema for a vacation lighting plan.
 
     A vacation lighting plan describes how to turn on and off various lighting
     devices in a specific pattern when you are away from home.  The plan can be
@@ -118,9 +127,12 @@ class Plan(YamlModel):
     `switch` capability.
     """
 
-    name: VplanName = Field(..., description="Vacation plan name")
-    location: SmartThingsId = Field(..., description="SmartThings location name, where the plan will execute")
-    groups: List[DeviceGroup] = Field(description="List of device groups managed by the plan", default_factory=lambda: [])
+    class Config:
+        min_version = "1.0.0"
+        max_version = "1.0.0"
+
+    version: SemVer = Field(..., description="Plan schema version")
+    plan: Plan = Field(..., description="Vacation plan")
 
 
 class Account(YamlModel):

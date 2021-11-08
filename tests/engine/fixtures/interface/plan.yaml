@@ -1,0 +1,44 @@
+version: 1.0.0
+plan:
+  name: my-house
+  location: My House
+  groups:
+    - name: first-floor-lights
+      devices:
+        - room: Living Room
+          device: Sofa Table Lamp
+        - room: Living Room
+          device: China Cabinet
+      triggers:
+        - days: [ weekdays ]
+          on_time: "19:30"
+          off_time: "22:45"
+          variation: +/- 30 minutes
+        - days: [ weekends ]
+          on_time: sunset
+          off_time: sunrise
+          variation: none
+    - name: offices
+      devices:
+        - room: Ken's Office
+          device: Desk Lamp
+        - room: Julie's Office
+          device: Dresser Lamp
+      triggers:
+        - days: [ mon, tue, fri ]
+          on_time: "07:30"
+          off_time: "17:30"
+          variation: "- 1 hour"
+        - days: [ thu ]
+          on_time: "09:30"
+          off_time: "12:30"
+          variation: + 1 hour
+    - name: basement
+      devices:
+        - room: Basement
+          device: Lamp Under Window
+      triggers:
+        - days: [ friday, weekend ]
+          on_time: "19:45"
+          off_time: midnight
+          variation: +/- 45 seconds

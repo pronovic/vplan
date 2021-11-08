@@ -1,27 +1,70 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+import os
+
 import pytest
 
-from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, ServerException, Trigger, Version
+from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, ServerException, Trigger, Version
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one carhacter too long
 
 
+def fixture(filename: str) -> str:
+    return os.path.join(os.path.dirname(__file__), "fixtures", "interface", filename)
+
+
+PLAN_FILE = fixture("plan.yaml")
+PLAN_EXPECTED = PlanSchema(
+    version="1.0.0",
+    plan=Plan(
+        name="my-house",
+        location="My House",
+        groups=[
+            DeviceGroup(
+                name="first-floor-lights",
+                devices=[
+                    Device(room="Living Room", device="Sofa Table Lamp"),
+                    Device(room="Living Room", device="China Cabinet"),
+                ],
+                triggers=[
+                    Trigger(days=["weekdays"], on_time="19:30", off_time="22:45", variation="+/- 30 minutes"),
+                    Trigger(days=["weekends"], on_time="sunset", off_time="sunrise", variation="none"),
+                ],
+            ),
+            DeviceGroup(
+                name="offices",
+                devices=[
+                    Device(room="Ken's Office", device="Desk Lamp"),
+                    Device(room="Julie's Office", device="Dresser Lamp"),
+                ],
+                triggers=[
+                    Trigger(days=["mon", "tue", "fri"], on_time="07:30", off_time="17:30", variation="- 1 hour"),
+                    Trigger(days=["thu"], on_time="09:30", off_time="12:30", variation="+ 1 hour"),
+                ],
+            ),
+            DeviceGroup(
+                name="basement",
+                devices=[
+                    Device(room="Basement", device="Lamp Under Window"),
+                ],
+                triggers=[
+                    Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 seconds"),
+                ],
+            ),
+        ],
+    ),
+)
+
+
 class TestExceptions:
-
-    """Test exception classes."""
-
     def test_server_exception(self):
         exception = ServerException("hello")
         assert isinstance(exception, Exception)  # make sure parent class is right
         assert exception.message == "hello"
 
 
-class TestModels:
-
-    """Test model classes."""
-
+class TestModelsAndValidation:
     def test_health(self):
         model = Health()
         assert model.status == "OK"
@@ -83,32 +126,32 @@ class TestModels:
             Trigger(days=days, on_time=on_time, off_time=off_time, variation=variation)
 
     @pytest.mark.parametrize(
-        "name,room",
+        "room,device",
         [
-            ("n", "r"),
-            (" n ", " r "),
-            ("name", "room"),
+            ("r", "d"),
+            (" r ", " d "),
+            ("room", "device"),
         ],
         ids=["short", "whitespace", "normal"],
     )
-    def test_device_valid(self, name, room):
-        model = Device(name=name, room=room)
-        assert model.name == name
+    def test_device_valid(self, room, device):
+        model = Device(room=room, device=device)
+        assert model.device == device
         assert model.room == room
 
     @pytest.mark.parametrize(
-        "name,room",
+        "room,device",
         [
-            ("", "room"),
-            (None, "room"),
-            ("name", ""),
-            ("name", None),
+            ("", "device"),
+            (None, "device"),
+            ("room", ""),
+            ("room", None),
         ],
-        ids=["empty name", "no name", "empty room", "no room"],
+        ids=["empty room", "no room", "empty device", "no device"],
     )
-    def test_device_invalid(self, name, room):
+    def test_device_invalid(self, room, device):
         with pytest.raises(ValueError):
-            Device(name=name, room=room)
+            Device(room=room, device=device)
 
     @pytest.mark.parametrize(
         "name",
@@ -192,3 +235,10 @@ class TestModels:
     def test_account_invalid(self, name, pat_token):
         with pytest.raises(ValueError):
             Account(name=name, pat_token=pat_token)
+
+
+class TestYamlParsing:
+    def test_parsing(self):
+        with open(PLAN_FILE, "r", encoding="utf8") as fp:
+            config = PlanSchema.parse_raw(fp.read())
+            assert config == PLAN_EXPECTED
