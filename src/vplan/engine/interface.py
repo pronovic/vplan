@@ -15,8 +15,8 @@ from pydantic_yaml import YamlModel
 DAY_PATTERN = re.compile(
     r"all|every|weekday(s)?|weekend(s)?|(sun(day)?)|mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?"
 )
-TIME_PATTERN = re.compile(r"sunrise|sunset|midnight|noon|\d{1,2}:\d{2}")
-VARIATION_PATTERN = re.compile(r"([+]/-|[+]|-) (\d+) (hours|minutes|seconds)")
+TIME_PATTERN = re.compile(r"sunrise|sunset|midnight|noon|\d{2}:\d{2}")
+VARIATION_PATTERN = re.compile(r"disabled|none|([+]/-|[+]|-) (\d+) (hours|minutes|seconds)")
 
 
 class NameString(ConstrainedStr):
@@ -67,24 +67,20 @@ class Trigger(YamlModel):
     off_time: str = Field(..., description="Time that devices turn off, in the location's time zone")
     variation: str = Field(..., description="Variation rules applied to the trigger on/off times")
 
-    @classmethod
     @validator("days")
-    def _validate_days(cls, days: List[str]) -> List[str]:
+    def _validate_days(cls, days: List[str]) -> List[str]:  # pylint: disable=no-self-argument
         return [_validate_pattern("day", DAY_PATTERN, day) for day in days]
 
-    @classmethod
     @validator("on_time")
-    def _validate_on_time(cls, on_time: str) -> str:
+    def _validate_on_time(cls, on_time: str) -> str:  # pylint: disable=no-self-argument
         return _validate_pattern("on_time", TIME_PATTERN, on_time)
 
-    @classmethod
     @validator("off_time")
-    def _validate_off_time(cls, off_time: str) -> str:
+    def _validate_off_time(cls, off_time: str) -> str:  # pylint: disable=no-self-argument
         return _validate_pattern("off_time", TIME_PATTERN, off_time)
 
-    @classmethod
     @validator("variation")
-    def _validate_variation(cls, variation: str) -> str:
+    def _validate_variation(cls, variation: str) -> str:  # pylint: disable=no-self-argument
         return _validate_pattern("variation", VARIATION_PATTERN, variation)
 
 
