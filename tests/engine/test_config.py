@@ -16,7 +16,6 @@ def fixture(filename: str) -> str:
 APPLICATION_YAML = fixture("application.yaml")
 
 
-@patch("vplan.engine.config.getenv")
 class TestConfig:
     @pytest.fixture(autouse=True)
     def cleanup(self):
@@ -25,29 +24,25 @@ class TestConfig:
         yield
         reset()
 
-    def test_config_env(self, getenv):
-        getenv.return_value = APPLICATION_YAML
+    @patch.dict(os.environ, {"VPLAN_CONFIG_PATH": APPLICATION_YAML, "VPLAN_DATABASE_PATH": ".runtime/db"}, clear=True)
+    def test_config_env(self):
         result = config()
         TestConfig._validate_config(result)
-        getenv.assert_called_once_with("VPLAN_CONFIG_PATH", None)
 
-    def test_config_path(self, getenv):
-        getenv.return_value = None  # simulate no config in environment
+    @patch.dict(os.environ, {"VPLAN_DATABASE_PATH": ".runtime/db"}, clear=True)
+    def test_config_path(self):
         result = config(config_path=APPLICATION_YAML)
         TestConfig._validate_config(result)
-        getenv.assert_not_called()
 
-    def test_config_env_no_var(self, getenv):
-        getenv.return_value = None  # simulate no config in environment
+    @patch.dict(os.environ, {"VPLAN_DATABASE_PATH": ".runtime/db"}, clear=True)
+    def test_config_env_no_var(self):
         with pytest.raises(ServerException, match=r"Server is not properly configured, no \$VPLAN_CONFIG_PATH found"):
             config()
-        getenv.assert_called_once_with("VPLAN_CONFIG_PATH", None)
 
-    def test_config_env_not_found(self, getenv):
-        getenv.return_value = "bogus"  # simulate config file does not exist
+    @patch.dict(os.environ, {"VPLAN_CONFIG_PATH": "bogus", "VPLAN_DATABASE_PATH": ".runtime/db"}, clear=True)
+    def test_config_env_not_found(self):
         with pytest.raises(ServerException, match=r"Server configuration is not readable: bogus"):
             config()
-        getenv.assert_called_once_with("VPLAN_CONFIG_PATH", None)
 
     @staticmethod
     def _validate_config(result):
