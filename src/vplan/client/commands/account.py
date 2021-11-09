@@ -1,12 +1,23 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
-# pylint: disable=unused-argument
+
 
 """
 The account subcommand in the command line interface.
 """
+from typing import Optional
 
 import click
+
+from vplan.client.client import (
+    create_account,
+    delete_account,
+    retrieve_account,
+    retrieve_account_status,
+    update_account,
+    update_account_status,
+)
+from vplan.engine.interface import Account, Status
 
 
 @click.group()
@@ -23,7 +34,7 @@ def account() -> None:
     metavar="<token>",
     help="Provide the token",
 )
-def set_account() -> None:
+def set_account(token: Optional[str]) -> None:
     """
     Set your account information in the plan engine.
 
@@ -52,28 +63,48 @@ def set_account() -> None:
          Manage all rules (w:rules:*)
          Control this rule (x:rules:*)
     """
+    if not token:
+        token = click.prompt("Enter PAT token: ")
+    result = retrieve_account()
+    if result:
+        result = Account(name="SmartThings", pat_token=token)
+        update_account(result)
+    else:
+        result = Account(name="SmartThings", pat_token=token)
+        create_account(result)
 
 
 @account.command()
 def delete() -> None:
     """Delete your account and all plans in the plan engine."""
+    delete_account()
+    click.secho("Account deleted")
 
 
 @account.command()
 def status() -> None:
     """Check the enabled/disabled status of your account."""
+    result = retrieve_account_status()
+    click.secho("Account is %s" % "enabled" if result.enabled else "disabled")
 
 
 @account.command()
 def enable() -> None:
     """Enable your account, allowing any enabled plans to execute."""
+    update_account_status(Status(enabled=True))
+    status()
 
 
 @account.command()
 def disable() -> None:
     """Disable your account, preventing all plans from executing."""
+    update_account_status(Status(enabled=False))
+    status()
 
 
 @account.command()
 def show() -> None:
     """Show the account information stored in the plan engine."""
+    result = retrieve_account()
+    click.secho("Account name: %s" % result.name)
+    click.secho("PAT token: %s" % result.pat_token)
