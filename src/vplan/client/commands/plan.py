@@ -22,22 +22,19 @@ def create(yaml_path: str) -> None:
     """
     Create a new plan from a YAML definition.
 
-    Specify a path on disk for <yaml-file>, or use "-"
-    to read from stdin.  The plan will be created with
-    the name in the YAML definition.
+    Specify a path on disk for <yaml-file>, or use "-" to read from stdin.  The
+    plan will be created with the name in the YAML definition.
     """
 
 
 @plan.command()
 @click.argument("yaml_path", metavar="<yaml-file>")
-def modify(yaml_path: str) -> None:
+def update(yaml_path: str) -> None:
     """
-    Modify a plan using a YAML definition.
+    Update a plan using a YAML definition.
 
-    Specify a path on disk for <yaml-file>, or use "-"
-    to read from stdin.  An existing plan will be
-    modified based on the name in the YAML
-    definition.
+    Specify a path on disk for <yaml-file>, or use "-" to read from stdin.  An
+    existing plan will be modified based on the name in the YAML definition.
     """
 
 
@@ -95,30 +92,66 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     """
     Export a plan definition to YAML.
 
-    The plan definition will be structurally equivalent to
-    the YAML that was used to most recently create or modify
-    the plan. However, comments and special formatting are not
-    preserved.
+    YAML will be dumped to stdout unless you use the --output option to specify
+    a different destination on disk.
 
-    The YAML definition will be dumped to stdout unless you
-    use the --output option to specify a destination on disk.
+    The resulting plan definition will be structurally equivalent to the YAML
+    that was used to most recently create or modify the plan. However, the
+    ordering of fields is likely to be different from your original document,
+    and comments are not preserved.
     """
 
 
 @plan.command()
 @click.argument("plan_name", metavar="<plan-name>")
-@click.argument("device_name", metavar="<device-name>")
-def test(plan_name: str, device_name: str) -> None:
+@click.option(
+    "--group",
+    "-g",
+    "group_name",
+    metavar="<group-name>",
+    help="Test specific device group, by name",
+)
+@click.option(
+    "--device",
+    "-d",
+    "device_path",
+    metavar="<device-path>",
+    help="Test specific device, in form '<room>/<device>'",
+)
+@click.option(
+    "--auto",
+    "-a",
+    "auto",
+    metavar="<auto>",
+    is_flag=True,
+    required=False,
+    default=False,
+    help="Advance through each test automatically",
+)
+@click.option(
+    "--toggles",
+    "-s",
+    "toggles",
+    metavar="<toggles>",
+    required=False,
+    default=2,
+    type=click.INT,
+    show_default=True,
+    help="Number of times to toggle each device or group.",
+)
+def test(plan_name: str, auto: bool, toggles: int, group: Optional[str] = None, device: Optional[str] = None) -> None:
     """
-    Test a device that is part of a plan.
+    Test all devices that are a part of a plan.
 
-    The device is tested by toggling it on and off several
-    times, to prove that it is wired up properly and can
-    be controlled.  For instance, use this to demonstrate that
-    any lamps you want to control are actually switched on.
+    This operation cycles through all device groups, testing each one in turn,
+    and waiting for your approval to start each test.  If you prefer to cycle
+    through all devices without waiting for approval, use the --auto option.
 
-    The <device-name> is the value specified in the plan.
-    Either look in the YAML definition or run the show
-    command to get a list of devices associated with the
-    plan.
+    You may also test a single device group using --group and a single device
+    using --device.  When testing a single device group or device, --auto is
+    implied.
+
+    A device group or device is tested by toggling it on and off several times,
+    to prove that it is wired up properly and can be controlled by the plan
+    engine.  Control the number of toggles using the --toggle option.
     """

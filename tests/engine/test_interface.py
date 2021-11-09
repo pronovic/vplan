@@ -4,10 +4,10 @@ import os
 
 import pytest
 
-from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, ServerException, Trigger, Version
+from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, ServerException, Status, Trigger, Version
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
-TOO_LONG_NAME = "%sX" % VALID_NAME  # one carhacter too long
+TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long
 
 
 def fixture(filename: str) -> str:
@@ -73,6 +73,10 @@ class TestModelsAndValidation:
         model = Version(package="a", api="b")
         assert model.package == "a"
         assert model.api == "b"
+
+    def test_status(self):
+        model = Status(enabled=True)
+        assert model.enabled
 
     @pytest.mark.parametrize(
         "days,on_time,off_time,variation",

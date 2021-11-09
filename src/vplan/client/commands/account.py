@@ -27,11 +27,9 @@ def set_account() -> None:
     """
     Set your account information in the plan engine.
 
-    You must provide a SmartThings PAT token.  The PAT
-    token will be used to interact with the SmartThings
-    API. By default, the token is accepted interactively.
-    You may also use --token to specify it on the command
-    line.
+    You must provide a SmartThings PAT token.  The PAT token will be used to
+    interact with the SmartThings API. By default, the token is accepted
+    interactively.  You may also use --token to specify it on the command line.
 
     Retrive a token from:
 
@@ -57,8 +55,8 @@ def set_account() -> None:
 
 
 @account.command()
-def clear() -> None:
-    """Clear your account information in the plan engine."""
+def delete() -> None:
+    """Delete your account and all plans in the plan engine."""
 
 
 @account.command()
@@ -77,5 +75,5 @@ def disable() -> None:
 
 
 @account.command()
-def show(token: bool) -> None:
+def show() -> None:
     """Show the account information stored in the plan engine."""

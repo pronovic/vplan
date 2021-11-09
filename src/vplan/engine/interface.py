@@ -82,6 +82,12 @@ class Version(YamlModel):
     api: str = Field(..., description="API interface version")
 
 
+class Status(YamlModel):
+    """The status of a plan or an account."""
+
+    enabled: bool = Field(..., description="Whether the plan or account is enabled.")
+
+
 class Trigger(YamlModel):
     """A trigger, tied to a device group"""
 
