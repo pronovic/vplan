@@ -1,0 +1,9 @@
+[Unit]
+Description=Vacation Plan Socket
+PartOf=vplan.service
+
+[Socket]
+ListenStream=%h/.config/vplan/run/engine.sock
+
+[Install]
+WantedBy=sockets.target

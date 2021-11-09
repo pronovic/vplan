@@ -1,0 +1,9 @@
+# Paths in here are relative to the working directory, which is $HOME for the systemd service
+database_dir: .config/vplan/db
+database_url: sqlite+pysqlite:///.config/vplan/db/vplan.sqlite
+scheduler:
+   database_url: sqlite+pysqlite:///.config/vplan/db/jobs.sqlite
+   thread_pool_size: 10
+   daily_job:
+      jitter_sec: 300          # the job might run up to 300 seconds later than scheduled
+      misfire_grace_sec: 1800  # if missed (i.e. if server is down), job will be run up to 30 minutes late

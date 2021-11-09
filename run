@@ -320,8 +320,8 @@ run_server() {
    poetry run uvicorn vplan.engine.server:API \
       --port 8080 \
       --app-dir src --reload \
-      --log-config config/server/local/logging.yaml \
-      --env-file config/server/local/server.env
+      --log-config config/local/vplan/server/logging.yaml \
+      --env-file config/local/vplan/server/server.env
 }
 
 # Execute one of the developer tasks
