@@ -16,8 +16,8 @@ from vplan.client.client import (
     retrieve_all_plans,
     retrieve_plan,
     retrieve_plan_status,
-    test_device,
-    test_group,
+    toggle_test_device,
+    toggle_test_group,
     update_plan,
     update_plan_status,
 )
@@ -64,7 +64,7 @@ def update(yaml_path: str) -> None:
     existing plan will be modified based on the name in the YAML definition.
     """
     yaml = _read_plan_yaml(yaml_path)
-    update_plan(yaml.plan.name, yaml)
+    update_plan(yaml)
     click.secho("Updated plan: %s" % yaml.plan.name)
 
 
@@ -216,12 +216,12 @@ def test(
     """
     if device_path:
         room, device = device_path.split("/")
-        test_device(plan_name, room, device, toggle_count)
+        toggle_test_device(plan_name, room, device, toggle_count)
     elif group_name:
-        test_group(plan_name, group_name, toggle_count)
+        toggle_test_group(plan_name, group_name, toggle_count)
     else:
         result = retrieve_plan(plan_name)
         for group in result.plan.groups:
             if not auto:
                 click.prompt("Next group is %s; confirm when ready" % group.name)
-            test_group(plan_name, group.name, toggle_count)
+            toggle_test_group(plan_name, group.name, toggle_count)
