@@ -16,3 +16,4 @@ Remaining work:
 - adjust build/release process to release wheel and config template to GitHub
 - write user documentation into README.md
 - review DEVELOPER.md and remove stuff that's not applicable
+- upgrade to Python 3.10 and re-test there
