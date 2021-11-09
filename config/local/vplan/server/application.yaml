@@ -1,0 +1,8 @@
+database_dir: {VPLAN_DATABASE_DIR}
+database_url: sqlite+pysqlite:///{VPLAN_DATABASE_DIR}/vplan.sqlite
+scheduler:
+   database_url: sqlite+pysqlite:///{VPLAN_DATABASE_DIR}/jobs.sqlite
+   thread_pool_size: 10
+   daily_job:
+      jitter_sec: 300          # the job might run up to 300 seconds later than scheduled
+      misfire_grace_sec: 1800  # if missed (i.e. if server is down), job will be run up to 30 minutes late

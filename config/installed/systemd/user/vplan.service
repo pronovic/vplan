@@ -1,0 +1,17 @@
+[Unit]
+Description=Vacation Plan Service
+Requires=vplan.socket
+After=network.target
+WorkingDirectory=~
+
+[Service]
+ExecStart=%h/.local/bin/uvicorn vplan.engine.server:API     \
+          --uds %h/.config/vplan/server/run/engine.sock     \
+          --log-config %h/.config/vplan/server/logging.yaml
+Environment=PYTHONUNBUFFERED=1
+Environment=VPLAN_CONFIG_PATH=%h/.config/vplan/server/application.yaml
+Environment=VPLAN_DATABASE_DIR=%h/.config/vplan/server/db
+Restart=on-failure
+
+[Install]
+WantedBy=default.target

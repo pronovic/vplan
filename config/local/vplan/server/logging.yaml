@@ -1,0 +1,24 @@
+version: 1
+disable_existing_loggers: false
+
+formatters:
+  standard:
+    format: "%(asctime)s.%(msecs)03d [%(levelname)-7s] %(message)s"
+    datefmt: "%Y-%m-%dT%H:%M:%S"
+
+handlers:
+  console:
+    class: logging.StreamHandler
+    formatter: standard
+    level: DEBUG
+    stream: ext://sys.stdout
+
+loggers:
+  uvicorn:
+    error:
+      propagate: true
+
+root:
+  level: DEBUG
+  handlers: [console]
+  propagate: no

@@ -2,38 +2,23 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 
 """
-Command line interface for the client.
+Main command line interface that delegates most work out to subcommands.
 """
 
 import click
 
-from vplan.client.bootstrap import bootstrap_config, dump_instructions
+from vplan.client.commands.account import account
+from vplan.client.commands.plan import plan
 
 
 @click.group(context_settings=dict(help_option_names=["-h", "--help"]))
-@click.version_option(package_name="vplan", prog_name="Vacation Plan Manager")
+@click.version_option(package_name="vplan", prog_name="vplan")
 def vplan() -> None:
-    """
-    Vacation plan manager client.
-
-    Hint: start with the bootstrap command.
-    """
+    """Manage your vacation plan in the plan engine."""
 
 
-@vplan.command()
-@click.option(
-    "--force",
-    "-f",
-    "force",
-    metavar="<force>",
-    is_flag=True,
-    required=False,
-    default=False,
-    help="Force-overwrite any files that already exist",
-)
-def bootstrap(force: bool) -> None:
-    """
-    Bootstrap local configuration.
-    """
-    bootstrap_config(force=force)
-    dump_instructions()
+# noinspection PyTypeChecker
+vplan.add_command(account)
+
+# noinspection PyTypeChecker
+vplan.add_command(plan)
