@@ -8,33 +8,13 @@ one or more SmartThings locations tied to a single SmartThings user.
 
 The platform is written in Python 3.  It has two components: a daemon process
 running as a systemd user service, and a command line tool.  The command line
-tool communicates with the daemon via a RESTful API using private UNIX socket.
+tool communicates with the daemon via a RESTful API using a private UNIX socket.
 You use the command line tool to configure your vacations plans, to enable or
-disable vacation mode, and to test your devices.  
+disable vacation plans, and to test your devices.  
 
-The platform is lightweight and will work on any Linux system that has internet
-access and is configured to run continuously, including low-cost hardware such
-as the Raspberry Pi.
-
-## Cautions
-
-**_This is a developer-focused tool._**
-
-My goal was to write something I could use myself on my own hardware.  The code 
-is well tested and functions properly, but I haven't spent a lot of effort on 
-making the installation process simple or the error handling pretty.  If you're 
-not already comfortable with the UNIX command line, you may have a hard time 
-getting this to work for you.
-
-**_This is not a general purpose, multi-user solution._**
-
-It is intended for local use by a single Linux user.  Security is based on simple UNIX
-filesystem permissions, which ensure that only the owner can read the
-underlying sqlite database and make API calls via the private UNIX socket.
-If you run the API in some other way &mdash; especially if you run it on some
-local port like :8080 instead of using the private UNIX socket, you risk
-exposing secrets such as your SmartThings PAT token.
-
+The platform is lightweight and will work on most Linux systems that have
+internet access and are configured to run continuously, including low-cost
+hardware such as the Raspberry Pi.
 
 ## What is a Vacation Lighting Plan?
 
@@ -49,6 +29,25 @@ Underneath, the vacation lighting plan is implemented in your SmartThings
 account as a set of rules.  To operate within the SmartThings platform
 restrictions, rules tied to your SmartThings account are updated on a daily
 basis, to reflect the randomized plan for that day.  
+
+## Cautions
+
+**_This is a developer-focused tool._**
+
+My goal was to write something I could use myself on my own hardware.  The code 
+is well tested and functions properly, but I haven't spent a lot of effort on 
+making the installation process simple or the error handling pretty.  If you're 
+not already comfortable with the UNIX command line, you may have a hard time 
+getting this to work.
+
+**_This is not a general purpose, multi-user solution._**
+
+This platform is intended for local use by a single Linux user.  Security is
+based on simple UNIX filesystem permissions, which ensure that only the owner
+can read the underlying sqlite database and make API calls via the private UNIX
+socket.  If you run the API in some other way &mdash; especially if you run it
+on some local port like :8080 instead of using the private UNIX socket &mdash;
+you risk exposing secrets such as your SmartThings PAT token.
 
 ## Developer Documentation
 
@@ -88,16 +87,16 @@ $ systemctl --user status vplan
 ```
 
 At this point, the systemd service should be running, and the command
-line client should be operable.  Check this by showing the current account:
+line client should be operable.  First, you can check connectivity:
 
 ```
-$ vplan account show
-Account does not exist
+$ vplan check
+API is healthy, versions: package='0.1.0' api='1.0.0'
 ```
 
-This is an expected message, because you haven't yet configured your account.
-If you get any other errors, check that you installed the software as described
-above.
+The version will vary from what is shown above, but the result should look
+similar.  If you get any errors, check that you installed the software as
+described above.
 
 ## Setting Up Your Account
 
@@ -136,7 +135,7 @@ See other account commands using `vplan account --help`.
 
 ## Developing a Vacation Plan
 
-A vacation plan is defined a YAML file.  Here is a very simple example:
+A vacation plan is defined in a YAML file.  Here is a very simple example:
 
 ```yaml
 version: 1.0.0
@@ -176,7 +175,7 @@ day.
 A **device group** consists of:
 
 - a **name** - an identifier matching the regex `[a-z0-9-]+`, unique within this plan
-- one or more **devices** - all devices in a device group will turn and off together, like a scene
+- one or more **devices** - all devices in a device group will turn on and off together, like a scene
 - one or more **triggers** - a trigger is in scope on certain days and describes the times when a device group will turn on and off
 
 Each **device** consists of:
@@ -215,10 +214,10 @@ Created plan: my-house
 ```
 
 If there are any errors in your YAML file, you will get feedback at this point,
-and you can correct your file.  If the create operation fails, you can look in
-the daemon log (`journalctl --user-unit vplan`) to get more information.  The
-same is true for any other operation you might run via the command line
-interface.
+and you can correct your file.  If the create operation fails at the server,
+you can look in the daemon log (`journalctl --user-unit vplan`) to get more
+information.  The same is true for any other operation you might run via the
+command line interface.
 
 Any newly-created plan will be disabled by default.  You can enable a plan like
 this:
