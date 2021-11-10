@@ -163,12 +163,31 @@ class TestShow:
         assert result.exit_code == 0
         assert result.output == "Account does not exist\n"
 
+    @pytest.mark.parametrize(
+        "name,token,output",
+        [
+            ("name", "12345678", "Account name: name\nPAT token: 12345678\n"),
+            ("name", "123456789", "Account name: name\nPAT token: 1234*6789\n"),
+            ("name", "100d2d4e-1234-5678-31e22179", "Account name: name\nPAT token: 100d*******************2179\n"),
+        ],
+    )
     @patch("vplan.client.commands.account.retrieve_account")
-    def test_command_exists(self, retrieve_account):
-        retrieve_account.return_value = Account(name="name", pat_token="token")
+    def test_command_exists_masked(self, retrieve_account, name, token, output):
+        retrieve_account.return_value = Account(name=name, pat_token=token)
         result = invoke(["show"])
         assert result.exit_code == 0
-        assert result.output == "Account name: name\nPAT token: token\n"
+        assert result.output == output
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--unmask", "-u"],
+    )
+    @patch("vplan.client.commands.account.retrieve_account")
+    def test_command_exists_unmasked(self, retrieve_account, option):
+        retrieve_account.return_value = Account(name="name", pat_token="100d2d4e-1234-5678-31e22179")
+        result = invoke(["show", option])
+        assert result.exit_code == 0
+        assert result.output == "Account name: name\nPAT token: 100d2d4e-1234-5678-31e22179\n"
 
 
 class TestStatus:

@@ -20,6 +20,15 @@ from vplan.client.client import (
 from vplan.engine.interface import Account, Status
 
 
+def _mask_token(token: str) -> str:
+    """Mask a PAT token for display."""
+    if len(token) <= 8:
+        # it's not valid anyway, just show the entire thing
+        return token
+    else:
+        return "%s%s%s" % (token[0:4], len(token[4:-4]) * "*", token[-4:])
+
+
 def _display_account_status() -> None:
     """Display the account status."""
     result = retrieve_account_status()
@@ -113,11 +122,22 @@ def disable() -> None:
 
 
 @account.command()
-def show() -> None:
+@click.option(
+    "--unmask",
+    "-u",
+    "unmask",
+    metavar="<unmask>",
+    is_flag=True,
+    required=False,
+    default=False,
+    help="Whether to unmask the PAT token in the display",
+)
+def show(unmask: bool) -> None:
     """Show the account information stored in the plan engine."""
     result = retrieve_account()
     if not result:
         click.secho("Account does not exist")
     else:
+        token = result.pat_token if unmask else _mask_token(result.pat_token)
         click.secho("Account name: %s" % result.name)
-        click.secho("PAT token: %s" % result.pat_token)
+        click.secho("PAT token: %s" % token)
