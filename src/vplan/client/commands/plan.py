@@ -24,6 +24,15 @@ from vplan.client.client import (
 from vplan.engine.interface import PlanSchema, Status
 
 
+def _display_plan_status(plan_name: str) -> None:
+    """Display the account status."""
+    result = retrieve_plan_status(plan_name)
+    if not result:
+        click.secho("Plan does not exist")
+    else:
+        click.secho("Plan is %s" % ("enabled" if result.enabled else "disabled"))
+
+
 def _read_plan_yaml(yaml_path: str) -> PlanSchema:
     """Read YAML, either from a path on disk or from stdin."""
     if yaml_path == "-":
@@ -87,8 +96,7 @@ def delete(plan_name: str) -> None:
 @click.argument("plan_name", metavar="<plan-name>")
 def status(plan_name: str) -> None:
     """Check the enabled/disabled status of a plan"""
-    result = retrieve_plan_status(plan_name)
-    click.secho("Plan is %s" % "enabled" if result.enabled else "disabled")
+    _display_plan_status(plan_name)
 
 
 @plan.command()
@@ -96,7 +104,7 @@ def status(plan_name: str) -> None:
 def enable(plan_name: str) -> None:
     """Enable a plan, allowing it to execute if the account is enabled."""
     update_plan_status(plan_name, Status(enabled=True))
-    status(plan_name)
+    _display_plan_status(plan_name)
 
 
 @plan.command()
@@ -104,7 +112,7 @@ def enable(plan_name: str) -> None:
 def disable(plan_name: str) -> None:
     """Disable a plan, preventing it from executing."""
     update_plan_status(plan_name, Status(enabled=False))
-    status(plan_name)
+    _display_plan_status(plan_name)
 
 
 @plan.command()
@@ -120,12 +128,13 @@ def refresh(plan_name: str) -> None:
 def show(plan_name: str) -> None:
     """Show information about a plan."""
     result = retrieve_plan(plan_name)
-    enabled = retrieve_plan_status(plan_name)
-    click.secho("Schema.....: %s" % result.version)
-    click.secho("Plan name..: %s" % result.plan.name)
-    click.secho("Location...: %s" % result.plan.location)
-    click.secho("Groups.....: %d" % len(result.plan.groups))
-    click.secho("Status.....: %s" % "enabled" if enabled else "disabled")
+    if not result:
+        click.secho("Plan does not exist")
+    else:
+        click.secho("Schema.....: %s" % result.version)
+        click.secho("Plan name..: %s" % result.plan.name)
+        click.secho("Location...: %s" % result.plan.location)
+        click.secho("Groups.....: %d" % len(result.plan.groups))
 
 
 @plan.command()
@@ -150,6 +159,8 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     and comments are not preserved.
     """
     result = retrieve_plan(plan_name)
+    if not result:
+        raise click.UsageError("Plan does not exist")
     yaml = result.yaml()
     if not yaml_path or yaml_path == "-":
         print(yaml)
@@ -221,6 +232,8 @@ def test(
         toggle_test_group(plan_name, group_name, toggle_count)
     else:
         result = retrieve_plan(plan_name)
+        if not result:
+            raise click.UsageError("Plan does not exist")
         for group in result.plan.groups:
             if not auto:
                 click.prompt("Next group is %s; confirm when ready" % group.name)

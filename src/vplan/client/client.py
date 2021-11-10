@@ -4,7 +4,7 @@
 """
 API client written in terms of Python requests.
 """
-from typing import List
+from typing import List, Optional
 
 import requests
 import requests_unixsocket
@@ -31,12 +31,15 @@ def _plan(endpoint: str = "") -> str:
     return _url("/plan%s" % endpoint)
 
 
-def retrieve_account() -> Account:
+def retrieve_account() -> Optional[Account]:
     """Retrieve account information stored in the plan engine."""
     url = _account()
     response = requests.get(url=url)
-    response.raise_for_status()
-    return Account.parse_raw(response.json())
+    if response.status_code == 404:
+        return None
+    else:
+        response.raise_for_status()
+        return Account.parse_raw(response.json())
 
 
 def create_account(account: Account) -> None:
@@ -60,10 +63,12 @@ def delete_account() -> None:
     response.raise_for_status()
 
 
-def retrieve_account_status() -> Status:
+def retrieve_account_status() -> Optional[Status]:
     """Retrieve the enabled/disabled status of your account in the plan engine."""
     url = _account("/status")
     response = requests.get(url=url)
+    if response.status_code == 404:
+        return None
     response.raise_for_status()
     return Status.parse_raw(response.json())
 
@@ -83,10 +88,12 @@ def retrieve_all_plans() -> List[str]:
     return response.json()  # type: ignore
 
 
-def retrieve_plan(plan_name: str) -> PlanSchema:
+def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
     """Return the plan definition stored in the plan engine."""
     url = _plan("/%s" % plan_name)
     response = requests.get(url=url)
+    if response.status_code == 404:
+        return None
     response.raise_for_status()
     return PlanSchema.parse_raw(response.json())
 
@@ -112,10 +119,12 @@ def delete_plan(plan_name: str) -> None:
     response.raise_for_status()
 
 
-def retrieve_plan_status(plan_name: str) -> Status:
+def retrieve_plan_status(plan_name: str) -> Optional[Status]:
     """Return the enabled/disabled status of a plan in the plan engine."""
     url = _plan("/%s/status" % plan_name)
     response = requests.get(url=url)
+    if response.status_code == 404:
+        return None
     response.raise_for_status()
     return Status.parse_raw(response.json())
 

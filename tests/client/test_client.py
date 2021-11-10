@@ -25,7 +25,7 @@ from vplan.client.client import (
 from vplan.engine.interface import Account, Plan, PlanSchema, Status
 
 
-def _response(model=None, data=None):
+def _response(model=None, data=None, status_code=None):
     """Build a mocked response for use with the requests library."""
     response = MagicMock()
     if model:
@@ -34,6 +34,8 @@ def _response(model=None, data=None):
     if data:
         response.json = MagicMock()
         response.json.return_value = data
+    if status_code:
+        response.status_code = status_code
     response.raise_for_status = MagicMock()
     return response
 
@@ -41,7 +43,16 @@ def _response(model=None, data=None):
 @patch("vplan.client.client.api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
 class TestAccount:
     @patch("vplan.client.client.requests.get")
-    def test_retrieve_account(self, requests_get, api_url):
+    def test_retrieve_account_not_found(self, requests_get, api_url):
+        response = _response(status_code=404)
+        requests_get.side_effect = [response]
+        result = retrieve_account()
+        assert result is None
+        response.raise_for_status.assert_not_called()
+        requests_get.assert_called_once_with(url="http://whatever/account")
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_account_found(self, requests_get, api_url):
         account = Account(name="name", pat_token="token")
         response = _response(model=account)
         requests_get.side_effect = [response]
@@ -77,7 +88,16 @@ class TestAccount:
         requests_delete.assert_called_once_with(url="http://whatever/account")
 
     @patch("vplan.client.client.requests.get")
-    def test_retrieve_account_status(self, requests_get, api_url):
+    def test_retrieve_account_status_not_found(self, requests_get, api_url):
+        response = _response(status_code=404)
+        requests_get.side_effect = [response]
+        result = retrieve_account_status()
+        assert result is None
+        response.raise_for_status.assert_not_called()
+        requests_get.assert_called_once_with(url="http://whatever/account/status")
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_account_status_found(self, requests_get, api_url):
         status = Status(enabled=True)
         response = _response(model=status)
         requests_get.side_effect = [response]
@@ -109,7 +129,16 @@ class TestPlan:
         requests_get.assert_called_once_with(url="http://whatever/plan")
 
     @patch("vplan.client.client.requests.get")
-    def test_retrieve_plan(self, requests_get, api_url):
+    def test_retrieve_plan_not_found(self, requests_get, api_url):
+        response = _response(status_code=404)
+        requests_get.side_effect = [response]
+        result = retrieve_plan("xxx")
+        assert result is None
+        response.raise_for_status.assert_not_called()
+        requests_get.assert_called_once_with(url="http://whatever/plan/xxx")
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_plan_found(self, requests_get, api_url):
         plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
         response = _response(model=plan)
         requests_get.side_effect = [response]
@@ -145,7 +174,16 @@ class TestPlan:
         requests_delete.assert_called_once_with(url="http://whatever/plan/xxx")
 
     @patch("vplan.client.client.requests.get")
-    def test_retrieve_plan_status(self, requests_get, api_url):
+    def test_retrieve_plan_status_not_found(self, requests_get, api_url):
+        response = _response(status_code=404)
+        requests_get.side_effect = [response]
+        result = retrieve_plan_status("xxx")
+        assert result is None
+        response.raise_for_status.assert_not_called()
+        requests_get.assert_called_once_with(url="http://whatever/plan/xxx/status")
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_plan_status_found(self, requests_get, api_url):
         status = Status(enabled=False)
         response = _response(model=status)
         requests_get.side_effect = [response]
