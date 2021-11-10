@@ -15,8 +15,8 @@ from vplan.client.client import (
     retrieve_all_plans,
     retrieve_plan,
     retrieve_plan_status,
-    toggle_test_device,
-    toggle_test_group,
+    toggle_device,
+    toggle_group,
     update_account,
     update_account_status,
     update_plan,
@@ -210,17 +210,17 @@ class TestPlan:
         requests_post.assert_called_once_with(url="http://whatever/plan/xxx/refresh")
 
     @patch("vplan.client.client.requests.post")
-    def test_toggle_test_group(self, requests_post, api_url):
+    def test_toggle_group(self, requests_post, api_url):
         response = _response()
         requests_post.side_effect = [response]
-        toggle_test_group("xxx", "yyy", 2)
+        toggle_group("xxx", "yyy", 2)
         response.raise_for_status.assert_called_once()
         requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/group/yyy", params={"toggle_count": 2})
 
     @patch("vplan.client.client.requests.post")
-    def test_toggle_test_device(self, requests_post, api_url):
+    def test_toggle_device(self, requests_post, api_url):
         response = _response()
         requests_post.side_effect = [response]
-        toggle_test_device("xxx", "yyy", "zzz", 2)
+        toggle_device("xxx", "yyy", "zzz", 2)
         response.raise_for_status.assert_called_once()
         requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggle_count": 2})
