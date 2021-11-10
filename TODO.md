@@ -1,6 +1,5 @@
 Remaining work:
 
-- unit tests for CLI (with mock client)
 - implement API endpoints in terms of stubbed database and client code
 - unit test API endpoints  (with mock client and database)
 - implement database code
