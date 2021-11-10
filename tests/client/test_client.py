@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
 # pylint: disable=unused-argument
-
+import json
 from unittest.mock import MagicMock, patch
 
 import pytest
 from click import ClickException
-from requests import HTTPError
+from requests import HTTPError, Timeout
 
 from vplan.client.client import (
     _raise_for_status,
@@ -18,8 +18,10 @@ from vplan.client.client import (
     retrieve_account,
     retrieve_account_status,
     retrieve_all_plans,
+    retrieve_health,
     retrieve_plan,
     retrieve_plan_status,
+    retrieve_version,
     toggle_device,
     toggle_group,
     update_account,
@@ -27,18 +29,16 @@ from vplan.client.client import (
     update_plan,
     update_plan_status,
 )
-from vplan.engine.interface import Account, Plan, PlanSchema, Status
+from vplan.engine.interface import Account, Health, Plan, PlanSchema, Status, Version
 
 
 def _response(model=None, data=None, status_code=None):
     """Build a mocked response for use with the requests library."""
     response = MagicMock()
     if model:
-        response.json = MagicMock()
-        response.json.return_value = model.json()
+        response.text = model.json()
     if data:
-        response.json = MagicMock()
-        response.json.return_value = data
+        response.text = json.dumps(data)
     if status_code:
         response.status_code = status_code
     response.raise_for_status = MagicMock()
@@ -52,6 +52,59 @@ class TestUtil:
         response.raise_for_status.side_effect = HTTPError("hello")
         with pytest.raises(ClickException, match="^hello"):
             _raise_for_status(response)
+
+
+@patch("vplan.client.client.api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
+class TestHealthAndVersion:
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_health_error(self, requests_get, api_url):
+        response = _response()
+        response.raise_for_status.side_effect = HTTPError("error")
+        requests_get.side_effect = [response]
+        assert retrieve_health() is False
+        requests_get.assert_called_once_with(url="http://whatever/health", timeout=1)
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_health_timeout(self, requests_get, api_url):
+        response = _response()
+        response.raise_for_status.side_effect = Timeout("error")
+        requests_get.side_effect = [response]
+        assert retrieve_health() is False
+        requests_get.assert_called_once_with(url="http://whatever/health", timeout=1)
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_health_healthy(self, requests_get, api_url):
+        response = _response(model=Health())
+        requests_get.side_effect = [response]
+        assert retrieve_health() is True
+        requests_get.assert_called_once_with(url="http://whatever/health", timeout=1)
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_version_error(self, requests_get, api_url):
+        response = _response()
+        response.raise_for_status.side_effect = HTTPError("error")
+        requests_get.side_effect = [response]
+        result = retrieve_version()
+        assert result is None
+        requests_get.assert_called_once_with(url="http://whatever/version", timeout=1)
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_version_timeout(self, requests_get, api_url):
+        response = _response()
+        response.raise_for_status.side_effect = Timeout("error")
+        requests_get.side_effect = [response]
+        result = retrieve_version()
+        assert result is None
+        requests_get.assert_called_once_with(url="http://whatever/version", timeout=1)
+
+    @patch("vplan.client.client.requests.get")
+    def test_retrieve_version_healthy(self, requests_get, api_url):
+        version = Version(package="a", api="b")
+        response = _response(model=version)
+        requests_get.side_effect = [response]
+        result = retrieve_version()
+        assert result == version
+        requests_get.assert_called_once_with(url="http://whatever/version", timeout=1)
 
 
 @patch("vplan.client.client._raise_for_status")

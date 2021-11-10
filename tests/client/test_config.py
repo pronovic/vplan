@@ -4,9 +4,9 @@ import os
 from unittest.mock import patch
 
 import pytest
+from click import ClickException, UsageError
 
-from vplan.client.config import ClientConfig, ConnectionMode, api_url, config, reset
-from vplan.engine.interface import ServerException
+from vplan.client.config import ClientConfig, ConnectionMode, api_url, config, reset, set_config_path
 
 PORT_FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "config", "port")
 PORT_YAML = os.path.join(PORT_FIXTURE_DIR, ".config", "vplan", "client", "application.yaml")
@@ -45,42 +45,31 @@ class TestConfig:
         yield
         reset()
 
-    @patch("vplan.client.config.homedir")
-    def test_config_homedir_port(self, homedir):
-        homedir.return_value = PORT_FIXTURE_DIR
-        result = config()
-        TestConfig._validate_port_config(result)
+    def test_config_port(self):
+        set_config_path(config_path=PORT_YAML)
+        TestConfig._validate_port_config(config())
+        TestConfig._validate_port_config(config())
 
-    @patch("vplan.client.config.homedir")
-    def test_config_override_port(self, homedir):
-        homedir.return_value = ""  # not used
-        result = config(config_path=PORT_YAML)
-        TestConfig._validate_port_config(result)
-
-    @patch("vplan.client.config.homedir")
     @patch.dict(os.environ, {"HOME": "/home/whatever"}, clear=True)
-    def test_config_homedir_socket(self, homedir):
-        homedir.return_value = SOCKET_FIXTURE_DIR
-        result = config()
-        TestConfig._validate_socket_config(result)
+    def test_config_socket(self):
+        set_config_path(config_path=SOCKET_YAML)
+        TestConfig._validate_socket_config(config())
+        TestConfig._validate_socket_config(config())
 
-    @patch("vplan.client.config.homedir")
-    @patch.dict(os.environ, {"HOME": "/home/whatever"}, clear=True)
-    def test_config_override_socket(self, homedir):
-        homedir.return_value = ""  # not used
-        result = config(config_path=SOCKET_YAML)
-        TestConfig._validate_socket_config(result)
-
-    @patch("vplan.client.config.homedir")
-    def test_config_not_found(self, homedir, tmpdir):
-        homedir.return_value = tmpdir.realpath()
-        with pytest.raises(ServerException, match="^Client configuration is not readable"):
+    def test_config_unset(self):
+        set_config_path(config_path=None)
+        with pytest.raises(ClickException, match="^Internal error: no config path set"):
             config()
 
-    @patch("vplan.client.config.homedir")
+    def test_config_not_found(self, tmpdir):
+        set_config_path(config_path=tmpdir.join("bogus.yaml"))
+        with pytest.raises(UsageError, match="^.*Client configuration is not readable.*"):
+            config()
+
     @patch.dict(os.environ, {"HOME": "/home/whatever"}, clear=True)
-    def test_api_url(self, homedir):
-        homedir.return_value = SOCKET_FIXTURE_DIR
+    def test_api_url(self):
+        set_config_path(config_path=SOCKET_YAML)
+        config()
         assert api_url() == config().api_url()
 
     @staticmethod

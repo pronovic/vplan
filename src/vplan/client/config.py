@@ -9,13 +9,13 @@ from os import R_OK, access
 from os.path import isfile
 from typing import Any, Dict, Optional
 
+import click
 from pydantic import Field, validator  # pylint: disable=no-name-in-module
 from pydantic_yaml import YamlEnum, YamlModel
 
-from vplan.engine.interface import ServerException
 from vplan.util import homedir, replace_envvars
 
-CONFIG_PATH = ".config/vplan/client/application.yaml"
+DEFAULT_CONFIG = os.path.join(homedir(), ".config/vplan/client/application.yaml")
 
 
 class ConnectionMode(str, YamlEnum):
@@ -52,31 +52,42 @@ class ClientConfig(YamlModel):
             return "http+unix://%s" % self.api_socket.replace("/", "%2F")  # type: ignore
 
 
+_CONFIG_PATH: Optional[str] = None
 _CONFIG: Optional[ClientConfig] = None
 
 
-def _load_config(config_path: Optional[str] = None) -> ClientConfig:
+def _load_config(config_path: Optional[str]) -> ClientConfig:
     """Load client configuration from disk, substituting environment variables of the form {VAR}."""
     if not config_path:
-        config_path = os.path.join(homedir(), CONFIG_PATH)
+        raise click.ClickException("Internal error: no config path set")
     if not (isfile(config_path) and access(config_path, R_OK)):
-        raise ServerException("Client configuration is not readable: %s" % config_path)
+        raise click.UsageError("Client configuration is not readable: %s" % config_path)
     with open(config_path, "r", encoding="utf8") as fp:
         yaml = replace_envvars(fp.read())
         return ClientConfig.parse_raw(yaml)
 
 
+# pylint: disable=global-statement
 def reset() -> None:
     """Reset the config singleton, forcing it to be reloaded when next used."""
-    global _CONFIG  # pylint: disable=global-statement
+    global _CONFIG_PATH
+    global _CONFIG
+    _CONFIG_PATH = None
     _CONFIG = None
 
 
-def config(config_path: Optional[str] = None) -> ClientConfig:
-    """Retrieve server configuration, loading it from disk once and caching it."""
-    global _CONFIG  # pylint: disable=global-statement
+def set_config_path(config_path: Optional[str] = None) -> None:
+    """Set the configuration path to be used for future lazy loading."""
+    global _CONFIG_PATH
+    _CONFIG_PATH = config_path
+
+
+# pylint: disable=global-statement
+def config() -> ClientConfig:
+    """Retrieve client configuration, loading it from disk once and caching it."""
+    global _CONFIG
     if _CONFIG is None:
-        _CONFIG = _load_config(config_path)
+        _CONFIG = _load_config(_CONFIG_PATH)
     return _CONFIG
 
 

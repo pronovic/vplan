@@ -4,6 +4,7 @@
 """
 API client written in terms of Python requests.
 """
+import json
 from typing import List, Optional
 
 import click
@@ -12,7 +13,7 @@ import requests_unixsocket
 from requests import HTTPError, Response
 
 from vplan.client.config import api_url
-from vplan.engine.interface import Account, PlanSchema, Status
+from vplan.engine.interface import Account, PlanSchema, Status, Version
 
 # Add support in requests for http+unix:// URLs to use a UNIX socket
 requests_unixsocket.monkeypatch()
@@ -41,6 +42,28 @@ def _raise_for_status(response: Response) -> None:
         raise click.ClickException("%s" % e) from e
 
 
+def retrieve_health() -> bool:
+    """Check whether the API server is healthy."""
+    url = _url("/health")
+    try:
+        response = requests.get(url=url, timeout=1)
+        response.raise_for_status()
+        return True
+    except:  # pylint: disable=bare-except
+        return False
+
+
+def retrieve_version() -> Optional[Version]:
+    """Retrieve version information from the API server."""
+    url = _url("/version")
+    try:
+        response = requests.get(url=url, timeout=1)
+        response.raise_for_status()
+        return Version.parse_raw(response.text)
+    except:  # pylint: disable=bare-except
+        return None
+
+
 def retrieve_account() -> Optional[Account]:
     """Retrieve account information stored in the plan engine."""
     url = _account()
@@ -48,7 +71,7 @@ def retrieve_account() -> Optional[Account]:
     if response.status_code == 404:
         return None
     _raise_for_status(response)
-    return Account.parse_raw(response.json())
+    return Account.parse_raw(response.text)
 
 
 def create_account(account: Account) -> None:
@@ -79,7 +102,7 @@ def retrieve_account_status() -> Optional[Status]:
     if response.status_code == 404:
         return None
     _raise_for_status(response)
-    return Status.parse_raw(response.json())
+    return Status.parse_raw(response.text)
 
 
 def update_account_status(status: Status) -> None:
@@ -94,7 +117,8 @@ def retrieve_all_plans() -> List[str]:
     url = _plan()
     response = requests.get(url=url)
     _raise_for_status(response)
-    return response.json()  # type: ignore
+    plans: List[str] = json.loads(response.text)
+    return plans
 
 
 def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
@@ -104,7 +128,7 @@ def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
     if response.status_code == 404:
         return None
     _raise_for_status(response)
-    return PlanSchema.parse_raw(response.json())
+    return PlanSchema.parse_raw(response.text)
 
 
 def create_plan(plan: PlanSchema) -> None:
@@ -135,7 +159,7 @@ def retrieve_plan_status(plan_name: str) -> Optional[Status]:
     if response.status_code == 404:
         return None
     _raise_for_status(response)
-    return Status.parse_raw(response.json())
+    return Status.parse_raw(response.text)
 
 
 def update_plan_status(plan_name: str, status: Status) -> None:

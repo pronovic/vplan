@@ -8,8 +8,10 @@ from click.testing import CliRunner, Result
 
 from vplan.client.cli import vplan as command
 
-
 # noinspection PyTypeChecker
+from vplan.engine.interface import Version
+
+
 def invoke(args: List[str]) -> Result:
     return CliRunner().invoke(command, args)
 
@@ -33,3 +35,29 @@ class TestCommon:
     def test_no_args(self):
         result = invoke([])
         assert result.exit_code == 0
+
+    @patch("vplan.client.cli.retrieve_health")
+    def test_check_unhealthy(self, retrieve_health):
+        retrieve_health.return_value = False
+        result = invoke(["check"])
+        assert result.exit_code == 1
+        assert "Unable to connect to API" in result.output
+
+    @patch("vplan.client.cli.retrieve_version")
+    @patch("vplan.client.cli.retrieve_health")
+    def test_check_no_version(self, retrieve_health, retrieve_version):
+        retrieve_health.return_value = True
+        retrieve_version.return_value = None
+        result = invoke(["check"])
+        assert result.exit_code == 1
+        assert "Unable to retrieve API version" in result.output
+
+    @patch("vplan.client.cli.retrieve_version")
+    @patch("vplan.client.cli.retrieve_health")
+    def test_check_healthy(self, retrieve_health, retrieve_version):
+        version = Version(package="a", api="b")
+        retrieve_health.return_value = True
+        retrieve_version.return_value = version
+        result = invoke(["check"])
+        assert result.exit_code == 0
+        assert result.output == "API is healthy, versions: package='a' api='b'\n"

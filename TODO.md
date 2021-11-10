@@ -1,7 +1,5 @@
 Remaining work:
 
-- implement an environment variable override for where to get user config (for local testing to work)
-- test what happens for invalid YAML files and make sure it's legible in the client
 - implement API endpoints in terms of stubbed database and client code
 - unit test API endpoints  (with mock client and database)
 - implement database code

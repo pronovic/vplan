@@ -170,7 +170,7 @@ run_tox() {
    fi
 }
 
-# Run the vplan REST API server at port :8080
+# Run the vplan REST server at localhost:8080
 run_server() {
    poetry run which uvicorn > /dev/null
    if [ $? != 0 ]; then
@@ -182,6 +182,11 @@ run_server() {
       --app-dir src --reload \
       --log-config config/local/vplan/server/logging.yaml \
       --env-file config/local/vplan/server/server.env
+}
+
+# Run the vplan client against localhost:8080
+run_client() {
+   poetry run vplan --config config/local/vplan/client/application.yaml $*
 }
 
 # Execute one of the developer tasks
@@ -233,6 +238,10 @@ case $1 in
    server)
       run_server
       ;;
+   vplan|client)
+      shift 1
+      run_client $*
+      ;;
    *)
       echo ""
       echo "------------------------------------"
@@ -249,7 +258,8 @@ case $1 in
       echo "- run test -c: Run the unit tests with coverage"
       echo "- run test -ch: Run the unit tests with coverage and open the HTML report"
       echo "- run tox: Run the Tox test suite used by the GitHub CI action"
-      echo "- run server: Run the vplan REST API server at port :8080"
+      echo "- run server: Run the vplan REST server at localhost:8080"
+      echo "- run vplan: Run the vplan client against localhost:8080"
       echo ""
       exit 1
 esac

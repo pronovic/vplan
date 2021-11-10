@@ -8,6 +8,7 @@ import sys
 from typing import Optional
 
 import click
+from pydantic import ValidationError
 
 from vplan.client.client import (
     create_plan,
@@ -35,13 +36,16 @@ def _display_plan_status(plan_name: str) -> None:
 
 def _read_plan_yaml(yaml_path: str) -> PlanSchema:
     """Read YAML, either from a path on disk or from stdin."""
-    if yaml_path == "-":
-        data = sys.stdin.read()
-        result = PlanSchema.parse_raw(data)
-    else:
-        with open(yaml_path, "r", encoding="utf8") as fp:
-            result = PlanSchema.parse_raw(fp.read())
-    return result
+    try:
+        if yaml_path == "-":
+            data = sys.stdin.read()
+            result = PlanSchema.parse_raw(data)
+        else:
+            with open(yaml_path, "r", encoding="utf8") as fp:
+                result = PlanSchema.parse_raw(fp.read())
+        return result
+    except ValidationError as e:
+        raise click.ClickException("%s" % e) from e
 
 
 @click.group()

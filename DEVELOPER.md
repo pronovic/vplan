@@ -107,6 +107,8 @@ Usage: run <command>
 - run test -c: Run the unit tests with coverage
 - run test -ch: Run the unit tests with coverage and open the HTML report
 - run tox: Run the Tox test suite used by the GitHub CI action
+- run server: Run the vplan REST server at localhost:8080
+- run vplan: Run the vplan client against localhost:8080
 ```
 
 ## Integration with PyCharm
