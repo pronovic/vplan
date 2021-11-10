@@ -16,18 +16,28 @@ from vplan.client.client import (
     retrieve_all_plans,
     retrieve_plan,
     retrieve_plan_status,
-    test_device,
-    test_group,
+    toggle_device,
+    toggle_group,
     update_plan,
     update_plan_status,
 )
 from vplan.engine.interface import PlanSchema, Status
 
 
+def _display_plan_status(plan_name: str) -> None:
+    """Display the account status."""
+    result = retrieve_plan_status(plan_name)
+    if not result:
+        click.secho("Plan does not exist: %s" % plan_name)
+    else:
+        click.secho("Plan %s is %s" % (plan_name, ("enabled" if result.enabled else "disabled")))
+
+
 def _read_plan_yaml(yaml_path: str) -> PlanSchema:
     """Read YAML, either from a path on disk or from stdin."""
     if yaml_path == "-":
-        result = PlanSchema.parse_raw(sys.stdin.read())
+        data = sys.stdin.read()
+        result = PlanSchema.parse_raw(data)
     else:
         with open(yaml_path, "r", encoding="utf8") as fp:
             result = PlanSchema.parse_raw(fp.read())
@@ -64,7 +74,7 @@ def update(yaml_path: str) -> None:
     existing plan will be modified based on the name in the YAML definition.
     """
     yaml = _read_plan_yaml(yaml_path)
-    update_plan(yaml.plan.name, yaml)
+    update_plan(yaml)
     click.secho("Updated plan: %s" % yaml.plan.name)
 
 
@@ -87,8 +97,7 @@ def delete(plan_name: str) -> None:
 @click.argument("plan_name", metavar="<plan-name>")
 def status(plan_name: str) -> None:
     """Check the enabled/disabled status of a plan"""
-    result = retrieve_plan_status(plan_name)
-    click.secho("Plan is %s" % "enabled" if result.enabled else "disabled")
+    _display_plan_status(plan_name)
 
 
 @plan.command()
@@ -96,7 +105,7 @@ def status(plan_name: str) -> None:
 def enable(plan_name: str) -> None:
     """Enable a plan, allowing it to execute if the account is enabled."""
     update_plan_status(plan_name, Status(enabled=True))
-    status(plan_name)
+    _display_plan_status(plan_name)
 
 
 @plan.command()
@@ -104,7 +113,7 @@ def enable(plan_name: str) -> None:
 def disable(plan_name: str) -> None:
     """Disable a plan, preventing it from executing."""
     update_plan_status(plan_name, Status(enabled=False))
-    status(plan_name)
+    _display_plan_status(plan_name)
 
 
 @plan.command()
@@ -120,12 +129,13 @@ def refresh(plan_name: str) -> None:
 def show(plan_name: str) -> None:
     """Show information about a plan."""
     result = retrieve_plan(plan_name)
-    enabled = retrieve_plan_status(plan_name)
-    click.secho("Schema.....: %s" % result.version)
-    click.secho("Plan name..: %s" % result.plan.name)
-    click.secho("Location...: %s" % result.plan.location)
-    click.secho("Groups.....: %d" % len(result.plan.groups))
-    click.secho("Status.....: %s" % "enabled" if enabled else "disabled")
+    if not result:
+        raise click.UsageError("Plan does not exist: %s" % plan_name)
+    else:
+        click.secho("Schema.....: %s" % result.version)
+        click.secho("Plan name..: %s" % result.plan.name)
+        click.secho("Location...: %s" % result.plan.location)
+        click.secho("Groups.....: %d" % len(result.plan.groups))
 
 
 @plan.command()
@@ -150,9 +160,11 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     and comments are not preserved.
     """
     result = retrieve_plan(plan_name)
+    if not result:
+        raise click.UsageError("Plan does not exist: %s" % plan_name)
     yaml = result.yaml()
-    if not yaml_path or yaml_path == "-":
-        print(yaml)
+    if not yaml_path:
+        click.echo(yaml)
     else:
         with open(yaml_path, "w", encoding="utf8") as fp:
             fp.write(yaml)
@@ -187,7 +199,7 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
 )
 @click.option(
     "--toggles",
-    "-s",
+    "-t",
     "toggle_count",
     metavar="<toggles>",
     required=False,
@@ -216,12 +228,17 @@ def test(
     """
     if device_path:
         room, device = device_path.split("/")
-        test_device(plan_name, room, device, toggle_count)
+        click.secho("Testing device: %s/%s" % (room, device))
+        toggle_device(plan_name, room, device, toggle_count)
     elif group_name:
-        test_group(plan_name, group_name, toggle_count)
+        click.secho("Testing group: %s" % group_name)
+        toggle_group(plan_name, group_name, toggle_count)
     else:
         result = retrieve_plan(plan_name)
+        if not result:
+            raise click.UsageError("Plan does not exist: %s" % plan_name)
         for group in result.plan.groups:
+            click.secho("Testing group: %s" % group.name)
             if not auto:
-                click.prompt("Next group is %s; confirm when ready" % group.name)
-            test_group(plan_name, group.name, toggle_count)
+                click.prompt("Press enter to continue")
+            toggle_group(plan_name, group.name, toggle_count)

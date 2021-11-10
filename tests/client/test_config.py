@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from vplan.client.config import ClientConfig, ConnectionMode, config, reset
+from vplan.client.config import ClientConfig, ConnectionMode, api_url, config, reset
 from vplan.engine.interface import ServerException
 
 PORT_FIXTURE_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "config", "port")
@@ -77,14 +77,22 @@ class TestConfig:
         with pytest.raises(ServerException, match="^Client configuration is not readable"):
             config()
 
+    @patch("vplan.client.config.homedir")
+    @patch.dict(os.environ, {"HOME": "/home/whatever"}, clear=True)
+    def test_api_url(self, homedir):
+        homedir.return_value = SOCKET_FIXTURE_DIR
+        assert api_url() == config().api_url()
+
     @staticmethod
     def _validate_port_config(result):
         assert result.mode == ConnectionMode.PORT
         assert result.api_endpoint == "http://localhost:8080"
         assert result.api_socket is None
+        assert result.api_url() == "http://localhost:8080"
 
     @staticmethod
     def _validate_socket_config(result):
         assert result.mode == ConnectionMode.SOCKET
         assert result.api_endpoint is None
         assert result.api_socket == "/home/whatever/.config/vplan/run/engine.sock"
+        assert result.api_url() == "http+unix://%2Fhome%2Fwhatever%2F.config%2Fvplan%2Frun%2Fengine.sock"

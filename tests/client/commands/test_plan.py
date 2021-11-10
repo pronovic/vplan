@@ -1,0 +1,385 @@
+# -*- coding: utf-8 -*-
+# vim: set ft=python ts=4 sw=4 expandtab:
+from typing import List
+from unittest.mock import MagicMock, patch
+
+import pytest
+from click.testing import CliRunner, Result
+
+from vplan.client.cli import vplan as command
+from vplan.engine.interface import DeviceGroup, Plan, PlanSchema, Status
+
+
+# noinspection PyTypeChecker
+def invoke(args: List[str]) -> Result:
+    return CliRunner().invoke(command, ["plan"] + args)
+
+
+class TestCommon:
+    def test_h(self):
+        result = invoke(["-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["--help"])
+        assert result.exit_code == 0
+
+    @patch("importlib.metadata.version")  # this is used underneath by @click.version_option()
+    def test_version(self, version):
+        version.return_value = "1234"
+        result = invoke(["--version"])
+        assert result.exit_code == 0
+        assert result.output.startswith("vplan, version 1234")
+
+    def test_no_args(self):
+        result = invoke([])
+        assert result.exit_code == 0
+
+
+class TestCreate:
+    def test_h(self):
+        result = invoke(["create", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["create", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.create_plan")
+    @patch("vplan.client.commands.plan.sys")
+    def test_command_stdin(self, sys, create_plan):
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        sys.stdin = MagicMock()
+        sys.stdin.read = MagicMock()
+        sys.stdin.read.return_value = plan.yaml()
+        result = invoke(["create", "-"])
+        assert result.exit_code == 0
+        assert result.output == "Created plan: name\n"
+        create_plan.assert_called_once_with(plan)
+
+    @patch("vplan.client.commands.plan.create_plan")
+    def test_command_file(self, create_plan, tmpdir):
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        p = tmpdir.join("plan.yaml")
+        p.write(plan.yaml())
+        result = invoke(["create", "%s" % p])
+        assert result.exit_code == 0
+        assert result.output == "Created plan: name\n"
+        create_plan.assert_called_once_with(plan)
+
+
+class TestDelete:
+    def test_h(self):
+        result = invoke(["delete", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["delete", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.delete_plan")
+    def test_command(self, delete_plan):
+        result = invoke(["delete", "xxx"])
+        assert result.exit_code == 0
+        assert result.output == "Deleted plan: xxx\n"
+        delete_plan.assert_called_once_with("xxx")
+
+
+class TestDisable:
+    def test_h(self):
+        result = invoke(["disable", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["disable", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.retrieve_plan_status")
+    @patch("vplan.client.commands.plan.update_plan_status")
+    def test_command(self, update_plan_status, retrieve_plan_status):
+        retrieve_plan_status.return_value = Status(enabled=False)
+        result = invoke(["disable", "xxx"])
+        assert result.exit_code == 0
+        assert result.output == "Plan xxx is disabled\n"
+        update_plan_status.assert_called_once_with("xxx", Status(enabled=False))
+
+
+class TestEnable:
+    def test_h(self):
+        result = invoke(["enable", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["enable", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.retrieve_plan_status")
+    @patch("vplan.client.commands.plan.update_plan_status")
+    def test_command(self, update_plan_status, retrieve_plan_status):
+        retrieve_plan_status.return_value = Status(enabled=True)
+        result = invoke(["enable", "xxx"])
+        assert result.exit_code == 0
+        assert result.output == "Plan xxx is enabled\n"
+        update_plan_status.assert_called_once_with("xxx", Status(enabled=True))
+
+
+class TestExport:
+    def test_h(self):
+        result = invoke(["export", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["export", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_command_not_found(self, retrieve_plan):
+        retrieve_plan.return_value = None
+        result = invoke(["export", "plan-name"])
+        assert result.exit_code == 2
+        assert "Plan does not exist: plan-name" in result.output
+        retrieve_plan.assert_called_once_with("plan-name")
+
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_command_stdout(self, retrieve_plan):
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        retrieve_plan.return_value = plan
+        result = invoke(["export", "plan-name"])
+        assert result.exit_code == 0
+        assert result.output == "%s\n" % plan.yaml()
+        retrieve_plan.assert_called_once_with("plan-name")
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--output", "-o"],
+    )
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_command_file(self, retrieve_plan, option, tmpdir):
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        retrieve_plan.return_value = plan
+        p = tmpdir.join("plan.yaml").realpath()
+        result = invoke(["export", "plan-name", option, p])
+        assert result.exit_code == 0
+        assert result.output == "Plan written to: %s\n" % p
+        assert p.read() == plan.yaml()
+        retrieve_plan.assert_called_once_with("plan-name")
+
+
+class TestList:
+    def test_h(self):
+        result = invoke(["list", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["list", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.retrieve_all_plans")
+    def test_command(self, retrieve_all_plans):
+        retrieve_all_plans.return_value = ["a", "b", "c"]
+        result = invoke(["list"])
+        assert result.exit_code == 0
+        assert result.output == "a\nb\nc\n"
+
+
+class TestRefresh:
+    def test_h(self):
+        result = invoke(["refresh", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["refresh", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.refresh_plan")
+    def test_command(self, refresh_plan):
+        result = invoke(["refresh", "xxx"])
+        assert result.exit_code == 0
+        assert result.output == "Refreshed plan: xxx\n"
+        refresh_plan.assert_called_once_with("xxx")
+
+
+class TestShow:
+    def test_h(self):
+        result = invoke(["show", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["show", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_command_not_found(self, retrieve_plan):
+        retrieve_plan.return_value = None
+        result = invoke(["show", "plan-name"])
+        assert result.exit_code == 2
+        assert "Plan does not exist: plan-name" in result.output
+        retrieve_plan.assert_called_once_with("plan-name")
+
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_command_found(self, retrieve_plan):
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        retrieve_plan.return_value = plan
+        result = invoke(["show", "plan-name"])
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == """Schema.....: 1.0.0
+Plan name..: name
+Location...: location
+Groups.....: 0
+"""
+        )
+        retrieve_plan.assert_called_once_with("plan-name")
+
+
+class TestStatus:
+    def test_h(self):
+        result = invoke(["status", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["status", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.retrieve_plan_status")
+    def test_command_does_not_exist(self, retrieve_plan_status):
+        retrieve_plan_status.return_value = None
+        result = invoke(["status", "xxx"])
+        assert result.exit_code == 0
+        assert result.output == "Plan does not exist: xxx\n"
+
+    @pytest.mark.parametrize(
+        "enabled,output",
+        [
+            (True, "Plan xxx is enabled\n"),
+            (False, "Plan xxx is disabled\n"),
+        ],
+        ids=["enabled", "disabled"],
+    )
+    @patch("vplan.client.commands.plan.retrieve_plan_status")
+    def test_command_exists(self, retrieve_plan_status, enabled, output):
+        retrieve_plan_status.return_value = Status(enabled=enabled)
+        result = invoke(["status", "xxx"])
+        assert result.exit_code == 0
+        assert result.output == output
+
+
+class TestTest:
+    def test_h(self):
+        result = invoke(["test", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["test", "--help"])
+        assert result.exit_code == 0
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--device", "-d"],
+    )
+    @patch("vplan.client.commands.plan.toggle_device")
+    def test_specific_device(self, toggle_device, option):
+        result = invoke(["test", "xxx", option, "room/device"])
+        assert result.exit_code == 0
+        assert result.output == "Testing device: room/device\n"
+        toggle_device.assert_called_once_with("xxx", "room", "device", 2)
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--group", "-g"],
+    )
+    @patch("vplan.client.commands.plan.toggle_group")
+    def test_specific_group(self, toggle_group, option):
+        result = invoke(["test", "xxx", option, "group"])
+        assert result.exit_code == 0
+        assert result.output == "Testing group: group\n"
+        toggle_group.assert_called_once_with("xxx", "group", 2)
+
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_not_found(self, retrieve_plan):
+        retrieve_plan.return_value = None
+        result = invoke(["test", "xxx"])
+        assert result.exit_code == 2
+        assert "Plan does not exist: xxx" in result.output
+        retrieve_plan.assert_called_once_with("xxx")
+
+    @patch("vplan.client.commands.plan.click.prompt")
+    @patch("vplan.client.commands.plan.toggle_group")
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_entire_plan(self, retrieve_plan, toggle_group, prompt):
+        groups = [DeviceGroup(name="group", devices=[], triggers=[])]
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=groups))
+        retrieve_plan.return_value = plan
+        result = invoke(["test", "xxx"])
+        assert result.exit_code == 0
+        assert result.output == "Testing group: group\n"
+        retrieve_plan.assert_called_once_with("xxx")
+        toggle_group.assert_called_once_with("xxx", "group", 2)
+        prompt.assert_called_once_with("Press enter to continue")
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--auto", "-a"],
+    )
+    @patch("vplan.client.commands.plan.toggle_group")
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_entire_plan_auto(self, retrieve_plan, toggle_group, option):
+        groups = [DeviceGroup(name="group", devices=[], triggers=[])]
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=groups))
+        retrieve_plan.return_value = plan
+        result = invoke(["test", "xxx", option])
+        assert result.exit_code == 0
+        assert result.output == "Testing group: group\n"
+        retrieve_plan.assert_called_once_with("xxx")
+        toggle_group.assert_called_once_with("xxx", "group", 2)
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--toggles", "-t"],
+    )
+    @patch("vplan.client.commands.plan.click.prompt")
+    @patch("vplan.client.commands.plan.toggle_group")
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_entire_plan_toggles(self, retrieve_plan, toggle_group, prompt, option):
+        groups = [DeviceGroup(name="group", devices=[], triggers=[])]
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=groups))
+        retrieve_plan.return_value = plan
+        result = invoke(["test", "xxx", option, "99"])
+        assert result.exit_code == 0
+        assert result.output == "Testing group: group\n"
+        retrieve_plan.assert_called_once_with("xxx")
+        toggle_group.assert_called_once_with("xxx", "group", 99)
+        prompt.assert_called_once_with("Press enter to continue")
+
+
+class TestUpdate:
+    def test_h(self):
+        result = invoke(["update", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["update", "--help"])
+        assert result.exit_code == 0
+
+    @patch("vplan.client.commands.plan.update_plan")
+    @patch("vplan.client.commands.plan.sys")
+    def test_command_stdin(self, sys, update_plan):
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        sys.stdin = MagicMock()
+        sys.stdin.read = MagicMock()
+        sys.stdin.read.return_value = plan.yaml()
+        result = invoke(["update", "-"])
+        assert result.exit_code == 0
+        assert result.output == "Updated plan: name\n"
+        update_plan.assert_called_once_with(plan)
+
+    @patch("vplan.client.commands.plan.update_plan")
+    def test_command_file(self, update_plan, tmpdir):
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        p = tmpdir.join("plan.yaml")
+        p.write(plan.yaml())
+        result = invoke(["update", "%s" % p])
+        assert result.exit_code == 0
+        assert result.output == "Updated plan: name\n"
+        update_plan.assert_called_once_with(plan)

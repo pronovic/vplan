@@ -42,8 +42,14 @@ class ClientConfig(YamlModel):
             raise ValueError("api_socket required in SOCKET mode")
         return api_socket
 
-
-# look up other value in values, set v accordingly.
+    def api_url(self) -> str:
+        """Return the correct API URL based on configuration."""
+        if self.mode == ConnectionMode.PORT:
+            # For port mode, we make normal HTTP connections on a TCP port
+            return self.api_endpoint  # type: ignore
+        else:
+            # For socket mode, we use a special URL to send traffic using a unix socket on the filesystem
+            return "http+unix://%s" % self.api_socket.replace("/", "%2F")  # type: ignore
 
 
 _CONFIG: Optional[ClientConfig] = None
@@ -72,3 +78,8 @@ def config(config_path: Optional[str] = None) -> ClientConfig:
     if _CONFIG is None:
         _CONFIG = _load_config(config_path)
     return _CONFIG
+
+
+def api_url() -> str:
+    """Return the correct API URL based on configuration."""
+    return config().api_url()

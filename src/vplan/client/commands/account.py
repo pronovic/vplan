@@ -20,6 +20,15 @@ from vplan.client.client import (
 from vplan.engine.interface import Account, Status
 
 
+def _display_account_status() -> None:
+    """Display the account status."""
+    result = retrieve_account_status()
+    if not result:
+        click.secho("Account does not exist")
+    else:
+        click.secho("Account is %s" % ("enabled" if result.enabled else "disabled"))
+
+
 @click.group()
 @click.version_option(package_name="vplan", prog_name="vplan")
 def account() -> None:
@@ -67,11 +76,13 @@ def set_account(token: Optional[str]) -> None:
         token = click.prompt("Enter PAT token: ")
     result = retrieve_account()
     if result:
-        result = Account(name="SmartThings", pat_token=token)
+        result = Account(name="default", pat_token=token)
         update_account(result)
+        click.secho("Account updated")
     else:
-        result = Account(name="SmartThings", pat_token=token)
+        result = Account(name="default", pat_token=token)
         create_account(result)
+        click.secho("Account created")
 
 
 @account.command()
@@ -84,27 +95,29 @@ def delete() -> None:
 @account.command()
 def status() -> None:
     """Check the enabled/disabled status of your account."""
-    result = retrieve_account_status()
-    click.secho("Account is %s" % "enabled" if result.enabled else "disabled")
+    _display_account_status()
 
 
 @account.command()
 def enable() -> None:
     """Enable your account, allowing any enabled plans to execute."""
     update_account_status(Status(enabled=True))
-    status()
+    _display_account_status()
 
 
 @account.command()
 def disable() -> None:
     """Disable your account, preventing all plans from executing."""
     update_account_status(Status(enabled=False))
-    status()
+    _display_account_status()
 
 
 @account.command()
 def show() -> None:
     """Show the account information stored in the plan engine."""
     result = retrieve_account()
-    click.secho("Account name: %s" % result.name)
-    click.secho("PAT token: %s" % result.pat_token)
+    if not result:
+        click.secho("Account does not exist")
+    else:
+        click.secho("Account name: %s" % result.name)
+        click.secho("PAT token: %s" % result.pat_token)
