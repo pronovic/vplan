@@ -20,6 +20,7 @@ PLAN_EXPECTED = PlanSchema(
     plan=Plan(
         name="my-house",
         location="My House",
+        refresh_time="00:30",
         groups=[
             DeviceGroup(
                 name="first-floor-lights",
@@ -182,34 +183,38 @@ class TestModelsAndValidation:
             DeviceGroup(name=name, devices=[], triggers=[])
 
     @pytest.mark.parametrize(
-        "name,location",
+        "name,location,refresh_time",
         [
-            ("n", "l"),
-            (" n ", " l "),
-            (VALID_NAME, "location"),
+            ("n", "l", "00:00"),
+            (" n ", " l ", " 12:00 "),
+            (VALID_NAME, "location", "23:59"),
         ],
         ids=["short", "whitespace", "long"],
     )
-    def test_plan_valid(self, name, location):
-        model = Plan(name=name, location=location, groups=[])
+    def test_plan_valid(self, name, location, refresh_time):
+        model = Plan(name=name, location=location, refresh_time=refresh_time, groups=[])
         assert model.name == name.strip()
         assert model.location == location  # not stripped, it's a SmartThings identifier
+        assert model.refresh_time == refresh_time.strip()
         assert model.groups == []
 
     @pytest.mark.parametrize(
-        "name,location",
+        "name,location,refresh_time",
         [
-            ("", "location"),
-            (None, "location"),
-            (TOO_LONG_NAME, "location"),
-            ("name", ""),
-            ("name", None),
+            ("", "location", "18:02"),
+            (None, "location", "18:02"),
+            (TOO_LONG_NAME, "location", "18:02"),
+            ("name", "", "18:02"),
+            ("name", None, "18:02"),
+            ("name", "location", ""),
+            ("name", "location", None),
+            ("name", "location", "8:02"),
         ],
-        ids=["empty name", "no name", "long name", "empty room", "no room"],
+        ids=["empty name", "no name", "long name", "empty room", "no room", "empty refresh", "no refresh", "invalid refresh"],
     )
-    def test_plan_invalid(self, name, location):
+    def test_plan_invalid(self, name, location, refresh_time):
         with pytest.raises(ValueError):
-            Plan(name=name, location=location, groups=[])
+            Plan(name=name, location=location, refresh_time=refresh_time, groups=[])
 
     @pytest.mark.parametrize(
         "name,pat_token",

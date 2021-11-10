@@ -2,6 +2,7 @@ version: 1.0.0
 plan:
   name: my-house
   location: My House
+  refresh_time: "00:30"
   groups:
     - name: first-floor-lights
       devices:

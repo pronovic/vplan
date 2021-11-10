@@ -48,7 +48,7 @@ class TestCreate:
     @patch("vplan.client.commands.plan.create_plan")
     @patch("vplan.client.commands.plan.sys")
     def test_command_stdin(self, sys, create_plan):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         sys.stdin = MagicMock()
         sys.stdin.read = MagicMock()
         sys.stdin.read.return_value = plan.yaml()
@@ -59,7 +59,7 @@ class TestCreate:
 
     @patch("vplan.client.commands.plan.create_plan")
     def test_command_file(self, create_plan, tmpdir):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         p = tmpdir.join("plan.yaml")
         p.write(plan.yaml())
         result = invoke(["create", "%s" % p])
@@ -142,7 +142,7 @@ class TestExport:
 
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_stdout(self, retrieve_plan):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         retrieve_plan.return_value = plan
         result = invoke(["export", "plan-name"])
         assert result.exit_code == 0
@@ -155,7 +155,7 @@ class TestExport:
     )
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_file(self, retrieve_plan, option, tmpdir):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         retrieve_plan.return_value = plan
         p = tmpdir.join("plan.yaml").realpath()
         result = invoke(["export", "plan-name", option, p])
@@ -218,7 +218,7 @@ class TestShow:
 
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_found(self, retrieve_plan):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         retrieve_plan.return_value = plan
         result = invoke(["show", "plan-name"])
         assert result.exit_code == 0
@@ -309,7 +309,7 @@ class TestTest:
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_entire_plan(self, retrieve_plan, toggle_group, prompt):
         groups = [DeviceGroup(name="group", devices=[], triggers=[])]
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=groups))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
         retrieve_plan.return_value = plan
         result = invoke(["test", "xxx"])
         assert result.exit_code == 0
@@ -326,7 +326,7 @@ class TestTest:
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_entire_plan_auto(self, retrieve_plan, toggle_group, option):
         groups = [DeviceGroup(name="group", devices=[], triggers=[])]
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=groups))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
         retrieve_plan.return_value = plan
         result = invoke(["test", "xxx", option])
         assert result.exit_code == 0
@@ -343,7 +343,7 @@ class TestTest:
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_entire_plan_toggles(self, retrieve_plan, toggle_group, prompt, option):
         groups = [DeviceGroup(name="group", devices=[], triggers=[])]
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=groups))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
         retrieve_plan.return_value = plan
         result = invoke(["test", "xxx", option, "99"])
         assert result.exit_code == 0
@@ -365,7 +365,7 @@ class TestUpdate:
     @patch("vplan.client.commands.plan.update_plan")
     @patch("vplan.client.commands.plan.sys")
     def test_command_stdin(self, sys, update_plan):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         sys.stdin = MagicMock()
         sys.stdin.read = MagicMock()
         sys.stdin.read.return_value = plan.yaml()
@@ -376,7 +376,7 @@ class TestUpdate:
 
     @patch("vplan.client.commands.plan.update_plan")
     def test_command_file(self, update_plan, tmpdir):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         p = tmpdir.join("plan.yaml")
         p.write(plan.yaml())
         result = invoke(["update", "%s" % p])

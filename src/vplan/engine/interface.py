@@ -55,6 +55,14 @@ class TriggerVariation(ConstrainedStr):
     regex = re.compile(r"^(disabled|none|([+]/-|[+]|-) (\d+) (hour(s)?|minute(s)?|second(s)?))$")
 
 
+class SimpleTime(ConstrainedStr):
+    """A simple time in format HH24:MM."""
+
+    to_lower = True
+    strip_whitespace = True
+    regex = re.compile(r"^(\d{2}:\d{2})$")
+
+
 class SmartThingsId(ConstrainedStr):
     """A SmartThings identifier (either a name or id), opaque to us."""
 
@@ -117,6 +125,7 @@ class Plan(YamlModel):
 
     name: VplanName = Field(..., description="Vacation plan name")
     location: SmartThingsId = Field(..., description="SmartThings location name, where the plan will execute")
+    refresh_time: SimpleTime = Field(..., description="The time of day that the daily refresh job runs")
     groups: List[DeviceGroup] = Field(description="List of device groups managed by the plan", default_factory=lambda: [])
 
 

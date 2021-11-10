@@ -155,7 +155,7 @@ class TestPlan:
 
     @patch("vplan.client.client.requests.get")
     def test_retrieve_plan_found(self, requests_get, api_url, raise_for_status):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         response = _response(model=plan)
         requests_get.side_effect = [response]
         result = retrieve_plan("xxx")
@@ -165,7 +165,7 @@ class TestPlan:
 
     @patch("vplan.client.client.requests.post")
     def test_create_plan(self, requests_post, api_url, raise_for_status):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         response = _response()
         requests_post.side_effect = [response]
         create_plan(plan)
@@ -174,7 +174,7 @@ class TestPlan:
 
     @patch("vplan.client.client.requests.put")
     def test_update_plan(self, requests_put, api_url, raise_for_status):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", groups=[]))
+        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         response = _response()
         requests_put.side_effect = [response]
         update_plan(plan)
