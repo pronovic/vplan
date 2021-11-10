@@ -80,28 +80,28 @@ $ cd ~/.config/systemd && find . -type d -exec chmod 700 \{} \;
 Next, configure systemd:
 
 ```
-$ sudo loginctl enable-linger <your-user>
-$ systemctl --user enable vplan
-$ systemctl --user start vplan
-$ systemctl --user status vplan
+$ sudo loginctl enable-linger <your-user>    # restart user services at reboot
+$ systemctl --user enable vplan              # enable the vplan service
+$ systemctl --user start vplan               # start the vplan service
+$ systemctl --user status vplan              # show status for the vplan service
 ```
 
 At this point, the systemd service should be running, and the command
-line client should be operable.  First, you can check connectivity:
+line client should be operable.  Check connectivity:
 
 ```
 $ vplan check
 API is healthy, versions: package='0.1.0' api='1.0.0'
 ```
 
-The version will vary from what is shown above, but the result should look
-similar.  If you get any errors, check that you installed the software as
+The version will always vary from what is shown above, but the result should
+look similar.  If you get any errors, check that you installed the software as
 described above.
 
 ## Setting Up Your Account
 
-The vacation plan manager needs a SmartThings PAT token.  The 
-The PAT token will be used to interact with the SmartThings API. 
+The vacation plan manager needs a SmartThings PAT token.  The PAT token is used
+to interact with the SmartThings API. 
 
 Retrieve a token from: https://account.smartthings.com/tokens
 
@@ -227,9 +227,9 @@ $ vplan plan enable my-house
 Plan my-house is enabled
 ```
 
-Once a plan is enabled, rules will be written immediatly into the SmartThings
+Once a plan is enabled, rules will be written immediately into the SmartThings
 infrastructure, and your plan will be operational.
 
 See other plan commands using `vplan plan --help`.  In particular, you may want
 to use the `test` command to confirm that your various device groups are
-working like you intend.
+working like you intend, before you enable the plan.
