@@ -2,7 +2,6 @@
 isolated_build = true
 envlist = 
    checks,
-   docs,
    coverage
 ignore_basepython_conflict = true
 
@@ -21,11 +20,3 @@ commands =
    poetry run coverage erase
    poetry run coverage run -m pytest --force-testdox --color=no tests
    poetry run coverage report
-
-[testenv:docs]
-whitelist_externals = poetry
-changedir = docs
-commands =
-   poetry --version
-   poetry version
-   poetry run sphinx-build -N -E -a -b html -d _build/doctrees . _build/html

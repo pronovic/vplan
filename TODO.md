@@ -1,5 +1,7 @@
 Remaining work:
 
+- implement an environment variable override for where to get user config (for local testing to work)
+- test what happens for invalid YAML files and make sure it's legible in the client
 - implement API endpoints in terms of stubbed database and client code
 - unit test API endpoints  (with mock client and database)
 - implement database code
@@ -8,10 +10,6 @@ Remaining work:
 - unit test client code against captured data from Insomnia
 - write round trip acceptance tests with live server?
 - do manual local testing with client and server on Macbook
-- establish the correct process for setting up to use systemd on Linux
-- strip out readthedocs stuff and doc directory
-- strip out references to PyPI in all of the documentation and pyproject.toml
+- test what happens with invalid devices, etc. and figure out how users are supposed to debug it
 - adjust build/release process to release wheel and config template to GitHub
-- write user documentation into README.md
-- review DEVELOPER.md and remove stuff that's not applicable
 - upgrade to Python 3.10 and re-test there

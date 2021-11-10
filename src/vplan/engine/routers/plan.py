@@ -31,6 +31,7 @@ def retrieve_plan(plan_name: str) -> PlanSchema:
 @ROUTER.post("/plan", status_code=HTTP_201_CREATED, response_class=EmptyResponse)
 def create_plan(plan: PlanSchema) -> None:
     """Create a plan in the plan engine."""
+    # NOTE: the plan needs to be disabled by default
 
 
 @ROUTER.put("/plan/{plan_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
