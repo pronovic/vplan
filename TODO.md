@@ -1,5 +1,6 @@
 Remaining work:
 
+- mask the PAT token in output (and add option to unmask it)
 - implement API endpoints in terms of stubbed database and client code
 - unit test API endpoints  (with mock client and database)
 - implement database code
