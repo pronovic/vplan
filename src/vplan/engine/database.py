@@ -116,20 +116,20 @@ def db_retrieve_plan(plan_name: str) -> PlanSchema:
         return PlanSchema.parse_raw(entity.definition)
 
 
-def db_create_plan(plan: PlanSchema) -> None:
+def db_create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
     with db_session() as session:
         entity = _PlanEntity()
-        entity.plan_name = plan.plan.name
+        entity.plan_name = schema.plan.name
         entity.enabled = False
-        entity.definition = plan.yaml()
+        entity.definition = schema.yaml()
         session.add(entity)
 
 
-def db_update_plan(plan: PlanSchema, plan_name: str) -> None:
+def db_update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     with db_session() as session:
-        session.execute(update(_PlanEntity).where(_PlanEntity.plan_name == plan_name).values(definition=plan.yaml()))
+        session.execute(update(_PlanEntity).where(_PlanEntity.plan_name == schema.plan.name).values(definition=schema.yaml()))
 
 
 def db_delete_plan(plan_name: str) -> None:

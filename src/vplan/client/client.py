@@ -107,17 +107,17 @@ def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
     return PlanSchema.parse_raw(response.text)
 
 
-def create_plan(plan: PlanSchema) -> None:
+def create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
     url = _plan()
-    response = requests.post(url=url, data=plan.json())
+    response = requests.post(url=url, data=schema.json())
     _raise_for_status(response)
 
 
-def update_plan(plan: PlanSchema) -> None:
+def update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
-    url = _plan("/%s" % plan.plan.name)
-    response = requests.put(url=url, data=plan.json())
+    url = _plan()
+    response = requests.put(url=url, data=schema.json())
     _raise_for_status(response)
 
 

@@ -192,7 +192,7 @@ class TestPlan:
         requests_put.side_effect = [response]
         update_plan(plan)
         raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/plan/name", data=plan.json())
+        requests_put.assert_called_once_with(url="http://whatever/plan", data=plan.json())
 
     @patch("vplan.client.client.requests.delete")
     def test_delete_plan(self, requests_delete, api_url, raise_for_status):

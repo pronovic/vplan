@@ -38,15 +38,15 @@ def retrieve_plan(plan_name: str) -> PlanSchema:
 
 
 @ROUTER.post("/plan", status_code=HTTP_201_CREATED, response_class=EmptyResponse)
-def create_plan(plan: PlanSchema) -> None:
+def create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
-    db_create_plan(plan)
+    db_create_plan(schema)
 
 
-@ROUTER.put("/plan/{plan_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def update_plan(plan_name: str, plan: PlanSchema) -> None:
+@ROUTER.put("/plan", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
+def update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
-    db_update_plan(plan, plan_name)
+    db_update_plan(schema)
     # TODO: kick off work to update SmartThings, if the plan is enabled
 
 
