@@ -155,7 +155,6 @@ class PlanSchema(VersionedYamlModel):
 
 
 class Account(YamlModel):
-    """A SmartThings account."""
+    """A SmartThings account containing a PAT token.."""
 
-    name: VplanName = Field(..., description="Account name")
-    pat_token: SmartThingsId = Field(..., description="SmartThings Personal Access Token (PAT)")
+    pat_token: SmartThingsId = Field(..., description="SmartThings PAT token")

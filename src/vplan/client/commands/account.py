@@ -9,16 +9,8 @@ from typing import Optional
 
 import click
 
-from vplan.client.client import (
-    create_account,
-    delete_account,
-    retrieve_account,
-    retrieve_account_status,
-    update_account,
-    update_account_status,
-)
-from vplan.engine.entity import DEFAULT_ACCOUNT
-from vplan.engine.interface import Account, Status
+from vplan.client.client import create_or_replace_account, delete_account, retrieve_account
+from vplan.engine.interface import Account
 
 
 def _mask_token(token: str) -> str:
@@ -28,15 +20,6 @@ def _mask_token(token: str) -> str:
         return token
     else:
         return "%s%s%s" % (token[0:4], len(token[4:-4]) * "*", token[-4:])
-
-
-def _display_account_status() -> None:
-    """Display the account status."""
-    result = retrieve_account_status()
-    if not result:
-        click.secho("Account does not exist")
-    else:
-        click.secho("Account is %s" % ("enabled" if result.enabled else "disabled"))
 
 
 @click.group()
@@ -55,7 +38,7 @@ def account() -> None:
 )
 def set_account(token: Optional[str]) -> None:
     """
-    Set your account information in the plan engine.
+    Set the account information stored in the plan engine.
 
     You must provide a SmartThings PAT token.  The PAT token will be used to
     interact with the SmartThings API. By default, the token is accepted
@@ -84,42 +67,16 @@ def set_account(token: Optional[str]) -> None:
     """
     if not token:
         token = click.prompt("Enter PAT token")
-    result = retrieve_account()
-    if result:
-        result = Account(name=DEFAULT_ACCOUNT, pat_token=token)
-        update_account(result)
-        click.secho("Account updated")
-    else:
-        result = Account(name=DEFAULT_ACCOUNT, pat_token=token)
-        create_account(result)
-        click.secho("Account created")
+    result = Account(pat_token=token)
+    create_or_replace_account(result)
+    click.secho("Account set")
 
 
 @account.command()
 def delete() -> None:
-    """Delete your account and all plans in the plan engine."""
+    """Delete the account information stored in the plan engine."""
     delete_account()
     click.secho("Account deleted")
-
-
-@account.command()
-def status() -> None:
-    """Check the enabled/disabled status of your account."""
-    _display_account_status()
-
-
-@account.command()
-def enable() -> None:
-    """Enable your account, allowing any enabled plans to execute."""
-    update_account_status(Status(enabled=True))
-    _display_account_status()
-
-
-@account.command()
-def disable() -> None:
-    """Disable your account, preventing all plans from executing."""
-    update_account_status(Status(enabled=False))
-    _display_account_status()
 
 
 @account.command()
@@ -137,8 +94,7 @@ def show(unmask: bool) -> None:
     """Show the account information stored in the plan engine."""
     result = retrieve_account()
     if not result:
-        click.secho("Account does not exist")
+        click.secho("Account is not set")
     else:
         token = result.pat_token if unmask else _mask_token(result.pat_token)
-        click.secho("Account name: %s" % result.name)
         click.secho("PAT token: %s" % token)

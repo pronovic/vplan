@@ -2,13 +2,13 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 
 from typing import List
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 from click.testing import CliRunner, Result
 
 from vplan.client.cli import vplan as command
-from vplan.engine.interface import Account, Status
+from vplan.engine.interface import Account
 
 
 # noinspection PyTypeChecker
@@ -54,44 +54,6 @@ class TestDelete:
         delete_account.assert_called_once()
 
 
-class TestDisable:
-    def test_h(self):
-        result = invoke(["disable", "-h"])
-        assert result.exit_code == 0
-
-    def test_help(self):
-        result = invoke(["disable", "--help"])
-        assert result.exit_code == 0
-
-    @patch("vplan.client.commands.account.retrieve_account_status")
-    @patch("vplan.client.commands.account.update_account_status")
-    def test_command(self, update_account_status, retrieve_account_status):
-        retrieve_account_status.return_value = Status(enabled=False)
-        result = invoke(["disable"])
-        assert result.exit_code == 0
-        assert result.output == "Account is disabled\n"
-        update_account_status.assert_called_once_with(Status(enabled=False))
-
-
-class TestEnable:
-    def test_h(self):
-        result = invoke(["enable", "-h"])
-        assert result.exit_code == 0
-
-    def test_help(self):
-        result = invoke(["enable", "--help"])
-        assert result.exit_code == 0
-
-    @patch("vplan.client.commands.account.retrieve_account_status")
-    @patch("vplan.client.commands.account.update_account_status")
-    def test_command(self, update_account_status, retrieve_account_status):
-        retrieve_account_status.return_value = Status(enabled=True)
-        result = invoke(["enable"])
-        assert result.exit_code == 0
-        assert result.output == "Account is enabled\n"
-        update_account_status.assert_called_once_with(Status(enabled=True))
-
-
 class TestSet:
     def test_h(self):
         result = invoke(["set", "-h"])
@@ -101,50 +63,22 @@ class TestSet:
         result = invoke(["set", "--help"])
         assert result.exit_code == 0
 
-    @patch("vplan.client.commands.account.create_account")
-    @patch("vplan.client.commands.account.retrieve_account")
+    @patch("vplan.client.commands.account.create_or_replace_account")
     @patch("vplan.client.commands.account.click.prompt")
-    def test_command_create_interactive_new(self, prompt, retrieve_account, create_account):
+    def test_command_interactive(self, prompt, create_or_replace_account):
         prompt.return_value = "token"
-        retrieve_account.return_value = None
         result = invoke(["set"])
         assert result.exit_code == 0
-        assert result.output == "Account created\n"
-        create_account.assert_called_once_with(Account(name="default", pat_token="token"))
-
-    @patch("vplan.client.commands.account.update_account")
-    @patch("vplan.client.commands.account.retrieve_account")
-    @patch("vplan.client.commands.account.click.prompt")
-    def test_command_create_interactive_existing(self, prompt, retrieve_account, update_account):
-        prompt.return_value = "token"
-        retrieve_account.return_value = MagicMock()  # actual contents don't matter
-        result = invoke(["set"])
-        assert result.exit_code == 0
-        assert result.output == "Account updated\n"
-        update_account.assert_called_once_with(Account(name="default", pat_token="token"))
+        assert result.output == "Account set\n"
+        create_or_replace_account.assert_called_once_with(Account(pat_token="token"))
 
     @pytest.mark.parametrize("option", ["--token", "-t"])
-    @patch("vplan.client.commands.account.create_account")
-    @patch("vplan.client.commands.account.retrieve_account")
-    def test_command_create_token_new(self, retrieve_account, create_account, option):
-        retrieve_account.return_value = None
+    @patch("vplan.client.commands.account.create_or_replace_account")
+    def test_command_token(self, create_or_replace_account, option):
         result = invoke(["set", option, "token"])
         assert result.exit_code == 0
-        assert result.output == "Account created\n"
-        create_account.assert_called_once_with(Account(name="default", pat_token="token"))
-
-    @pytest.mark.parametrize(
-        "option",
-        ["--token", "-t"],
-    )
-    @patch("vplan.client.commands.account.update_account")
-    @patch("vplan.client.commands.account.retrieve_account")
-    def test_command_create_token_existing(self, retrieve_account, update_account, option):
-        retrieve_account.return_value = MagicMock()  # actual contents don't matter
-        result = invoke(["set", option, "token"])
-        assert result.exit_code == 0
-        assert result.output == "Account updated\n"
-        update_account.assert_called_once_with(Account(name="default", pat_token="token"))
+        assert result.output == "Account set\n"
+        create_or_replace_account.assert_called_once_with(Account(pat_token="token"))
 
 
 class TestShow:
@@ -161,19 +95,19 @@ class TestShow:
         retrieve_account.return_value = None
         result = invoke(["show"])
         assert result.exit_code == 0
-        assert result.output == "Account does not exist\n"
+        assert result.output == "Account is not set\n"
 
     @pytest.mark.parametrize(
-        "name,token,output",
+        "token,output",
         [
-            ("name", "12345678", "Account name: name\nPAT token: 12345678\n"),
-            ("name", "123456789", "Account name: name\nPAT token: 1234*6789\n"),
-            ("name", "100d2d4e-1234-5678-31e22179", "Account name: name\nPAT token: 100d*******************2179\n"),
+            ("12345678", "PAT token: 12345678\n"),
+            ("123456789", "PAT token: 1234*6789\n"),
+            ("100d2d4e-1234-5678-31e22179", "PAT token: 100d*******************2179\n"),
         ],
     )
     @patch("vplan.client.commands.account.retrieve_account")
-    def test_command_exists_masked(self, retrieve_account, name, token, output):
-        retrieve_account.return_value = Account(name=name, pat_token=token)
+    def test_command_exists_masked(self, retrieve_account, token, output):
+        retrieve_account.return_value = Account(pat_token=token)
         result = invoke(["show"])
         assert result.exit_code == 0
         assert result.output == output
@@ -184,39 +118,7 @@ class TestShow:
     )
     @patch("vplan.client.commands.account.retrieve_account")
     def test_command_exists_unmasked(self, retrieve_account, option):
-        retrieve_account.return_value = Account(name="name", pat_token="100d2d4e-1234-5678-31e22179")
+        retrieve_account.return_value = Account(pat_token="100d2d4e-1234-5678-31e22179")
         result = invoke(["show", option])
         assert result.exit_code == 0
-        assert result.output == "Account name: name\nPAT token: 100d2d4e-1234-5678-31e22179\n"
-
-
-class TestStatus:
-    def test_h(self):
-        result = invoke(["status", "-h"])
-        assert result.exit_code == 0
-
-    def test_help(self):
-        result = invoke(["status", "--help"])
-        assert result.exit_code == 0
-
-    @patch("vplan.client.commands.account.retrieve_account_status")
-    def test_command_does_not_exist(self, retrieve_account_status):
-        retrieve_account_status.return_value = None
-        result = invoke(["status"])
-        assert result.exit_code == 0
-        assert result.output == "Account does not exist\n"
-
-    @pytest.mark.parametrize(
-        "enabled,output",
-        [
-            (True, "Account is enabled\n"),
-            (False, "Account is disabled\n"),
-        ],
-        ids=["enabled", "disabled"],
-    )
-    @patch("vplan.client.commands.account.retrieve_account_status")
-    def test_command_exists(self, retrieve_account_status, enabled, output):
-        retrieve_account_status.return_value = Status(enabled=enabled)
-        result = invoke(["status"])
-        assert result.exit_code == 0
-        assert result.output == output
+        assert result.output == "PAT token: 100d2d4e-1234-5678-31e22179\n"

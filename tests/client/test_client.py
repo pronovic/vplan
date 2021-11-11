@@ -10,13 +10,12 @@ from requests import HTTPError, Timeout
 
 from vplan.client.client import (
     _raise_for_status,
-    create_account,
+    create_or_replace_account,
     create_plan,
     delete_account,
     delete_plan,
     refresh_plan,
     retrieve_account,
-    retrieve_account_status,
     retrieve_all_plans,
     retrieve_health,
     retrieve_plan,
@@ -24,8 +23,6 @@ from vplan.client.client import (
     retrieve_version,
     toggle_device,
     toggle_group,
-    update_account,
-    update_account_status,
     update_plan,
     update_plan_status,
 )
@@ -121,7 +118,7 @@ class TestAccount:
 
     @patch("vplan.client.client.requests.get")
     def test_retrieve_account_found(self, requests_get, api_url, raise_for_status):
-        account = Account(name="name", pat_token="token")
+        account = Account(pat_token="token")
         response = _response(model=account)
         requests_get.side_effect = [response]
         result = retrieve_account()
@@ -130,22 +127,13 @@ class TestAccount:
         requests_get.assert_called_once_with(url="http://whatever/account")
 
     @patch("vplan.client.client.requests.post")
-    def test_create_account(self, requests_post, api_url, raise_for_status):
-        account = Account(name="name", pat_token="token")
+    def test_create_or_replace_account(self, requests_post, api_url, raise_for_status):
+        account = Account(pat_token="token")
         response = _response()
         requests_post.side_effect = [response]
-        create_account(account)
+        create_or_replace_account(account)
         raise_for_status.assert_called_once_with(response)
         requests_post.assert_called_once_with(url="http://whatever/account", data=account.json())
-
-    @patch("vplan.client.client.requests.put")
-    def test_update_account(self, requests_put, api_url, raise_for_status):
-        account = Account(name="name", pat_token="token")
-        response = _response()
-        requests_put.side_effect = [response]
-        update_account(account)
-        raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/account", data=account.json())
 
     @patch("vplan.client.client.requests.delete")
     def test_delete_account(self, requests_delete, api_url, raise_for_status):
@@ -154,34 +142,6 @@ class TestAccount:
         delete_account()
         raise_for_status.assert_called_once_with(response)
         requests_delete.assert_called_once_with(url="http://whatever/account")
-
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_account_status_not_found(self, requests_get, api_url, raise_for_status):
-        response = _response(status_code=404)
-        requests_get.side_effect = [response]
-        result = retrieve_account_status()
-        assert result is None
-        raise_for_status.assert_not_called()
-        requests_get.assert_called_once_with(url="http://whatever/account/status")
-
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_account_status_found(self, requests_get, api_url, raise_for_status):
-        status = Status(enabled=True)
-        response = _response(model=status)
-        requests_get.side_effect = [response]
-        result = retrieve_account_status()
-        assert result == status
-        raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/account/status")
-
-    @patch("vplan.client.client.requests.put")
-    def test_update_account_status(self, requests_put, api_url, raise_for_status):
-        status = Status(enabled=True)
-        response = _response()
-        requests_put.side_effect = [response]
-        update_account_status(status)
-        raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/account/status", data=status.json())
 
 
 @patch("vplan.client.client._raise_for_status")

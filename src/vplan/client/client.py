@@ -74,17 +74,10 @@ def retrieve_account() -> Optional[Account]:
     return Account.parse_raw(response.text)
 
 
-def create_account(account: Account) -> None:
-    """Create your account in the plan engine."""
+def create_or_replace_account(account: Account) -> None:
+    """Create or replace account information stored in the plan engine."""
     url = _account()
     response = requests.post(url=url, data=account.json())
-    _raise_for_status(response)
-
-
-def update_account(account: Account) -> None:
-    """Update your account in the plan engine."""
-    url = _account()
-    response = requests.put(url=url, data=account.json())
     _raise_for_status(response)
 
 
@@ -92,23 +85,6 @@ def delete_account() -> None:
     """Delete account information stored in the plan engine."""
     url = _account()
     response = requests.delete(url=url)
-    _raise_for_status(response)
-
-
-def retrieve_account_status() -> Optional[Status]:
-    """Retrieve the enabled/disabled status of your account in the plan engine."""
-    url = _account("/status")
-    response = requests.get(url=url)
-    if response.status_code == 404:
-        return None
-    _raise_for_status(response)
-    return Status.parse_raw(response.text)
-
-
-def update_account_status(status: Status) -> None:
-    """Set the enabled/disabled status of your account in the plan engine."""
-    url = _account("/status")
-    response = requests.put(url=url, data=status.json())
     _raise_for_status(response)
 
 

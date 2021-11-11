@@ -12,7 +12,7 @@ from sqlalchemy import update
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from vplan.engine.database import dbsession
-from vplan.engine.entity import DEFAULT_ACCOUNT, PlanEntity
+from vplan.engine.entity import PlanEntity
 from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.interface import PlanSchema, Status
 
@@ -30,10 +30,8 @@ def retrieve_all_plans() -> List[str]:
 def retrieve_plan(plan_name: str) -> PlanSchema:
     """Return the plan definition stored in the plan engine."""
     with dbsession() as session:
-        entity = (
-            session.query(PlanEntity).where(PlanEntity.account_name == DEFAULT_ACCOUNT and PlanEntity.plan_name == plan_name).one()
-        )
-        return PlanSchema.parse_obj(entity.definition)
+        entity = session.query(PlanEntity).where(PlanEntity.plan_name == plan_name).one()
+        return PlanSchema.parse_raw(entity.definition)
 
 
 @ROUTER.post("/plan", status_code=HTTP_201_CREATED, response_class=EmptyResponse)
@@ -42,9 +40,8 @@ def create_plan(plan: PlanSchema) -> None:
     with dbsession() as session:
         entity = PlanEntity()
         entity.plan_name = plan.plan.name
-        entity.account_name = DEFAULT_ACCOUNT
         entity.enabled = False
-        entity.definition = plan.dict()
+        entity.definition = plan.yaml()
         session.add(entity)
 
 
@@ -52,11 +49,8 @@ def create_plan(plan: PlanSchema) -> None:
 def update_plan(plan_name: str, plan: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     with dbsession() as session:
-        session.execute(
-            update(PlanEntity)
-            .where(PlanEntity.account_name == DEFAULT_ACCOUNT and PlanEntity.plan_name == plan_name)
-            .values(definition=plan.dict())
-        )
+        session.execute(update(PlanEntity).where(PlanEntity.plan_name == plan_name).values(definition=plan.yaml()))
+        # TODO: there should be a warning if we enable a plan and no account is set
         # TODO: kick off work to update SmartThings, if the plan is enabled
 
 
@@ -64,7 +58,7 @@ def update_plan(plan_name: str, plan: PlanSchema) -> None:
 def delete_plan(plan_name: str) -> None:
     """Delete a plan stored in the plan engine."""
     with dbsession() as session:
-        session.query(PlanEntity).where(PlanEntity.account_name == DEFAULT_ACCOUNT and PlanEntity.plan_name == plan_name).delete()
+        session.query(PlanEntity).where(PlanEntity.plan_name == plan_name).delete()
         # TODO: kick off work to clean up SmartThings
 
 
@@ -72,9 +66,7 @@ def delete_plan(plan_name: str) -> None:
 def retrieve_status(plan_name: str) -> Status:
     """Return the enabled/disabled status of a plan in the plan engine."""
     with dbsession() as session:
-        entity = (
-            session.query(PlanEntity).where(PlanEntity.account_name == DEFAULT_ACCOUNT and PlanEntity.plan_name == plan_name).one()
-        )
+        entity = session.query(PlanEntity).where(PlanEntity.plan_name == plan_name).one()
         return Status(enabled=entity.enabled)
 
 
@@ -82,11 +74,7 @@ def retrieve_status(plan_name: str) -> Status:
 def update_status(plan_name: str, status: Status) -> None:
     """Set the enabled/disabled status of a plan in the plan engine."""
     with dbsession() as session:
-        session.execute(
-            update(PlanEntity)
-            .where(PlanEntity.account_name == DEFAULT_ACCOUNT and PlanEntity.plan_name == plan_name)
-            .values(enabled=status.enabled)
-        )
+        session.execute(update(PlanEntity).where(PlanEntity.plan_name == plan_name).values(enabled=status.enabled))
         # TODO: kick off work to update SmartThings
 
 

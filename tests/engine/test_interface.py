@@ -217,33 +217,26 @@ class TestModelsAndValidation:
             Plan(name=name, location=location, refresh_time=refresh_time, groups=[])
 
     @pytest.mark.parametrize(
-        "name,pat_token",
+        "pat_token",
         [
-            ("n", "t"),
-            (" n ", " t "),
-            (VALID_NAME, "token"),
+            "t",
+            " t ",
+            "token",
         ],
         ids=["short", "whitespace", "long"],
     )
-    def test_account_valid(self, name, pat_token):
-        model = Account(name=name, pat_token=pat_token)
-        assert model.name == name.strip()
+    def test_account_valid(self, pat_token):
+        model = Account(pat_token=pat_token)
         assert model.pat_token == pat_token  # not stripped, it's a SmartThings identifier
 
     @pytest.mark.parametrize(
-        "name,pat_token",
-        [
-            ("", "token"),
-            (None, "token"),
-            (TOO_LONG_NAME, "token"),
-            ("name", ""),
-            ("name", None),
-        ],
-        ids=["empty name", "no name", "long name", "empty token", "no token"],
+        "pat_token",
+        ["", None],
+        ids=["empty token", "no token"],
     )
-    def test_account_invalid(self, name, pat_token):
+    def test_account_invalid(self, pat_token):
         with pytest.raises(ValueError):
-            Account(name=name, pat_token=pat_token)
+            Account(pat_token=pat_token)
 
 
 class TestYamlParsing:
