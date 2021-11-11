@@ -20,8 +20,12 @@ _SCHEDULER: Optional[BackgroundScheduler] = None
 
 def _init_scheduler(scheduler_config: SchedulerConfig) -> BackgroundScheduler:
     """Initialize the scheduler."""
+    # Note that we're seeing up a thread pool with one thread, so that we only
+    # have one job running at a time.  That way, we only have to deal with
+    # rate-limiting behavior for the SmartThings API for a single thread at
+    # a time, which simplifies the code.
     jobstores = {"sqlite": SQLAlchemyJobStore(url=scheduler_config.database_url)}
-    executors = {"default": ThreadPoolExecutor(scheduler_config.thread_pool_size)}
+    executors = {"default": ThreadPoolExecutor(max_workers=1)}
     job_defaults = {"coalesce": True, "max_instances": 1}
     return BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone="UTC")
 

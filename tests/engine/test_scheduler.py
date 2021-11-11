@@ -60,7 +60,7 @@ class TestLifecycle:
         time2 = in_future(seconds=JOB_DELAY_SEC * 2, tz=tz)
         database_url = "sqlite+pysqlite:///%s" % tmpdir.join("jobs.sqlite").realpath()
         daily = DailyJobConfig(jitter_sec=0, misfire_grace_sec=1)
-        scheduler_config = SchedulerConfig(database_url=database_url, thread_pool_size=10, daily_job=daily)
+        scheduler_config = SchedulerConfig(database_url=database_url, daily_job=daily)
         config.return_value = MagicMock(scheduler=scheduler_config)
 
         try:

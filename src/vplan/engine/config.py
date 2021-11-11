@@ -30,7 +30,6 @@ class SchedulerConfig(YamlModel):
     """Scheduler configuration."""
 
     database_url: str = Field(..., description="SQLAlchemy database URL to use for the APScheduler job store")
-    thread_pool_size: int = Field(..., description="The size of the APScheduler thread pool")
     daily_job: DailyJobConfig = Field(..., description="Daily job configuration")
 
 
