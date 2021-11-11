@@ -136,7 +136,7 @@ class TestAccount:
         requests_post.side_effect = [response]
         create_account(account)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/account", json=account.json())
+        requests_post.assert_called_once_with(url="http://whatever/account", data=account.json())
 
     @patch("vplan.client.client.requests.put")
     def test_update_account(self, requests_put, api_url, raise_for_status):
@@ -145,7 +145,7 @@ class TestAccount:
         requests_put.side_effect = [response]
         update_account(account)
         raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/account", json=account.json())
+        requests_put.assert_called_once_with(url="http://whatever/account", data=account.json())
 
     @patch("vplan.client.client.requests.delete")
     def test_delete_account(self, requests_delete, api_url, raise_for_status):
@@ -181,7 +181,7 @@ class TestAccount:
         requests_put.side_effect = [response]
         update_account_status(status)
         raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/account/status", json=status.json())
+        requests_put.assert_called_once_with(url="http://whatever/account/status", data=status.json())
 
 
 @patch("vplan.client.client._raise_for_status")
@@ -223,7 +223,7 @@ class TestPlan:
         requests_post.side_effect = [response]
         create_plan(plan)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan", json=plan.json())
+        requests_post.assert_called_once_with(url="http://whatever/plan", data=plan.json())
 
     @patch("vplan.client.client.requests.put")
     def test_update_plan(self, requests_put, api_url, raise_for_status):
@@ -232,7 +232,7 @@ class TestPlan:
         requests_put.side_effect = [response]
         update_plan(plan)
         raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/plan/name", json=plan.json())
+        requests_put.assert_called_once_with(url="http://whatever/plan/name", data=plan.json())
 
     @patch("vplan.client.client.requests.delete")
     def test_delete_plan(self, requests_delete, api_url, raise_for_status):
@@ -268,7 +268,7 @@ class TestPlan:
         requests_put.side_effect = [response]
         update_plan_status("xxx", status)
         raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/plan/xxx/status", json=status.json())
+        requests_put.assert_called_once_with(url="http://whatever/plan/xxx/status", data=status.json())
 
     @patch("vplan.client.client.requests.post")
     def test_refresh_plan(self, requests_post, api_url, raise_for_status):

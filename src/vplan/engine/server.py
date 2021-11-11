@@ -6,10 +6,13 @@ The RESTful API.
 """
 from importlib.metadata import version as metadata_version
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from sqlalchemy.exc import NoResultFound
+from starlette.responses import Response
 
 from .database import setup_database
-from .interface import Health, Version
+from .fastapi.extensions import EmptyResponse
+from .interface import AlreadyExistsError, Health, Version
 from .routers import account, plan
 from .scheduler import shutdown_scheduler, start_scheduler
 from .util import setup_directories
@@ -18,6 +21,16 @@ API_VERSION = "1.0.0"
 API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger or ReDoc endpoints
 API.include_router(account.ROUTER)
 API.include_router(plan.ROUTER)
+
+
+@API.exception_handler(NoResultFound)
+async def not_found_handler(request: Request, e: NoResultFound) -> Response:  # pylint: disable=unused-argument
+    return EmptyResponse(status_code=404)
+
+
+@API.exception_handler(AlreadyExistsError)
+async def already_exists_handler(request: Request, e: AlreadyExistsError) -> Response:  # pylint: disable=unused-argument
+    return EmptyResponse(status_code=409)
 
 
 @API.on_event("startup")

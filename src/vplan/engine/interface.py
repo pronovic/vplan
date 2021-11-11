@@ -77,6 +77,10 @@ class ServerException(Exception):
         self.message = message
 
 
+class AlreadyExistsError(ServerException):
+    """A resource already exists."""
+
+
 class Health(YamlModel):
     """API health data"""
 
@@ -153,5 +157,5 @@ class PlanSchema(VersionedYamlModel):
 class Account(YamlModel):
     """A SmartThings account."""
 
-    name: VplanName = Field(..., description="Vacation plan name")
+    name: VplanName = Field(..., description="Account name")
     pat_token: SmartThingsId = Field(..., description="SmartThings Personal Access Token (PAT)")

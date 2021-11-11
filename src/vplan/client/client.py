@@ -77,14 +77,14 @@ def retrieve_account() -> Optional[Account]:
 def create_account(account: Account) -> None:
     """Create your account in the plan engine."""
     url = _account()
-    response = requests.post(url=url, json=account.json())
+    response = requests.post(url=url, data=account.json())
     _raise_for_status(response)
 
 
 def update_account(account: Account) -> None:
     """Update your account in the plan engine."""
     url = _account()
-    response = requests.put(url=url, json=account.json())
+    response = requests.put(url=url, data=account.json())
     _raise_for_status(response)
 
 
@@ -108,7 +108,7 @@ def retrieve_account_status() -> Optional[Status]:
 def update_account_status(status: Status) -> None:
     """Set the enabled/disabled status of your account in the plan engine."""
     url = _account("/status")
-    response = requests.put(url=url, json=status.json())
+    response = requests.put(url=url, data=status.json())
     _raise_for_status(response)
 
 
@@ -134,14 +134,14 @@ def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
 def create_plan(plan: PlanSchema) -> None:
     """Create a plan in the plan engine."""
     url = _plan()
-    response = requests.post(url=url, json=plan.json())
+    response = requests.post(url=url, data=plan.json())
     _raise_for_status(response)
 
 
 def update_plan(plan: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     url = _plan("/%s" % plan.plan.name)
-    response = requests.put(url=url, json=plan.json())
+    response = requests.put(url=url, data=plan.json())
     _raise_for_status(response)
 
 
@@ -165,7 +165,7 @@ def retrieve_plan_status(plan_name: str) -> Optional[Status]:
 def update_plan_status(plan_name: str, status: Status) -> None:
     """Set the enabled/disabled status of a plan in the plan engine."""
     url = _plan("/%s/status" % plan_name)
-    response = requests.put(url=url, json=status.json())
+    response = requests.put(url=url, data=status.json())
     _raise_for_status(response)
 
 

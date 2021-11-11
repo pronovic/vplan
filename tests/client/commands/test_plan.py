@@ -136,7 +136,7 @@ class TestExport:
     def test_command_not_found(self, retrieve_plan):
         retrieve_plan.return_value = None
         result = invoke(["export", "plan-name"])
-        assert result.exit_code == 2
+        assert result.exit_code == 1
         assert "Plan does not exist: plan-name" in result.output
         retrieve_plan.assert_called_once_with("plan-name")
 
@@ -212,7 +212,7 @@ class TestShow:
     def test_command_not_found(self, retrieve_plan):
         retrieve_plan.return_value = None
         result = invoke(["show", "plan-name"])
-        assert result.exit_code == 2
+        assert result.exit_code == 1
         assert "Plan does not exist: plan-name" in result.output
         retrieve_plan.assert_called_once_with("plan-name")
 
@@ -300,7 +300,7 @@ class TestTest:
     def test_not_found(self, retrieve_plan):
         retrieve_plan.return_value = None
         result = invoke(["test", "xxx"])
-        assert result.exit_code == 2
+        assert result.exit_code == 1
         assert "Plan does not exist: xxx" in result.output
         retrieve_plan.assert_called_once_with("xxx")
 

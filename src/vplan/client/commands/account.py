@@ -17,6 +17,7 @@ from vplan.client.client import (
     update_account,
     update_account_status,
 )
+from vplan.engine.entity import DEFAULT_ACCOUNT
 from vplan.engine.interface import Account, Status
 
 
@@ -82,14 +83,14 @@ def set_account(token: Optional[str]) -> None:
          Control this rule (x:rules:*)
     """
     if not token:
-        token = click.prompt("Enter PAT token: ")
+        token = click.prompt("Enter PAT token")
     result = retrieve_account()
     if result:
-        result = Account(name="default", pat_token=token)
+        result = Account(name=DEFAULT_ACCOUNT, pat_token=token)
         update_account(result)
         click.secho("Account updated")
     else:
-        result = Account(name="default", pat_token=token)
+        result = Account(name=DEFAULT_ACCOUNT, pat_token=token)
         create_account(result)
         click.secho("Account created")
 

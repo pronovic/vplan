@@ -14,6 +14,7 @@ from sqlalchemy_json import NestedMutableJson
 
 _REGISTRY = registry()
 
+DEFAULT_ACCOUNT = "default"
 
 # This makes MyPy happier; taken from the SQLAlchemy documentation
 class BaseEntity(metaclass=DeclarativeMeta):
@@ -30,7 +31,7 @@ class AccountEntity(BaseEntity):
     account_name = Column(String, primary_key=True)
     pat_token = Column(String)
     enabled = Column(Boolean)
-    plans: RelationshipProperty[PlanEntity] = relationship("Plan", backref="account")
+    plans: RelationshipProperty[PlanEntity] = relationship("PlanEntity", cascade="all,delete", backref="account")
 
 
 class PlanEntity(BaseEntity):
@@ -46,4 +47,5 @@ class PlanEntity(BaseEntity):
     __tablename__ = "plan"
     plan_name = Column(String, primary_key=True)
     account_name = Column(Integer, ForeignKey("account.account_name"))
+    enabled = Column(Boolean)
     definition = Column(NestedMutableJson)

@@ -5,9 +5,8 @@
 Extensions to FastAPI.
 """
 
-from typing import Dict, Mapping, Optional
+from typing import Dict, Mapping
 
-from starlette.background import BackgroundTask
 from starlette.responses import Response
 
 
@@ -18,15 +17,7 @@ class EmptyResponse(Response):
     # This can probably be removed when a future FastAPI release supports it directly.
     # Taken from: https://github.com/encode/starlette/issues/1178
     # See also: https://github.com/tiangolo/fastapi/issues/2832
-    # There are a few MyPy warnings here which I've decided not to fix.
-
-    def __init__(
-        self,
-        status_code: int,
-        headers: Optional[Dict[str, str]] = None,
-        background: Optional[BackgroundTask] = None,
-    ) -> None:
-        super().__init__(content=b"", status_code=status_code, headers=headers, background=background)  # type: ignore
+    # I removed the original constructor, because it caused problems when using a status code in the route (?!??)
 
     def init_headers(self, headers: Mapping[str, str] = None) -> None:  # type: ignore
         byte_headers: Dict[bytes, bytes] = (
@@ -53,4 +44,4 @@ class EmptyResponse(Response):
         else:
             byte_headers[b"content-length"] = b"0"
 
-        self.raw_headers = [(k, v) for k, v in byte_headers.items()]  # pylint: disable=unnecessary-comprehension
+        self.raw_headers = list(byte_headers.items())

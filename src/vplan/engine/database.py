@@ -12,6 +12,7 @@ from typing import List, Optional
 
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
+from sqlalchemy.orm import Session, sessionmaker
 
 from vplan.engine.config import config
 from vplan.engine.entity import BaseEntity
@@ -27,12 +28,18 @@ def engine() -> Engine:
     return _ENGINE
 
 
+# pylint: disable=global-statement
 def setup_database() -> None:
     """Set up the database connection and create any necessary tables."""
-    global _ENGINE  # pylint: disable=global-statement
+    global _ENGINE
     logging.getLogger("sqlalchemy").setLevel(logging.DEBUG)
     _ENGINE = create_engine(config().database_url, future=True)
     BaseEntity.metadata.create_all(_ENGINE)
+
+
+def dbsession() -> Session:
+    """Return a new session for use as a context manager."""
+    return sessionmaker(bind=engine()).begin()  # pylint: disable=no-member
 
 
 def get_tables() -> List[str]:

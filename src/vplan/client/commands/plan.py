@@ -134,7 +134,7 @@ def show(plan_name: str) -> None:
     """Show information about a plan."""
     result = retrieve_plan(plan_name)
     if not result:
-        raise click.UsageError("Plan does not exist: %s" % plan_name)
+        raise click.ClickException("Plan does not exist: %s" % plan_name)
     else:
         click.secho("Schema.....: %s" % result.version)
         click.secho("Plan name..: %s" % result.plan.name)
@@ -165,7 +165,7 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     """
     result = retrieve_plan(plan_name)
     if not result:
-        raise click.UsageError("Plan does not exist: %s" % plan_name)
+        raise click.ClickException("Plan does not exist: %s" % plan_name)
     yaml = result.yaml()
     if not yaml_path:
         click.echo(yaml)
@@ -240,7 +240,7 @@ def test(
     else:
         result = retrieve_plan(plan_name)
         if not result:
-            raise click.UsageError("Plan does not exist: %s" % plan_name)
+            raise click.ClickException("Plan does not exist: %s" % plan_name)
         for group in result.plan.groups:
             click.secho("Testing group: %s" % group.name)
             if not auto:
