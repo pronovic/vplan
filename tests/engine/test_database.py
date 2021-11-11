@@ -2,8 +2,7 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 from unittest.mock import MagicMock, patch
 
-from vplan.engine.database import get_tables, setup_database
-from vplan.engine.entity import AccountEntity, PlanEntity
+from vplan.engine.database import _AccountEntity, _PlanEntity, db_retrieve_all_tables, setup_database
 
 
 class TestLifecycle:
@@ -12,7 +11,7 @@ class TestLifecycle:
         database_url = "sqlite+pysqlite:///%s" % tmpdir.join("vplan.sqlite").realpath()
         config.return_value = MagicMock(database_url=database_url)
         setup_database()
-        assert get_tables() == [
-            AccountEntity.__tablename__,
-            PlanEntity.__tablename__,
+        assert db_retrieve_all_tables() == [
+            _AccountEntity.__tablename__,
+            _PlanEntity.__tablename__,
         ]

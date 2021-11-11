@@ -9,8 +9,13 @@ Router for account endpoints.
 from fastapi import APIRouter
 from starlette.status import HTTP_200_OK, HTTP_204_NO_CONTENT
 
-from vplan.engine.database import dbsession
-from vplan.engine.entity import ONLY_ACCOUNT, AccountEntity
+from vplan.engine.database import (
+    db_create_or_replace_account,
+    db_delete_account,
+    db_retrieve_account,
+    db_retrieve_all_plans,
+    db_update_plan_status,
+)
 from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.interface import Account
 
@@ -20,24 +25,19 @@ ROUTER = APIRouter()
 @ROUTER.get("/account", status_code=HTTP_200_OK)
 def retrieve_account() -> Account:
     """Retrieve account information stored in the plan engine."""
-    with dbsession() as session:
-        entity = session.query(AccountEntity).where(AccountEntity.account_name == ONLY_ACCOUNT).one()
-        return Account(pat_token=entity.pat_token)
+    return db_retrieve_account()
 
 
 @ROUTER.post("/account", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def create_or_replace_account(account: Account) -> None:
     """Create or replace account information stored in the plan engine."""
-    with dbsession() as session:
-        entity = AccountEntity()
-        entity.account_name = ONLY_ACCOUNT
-        entity.pat_token = account.pat_token
-        session.add(entity)
+    db_create_or_replace_account(account)
 
 
 @ROUTER.delete("/account", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def delete_account() -> None:
     """Delete account information stored in the plan engine."""
-    with dbsession() as session:
-        session.query(AccountEntity).where(AccountEntity.account_name == ONLY_ACCOUNT).delete()
-        # TODO: we should disable all plans at the same time we do this
+    db_delete_account()
+    for plan_name in db_retrieve_all_plans():
+        db_update_plan_status(plan_name=plan_name, enabled=False)
+        # TODO: kick off work to update SmartThings (to remove rules for job)
