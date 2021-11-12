@@ -2,7 +2,16 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 
 """
-SmartThings API client
+SmartThings API client.
+
+Note that all of the public functions in this class are expected to be invoked from
+within a SmartThings context, like:
+
+    with SmartThings(pat_token="token", location="My House"):
+        set_switch(room="Office", device="Desk Lamp")
+
+The caller is responsible for setting up the context.  If you get a LookupError
+from any function, then you've forgotten to set the context.
 """
 
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
@@ -70,7 +79,7 @@ class LocationContext:
         locations = {}
         url = _url("/locations")
         params = {"limit": LocationContext.LOCATION_LIMIT}
-        response = requests.get(url, headers=self.headers, params=params)
+        response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
         for item in response.json()["items"]:
             locations[item["name"]] = item["locationId"]
@@ -86,7 +95,7 @@ class LocationContext:
         room_by_name = {}
         url = _url("/locations/%s/rooms" % self.location_id)
         params = {"limit": LocationContext.ROOM_LIMIT}
-        response = requests.get(url, headers=self.headers, params=params)
+        response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
         for item in response.json()["items"]:
             room_by_id[item["roomId"]] = item["name"]
@@ -101,7 +110,7 @@ class LocationContext:
         device_by_name = {}
         url = _url("/devices")
         params = {"locationId": self.location_id, "capability": "switch", "limit": LocationContext.DEVICE_LIMIT}
-        response = requests.get(url, headers=self.headers, params=params)
+        response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
         for item in response.json()["items"]:
             device_id = item["deviceId"]
@@ -147,11 +156,6 @@ def _device_id(device: Device) -> str:
     return CONTEXT.get().device_by_name["%s/%s" % (device.room, device.device)]
 
 
-def _device(device_id: str) -> Device:
-    """Get the device for a device id."""
-    return CONTEXT.get().device_by_id[device_id]
-
-
 def _headers() -> Dict[str, str]:
     """Get the headers to use for requests."""
     return CONTEXT.get().headers
@@ -169,13 +173,13 @@ def set_switch(device: Device, state: SwitchState) -> None:
     """Switch a device on or off."""
     url = _url("/devices/%s/commands" % _device_id(device))
     command = ON_COMMAND if state is SwitchState.ON else OFF_COMMAND
-    response = requests.post(url, headers=_headers(), json=command)
+    response = requests.post(url=url, headers=_headers(), json=command)
     _raise_for_status(response)
 
 
 def check_switch(device: Device) -> SwitchState:
     """Check the state of a switch."""
     url = _url("/devices/%s/components/main/capabilities/switch/status" % _device_id(device))
-    response = requests.get(url, headers=_headers())
+    response = requests.get(url=url, headers=_headers())
     _raise_for_status(response)
     return SwitchState.ON if response.json()["switch"]["value"] == "on" else SwitchState.OFF

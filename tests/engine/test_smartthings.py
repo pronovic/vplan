@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+# pylint: disable=redefined-outer-name
 
 import json
 import os
@@ -8,8 +9,8 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from requests.models import HTTPError
 
-from vplan.engine.interface import Device, SmartThingsClientError
-from vplan.engine.smartthings import CONTEXT, SmartThings, _raise_for_status
+from vplan.engine.interface import Device, SmartThingsClientError, SwitchState
+from vplan.engine.smartthings import CONTEXT, ON_COMMAND, SmartThings, _base_api_url, _raise_for_status, check_switch, set_switch
 
 # This is the data we expect when loading the SmartThings location context
 PAT_TOKEN = "AAA"
@@ -73,7 +74,27 @@ def _response(data=None, status_code=None):
     return response
 
 
+@pytest.fixture
+@patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
+@patch("vplan.engine.smartthings.requests.get")
+def test_context(requests_get, _):
+    locations = fixture("locations.json")
+    rooms = fixture("rooms.json")
+    devices = fixture("devices.json")
+    locations_response = _response(locations)
+    rooms_response = _response(rooms)
+    devices_response = _response(devices)
+    requests_get.side_effect = [locations_response, rooms_response, devices_response]
+    return SmartThings(PAT_TOKEN, LOCATION)
+
+
 class TestUtil:
+    @patch("vplan.engine.smartthings.config")
+    def test_base_api_url(self, config):
+        smartthings = MagicMock(base_api_url="url")
+        config.return_value = MagicMock(smartthings=smartthings)
+        assert _base_api_url() == "url"
+
     def test_raise_for_status(self):
         response = MagicMock()
         response.raise_for_status = MagicMock()
@@ -120,19 +141,48 @@ class TestContext:
         requests_get.assert_has_calls(
             [
                 call(
-                    "http://whatever/locations",
+                    url="http://whatever/locations",
                     headers=HEADERS,
                     params={"limit": "100"},
                 ),
                 call(
-                    "http://whatever/locations/%s/rooms" % LOCATION_ID,
+                    url="http://whatever/locations/%s/rooms" % LOCATION_ID,
                     headers=HEADERS,
                     params={"limit": "250"},
                 ),
                 call(
-                    "http://whatever/devices",
+                    url="http://whatever/devices",
                     headers=HEADERS,
                     params={"locationId": LOCATION_ID, "capability": "switch", "limit": "1000"},
                 ),
             ]
         )
+
+
+@patch("vplan.engine.smartthings._raise_for_status")
+@patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
+class TestSwitch:
+    @patch("vplan.engine.smartthings.requests.post")
+    def test_set_switch(self, requests_post, _, raise_for_status, test_context):
+        with test_context:
+            response = _response()
+            requests_post.side_effect = [response]
+            set_switch(Device(room="Office", device="Desk Lamp"), SwitchState.ON)
+            raise_for_status.assert_called_once_with(response)
+            requests_post.assert_called_once_with(
+                url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/commands", headers=HEADERS, json=ON_COMMAND
+            )
+
+    @pytest.mark.parametrize("file,expected", [("switch_on.json", SwitchState.ON), ("switch_off.json", SwitchState.OFF)])
+    @patch("vplan.engine.smartthings.requests.get")
+    def test_check_switch(self, requests_get, _, raise_for_status, test_context, file, expected):
+        with test_context:
+            response = _response(data=fixture(file))
+            requests_get.side_effect = [response]
+            status = check_switch(Device(room="Office", device="Desk Lamp"))
+            assert status == expected
+            raise_for_status.assert_called_once_with(response)
+            requests_get.assert_called_once_with(
+                url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/components/main/capabilities/switch/status",
+                headers=HEADERS,
+            )
