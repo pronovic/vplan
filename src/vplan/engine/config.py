@@ -33,11 +33,19 @@ class SchedulerConfig(YamlModel):
     daily_job: DailyJobConfig = Field(..., description="Daily job configuration")
 
 
+class SmartThingsConfig(YamlModel):
+    """Scheduler configuration."""
+
+    toggle_delay_sec: float = Field(..., description="The number of seconds to delay between on/off actions when testing")
+    base_api_url: str = Field(..., description="URL for the SmartThings API")
+
+
 class ServerConfig(YamlModel):
     """Server configuration."""
 
     database_dir: str = Field(..., description="Directory where all server databases are stored")
     database_url: str = Field(..., description="SQLAlchemy database URL to use for the application job store")
+    smartthings: SmartThingsConfig = Field(..., description="Configuration for the SmartThings interface")
     scheduler: SchedulerConfig = Field(..., description="Scheduler configuration")
 
 

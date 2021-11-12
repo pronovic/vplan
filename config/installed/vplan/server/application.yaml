@@ -1,5 +1,8 @@
 database_dir: {VPLAN_DATABASE_DIR}
 database_url: sqlite+pysqlite:///{VPLAN_DATABASE_DIR}/vplan.sqlite
+smartthings:
+   toggle_delay_sec: 5
+   base_api_url: https://api.smartthings.com
 scheduler:
    database_url: sqlite+pysqlite:///{VPLAN_DATABASE_DIR}/jobs.sqlite
    daily_job:
