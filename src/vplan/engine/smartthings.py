@@ -15,12 +15,6 @@ import requests
 from vplan.engine.config import config
 from vplan.engine.interface import Device, ServerException, SwitchState
 
-PAT_TOKEN: ContextVar[str] = ContextVar("PAT_TOKEN")
-HEADERS: ContextVar[Dict[str, Any]] = ContextVar("HEADERS")
-LOCATION: ContextVar[str] = ContextVar("LOCATION")
-ROOMS: ContextVar[Dict[str, str]] = ContextVar("ROOMS")
-DEVICES: ContextVar[Dict[str, str]] = ContextVar("DEVICES")
-
 # Rather than dealing with pagination, I'm just getting really big pages
 LOCATION_LIMIT = "100"
 ROOM_LIMIT = "250"
@@ -30,9 +24,16 @@ DEVICE_LIMIT = "1000"
 ON_COMMAND = {"commands": [{"component": "main", "capability": "switch", "command": "on"}]}
 OFF_COMMAND = {"commands": [{"component": "main", "capability": "switch", "command": "off"}]}
 
+# Context managed by the SmartThings context manager
+PAT_TOKEN: ContextVar[str] = ContextVar("PAT_TOKEN")
+HEADERS: ContextVar[Dict[str, Any]] = ContextVar("HEADERS")
+LOCATION: ContextVar[str] = ContextVar("LOCATION")
+ROOMS: ContextVar[Dict[str, str]] = ContextVar("ROOMS")
+DEVICES: ContextVar[Dict[str, str]] = ContextVar("DEVICES")
 
-class LocationContext:
-    """Manages the context associated with a SmartThings location."""
+
+class SmartThings:
+    """Context manager for SmartThings API."""
 
     def __init__(self, pat_token: str, location: str):
         self.pat_token = PAT_TOKEN.set(pat_token)

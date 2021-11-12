@@ -12,7 +12,7 @@ from typing import List
 from vplan.engine.config import config
 from vplan.engine.interface import Device, SwitchState, parse_time
 from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
-from vplan.engine.smartthings import LocationContext, set_switch
+from vplan.engine.smartthings import SmartThings, set_switch
 
 
 def schedule_daily_refresh(plan_name: str, refresh_time: str, time_zone: str) -> None:
@@ -46,7 +46,7 @@ def toggle_devices(pat_token: str, location: str, devices: List[Device], toggles
     # too quickly, even for local Zigbee devices, that sometimes the toggles don't work
     # as expected.  So, I recommend configuring at least a 5-second delay between toggles.
 
-    with LocationContext(pat_token, location):
+    with SmartThings(pat_token, location):
         for test in range(0, toggles):
             if test > 0:
                 time.sleep(config().smartthings.toggle_delay_sec)
