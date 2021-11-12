@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session, registry, sessionmaker
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from vplan.engine.config import config
-from vplan.engine.interface import Account, PlanSchema, ServerException, Status
+from vplan.engine.interface import Account, PlanSchema, ServerException
 
 ONLY_ACCOUNT = "default"
 
@@ -25,7 +25,7 @@ _ENGINE: Optional[Engine] = None
 
 
 # Entities are private to this module because they're only used
-# to serialize/deserialized back and forth from the database.
+# to serialize/deserialize back and forth from the database.
 # Nothing else relies on them.  Having an explicit _BaseEntity
 # makes MyPy happier.  The implementation was taken from the
 # SQLAlchemy documentation.
@@ -138,14 +138,13 @@ def db_delete_plan(plan_name: str) -> None:
         session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).delete()
 
 
-def db_retrieve_plan_status(plan_name: str) -> Status:
+def db_retrieve_plan_enabled(plan_name: str) -> bool:
     """Return the enabled/disabled status of a plan in the plan engine."""
     with db_session() as session:
-        entity = session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).one()
-        return Status(enabled=entity.enabled)
+        return session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).one().enabled  # type: ignore[no-any-return]
 
 
-def db_update_plan_status(plan_name: str, enabled: bool) -> None:
+def db_update_plan_enabled(plan_name: str, enabled: bool) -> None:
     """Set the enabled/disabled status of a plan in the plan engine."""
     with db_session() as session:
         session.execute(update(_PlanEntity).where(_PlanEntity.plan_name == plan_name).values(enabled=enabled))

@@ -4,7 +4,19 @@ import os
 
 import pytest
 
-from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, ServerException, Status, Trigger, Version
+from vplan.engine.interface import (
+    Account,
+    Device,
+    DeviceGroup,
+    Health,
+    Plan,
+    PlanSchema,
+    ServerException,
+    Status,
+    Trigger,
+    Version,
+    parse_time,
+)
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long
@@ -244,3 +256,12 @@ class TestYamlParsing:
         with open(PLAN_FILE, "r", encoding="utf8") as fp:
             config = PlanSchema.parse_raw(fp.read())
             assert config == PLAN_EXPECTED
+
+
+class TestUtil:
+    @pytest.mark.parametrize(
+        "time,hour,minute",
+        [("00:00", 0, 0), ("08:10", 8, 10), ("23:59", 23, 59)],
+    )
+    def test_parse_time(self, time, hour, minute):
+        assert parse_time(time) == (hour, minute)

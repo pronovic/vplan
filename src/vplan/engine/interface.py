@@ -7,10 +7,18 @@ The public API model.
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
 
 import re
-from typing import List, Type
+from typing import List, Tuple, Type
 
 from pydantic import ConstrainedList, ConstrainedStr, Field  # pylint: disable=no-name-in-module
 from pydantic_yaml import SemVer, VersionedYamlModel, YamlModel
+
+VPLAN_NAME_REGEX = re.compile(r"^[a-z0-9-]+$")
+TRIGGER_DAY_REGEX = re.compile(
+    r"^(all|every|weekday(s)?|weekend(s)?|(sun(day)?)|mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?)$"
+)
+TRIGGER_TIME_REGEX = re.compile(r"^(sunrise|sunset|midnight|noon|\d{2}:\d{2})$")
+TRIGGER_VARIATION_REGEX = re.compile(r"^(disabled|none|([+]/-|[+]|-) (\d+) (hour(s)?|minute(s)?|second(s)?))$")
+SIMPLE_TIME_REGEX = re.compile(r"^((\d{2}):(\d{2}))$")
 
 
 class VplanName(ConstrainedStr):
@@ -19,7 +27,7 @@ class VplanName(ConstrainedStr):
     min_length = 1
     max_length = 50
     strip_whitespace = True
-    regex = re.compile(r"^[a-z0-9-]+$")
+    regex = VPLAN_NAME_REGEX
 
 
 class TriggerDay(ConstrainedStr):
@@ -27,9 +35,7 @@ class TriggerDay(ConstrainedStr):
 
     to_lower = True
     strip_whitespace = True
-    regex = re.compile(
-        r"^(all|every|weekday(s)?|weekend(s)?|(sun(day)?)|mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?)$"
-    )
+    regex = TRIGGER_DAY_REGEX
 
 
 class TriggerDayList(ConstrainedList):
@@ -44,7 +50,7 @@ class TriggerTime(ConstrainedStr):
 
     to_lower = True
     strip_whitespace = True
-    regex = re.compile(r"^(sunrise|sunset|midnight|noon|\d{2}:\d{2})$")
+    regex = TRIGGER_TIME_REGEX
 
 
 class TriggerVariation(ConstrainedStr):
@@ -52,7 +58,7 @@ class TriggerVariation(ConstrainedStr):
 
     to_lower = True
     strip_whitespace = True
-    regex = re.compile(r"^(disabled|none|([+]/-|[+]|-) (\d+) (hour(s)?|minute(s)?|second(s)?))$")
+    regex = TRIGGER_VARIATION_REGEX
 
 
 class SimpleTime(ConstrainedStr):
@@ -60,7 +66,7 @@ class SimpleTime(ConstrainedStr):
 
     to_lower = True
     strip_whitespace = True
-    regex = re.compile(r"^(\d{2}:\d{2})$")
+    regex = SIMPLE_TIME_REGEX
 
 
 class SmartThingsId(ConstrainedStr):
@@ -158,3 +164,11 @@ class Account(YamlModel):
     """A SmartThings account containing a PAT token.."""
 
     pat_token: SmartThingsId = Field(..., description="SmartThings PAT token")
+
+
+def parse_time(time: str) -> Tuple[int, int]:
+    """Parse a time string in SimpleTime format and return (hour, minute)."""
+    match = SIMPLE_TIME_REGEX.match(time)
+    if not match:
+        raise ValueError("Invalid SimpleTime: %s" % time)
+    return int(match.group(2)), int(match.group(3))

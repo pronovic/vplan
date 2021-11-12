@@ -14,10 +14,11 @@ from vplan.engine.database import (
     db_delete_account,
     db_retrieve_account,
     db_retrieve_all_plans,
-    db_update_plan_status,
+    db_update_plan_enabled,
 )
 from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.interface import Account
+from vplan.engine.smartthings import st_schedule_immediate_refresh
 
 ROUTER = APIRouter()
 
@@ -39,5 +40,5 @@ def delete_account() -> None:
     """Delete account information stored in the plan engine."""
     db_delete_account()
     for plan_name in db_retrieve_all_plans():
-        db_update_plan_status(plan_name=plan_name, enabled=False)
-        # TODO: kick off work to update SmartThings (to remove rules for job)
+        db_update_plan_enabled(plan_name=plan_name, enabled=False)
+        st_schedule_immediate_refresh(plan_name=plan_name)
