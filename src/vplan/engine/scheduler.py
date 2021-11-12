@@ -76,7 +76,7 @@ def schedule_immediate_job(
 
 def schedule_daily_job(
     job_id: str,
-    time: datetime.time,
+    trigger_time: datetime.time,
     func: Callable[..., None],
     kwargs: Dict[str, Any],
     time_zone: str,
@@ -86,7 +86,7 @@ def schedule_daily_job(
 
     Args:
         job_id(str): Job identifier, unique across the entire system
-        time(str): The time when the job should be executed
+        trigger_time(str): The time when the job should be executed
         func(Callable): Job function to invoke on the schedule
         kwargs(Dict[str, Any]): Keyword arguments to pass to the job function when invoked
         time_zone: Time zone in which to execute the job
@@ -95,7 +95,8 @@ def schedule_daily_job(
         raise ServerException("Scheduler has not been started.")
     jitter = config().scheduler.daily_job.jitter_sec
     grace = config().scheduler.daily_job.misfire_grace_sec
-    trigger = CronTrigger(hour=time.hour, minute=time.minute, second=time.second, timezone=time_zone, jitter=jitter)
+    hour, minute, second = trigger_time.hour, trigger_time.minute, trigger_time.second
+    trigger = CronTrigger(hour=hour, minute=minute, second=second, timezone=time_zone, jitter=jitter)
     _SCHEDULER.add_job(
         id=job_id,
         jobstore="sqlite",

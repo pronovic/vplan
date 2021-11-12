@@ -88,12 +88,16 @@ class TestLifecycle:
             assert scheduler() is not None
 
             # Create a daily job and make sure it executes
-            schedule_daily_job(job_id="test_job", time=time1, func=job_function, kwargs={"message": "job #1"}, time_zone="%s" % tz)
+            schedule_daily_job(
+                job_id="test_job", trigger_time=time1, func=job_function, kwargs={"message": "job #1"}, time_zone="%s" % tz
+            )
             assert_daily_job_definition("test_job", {"message": "job #1"})
             wait().at_most(JOB_DELAY_SEC, SECOND).until(lambda: INDICATOR == "job #1")
 
             # Recreate the daily job and make sure updates are reflected
-            schedule_daily_job(job_id="test_job", time=time2, func=job_function, kwargs={"message": "job #2"}, time_zone="%s" % tz)
+            schedule_daily_job(
+                job_id="test_job", trigger_time=time2, func=job_function, kwargs={"message": "job #2"}, time_zone="%s" % tz
+            )
             assert_daily_job_definition("test_job", {"message": "job #2"})
             wait().at_most(JOB_DELAY_SEC, SECOND).until(lambda: INDICATOR == "job #2")
 
