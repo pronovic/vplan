@@ -1,0 +1,642 @@
+{
+  "items": [
+    {
+      "deviceId": "5b012baf-xxxx-xxxx-xxxx-097f8b847cd2",
+      "name": "Zooz Outlet #4 - Right",
+      "label": "Lamp Under Window",
+      "manufacturerName": "SmartThings",
+      "presentationId": "generic-switch-power-energy",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "6ab1824d-xxxx-xxxx-xxxx-eafb1596336d",
+      "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+      "deviceTypeName": "Zooz Double Plug Outlet",
+      "deviceNetworkType": "UNKNOWN",
+      "components": [
+        {
+          "id": "main",
+          "label": "Lamp Under Window",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "sensor",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "outlet",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-11-02T05:00:43.161Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "UNKNOWN",
+        "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+        "deviceTypeName": "Zooz Double Plug Outlet",
+        "executingLocally": false,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    },
+    {
+      "deviceId": "f079ee62-xxxx-xxxx-xxxx-59dce7db1d0d",
+      "name": "Zooz Outlet #2 - Right",
+      "label": null,
+      "manufacturerName": "SmartThings",
+      "presentationId": "generic-switch-power-energy",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+      "deviceTypeName": "Zooz Double Plug Outlet",
+      "deviceNetworkType": "UNKNOWN",
+      "components": [
+        {
+          "id": "main",
+          "label": "Picture Frame",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "sensor",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "outlet",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-11-02T01:55:27.711Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "UNKNOWN",
+        "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+        "deviceTypeName": "Zooz Double Plug Outlet",
+        "executingLocally": false,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    },
+    {
+      "deviceId": "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc",
+      "name": "SmartThings Outlet",
+      "label": "Desk Lamp",
+      "manufacturerName": "SmartThings",
+      "presentationId": "SmartThings-smartthings-SmartPower_Outlet",
+      "deviceManufacturerCode": "SmartThings",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "d948d523-xxxx-xxxx-xxxx-eb9a3a7bca62",
+      "deviceTypeId": "575cca07-xxxx-xxxx-xxxx-c663d8d53051",
+      "deviceTypeName": "SmartPower Outlet",
+      "deviceNetworkType": "ZIGBEE",
+      "components": [
+        {
+          "id": "main",
+          "label": "Desk Lamp",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "configuration",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "sensor",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "healthCheck",
+              "version": 1
+            },
+            {
+              "id": "outlet",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-10-28T00:31:32.941Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "ZIGBEE",
+        "deviceTypeId": "575cca07-xxxx-xxxx-xxxx-c663d8d53051",
+        "deviceTypeName": "SmartPower Outlet",
+        "executingLocally": true,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    },
+    {
+      "deviceId": "e25f022a-xxxx-xxxx-xxxx-3385cb2ef6c0",
+      "name": "Zooz Outlet #3 - Right",
+      "label": "China Cabinet",
+      "manufacturerName": "SmartThings",
+      "presentationId": "generic-switch-power-energy",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+      "deviceTypeName": "Zooz Double Plug Outlet",
+      "deviceNetworkType": "UNKNOWN",
+      "components": [
+        {
+          "id": "main",
+          "label": "China Cabinet",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "sensor",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "outlet",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-11-03T16:48:46.274Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "UNKNOWN",
+        "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+        "deviceTypeName": "Zooz Double Plug Outlet",
+        "executingLocally": false,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    },
+    {
+      "deviceId": "6498f80e-xxxx-xxxx-xxxx-d1b1916d48f2",
+      "name": "Sengled Light",
+      "label": "Sofa Table Lamp",
+      "manufacturerName": "SmartThings",
+      "presentationId": "SmartThings-smartthings-ZigBee_Dimmer",
+      "deviceManufacturerCode": "sengled",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "deviceTypeId": "52969956-xxxx-xxxx-xxxx-1bb46cfef033",
+      "deviceTypeName": "ZigBee Dimmer",
+      "deviceNetworkType": "ZIGBEE",
+      "components": [
+        {
+          "id": "main",
+          "label": "Sofa Table Lamp",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "configuration",
+              "version": 1
+            },
+            {
+              "id": "switchLevel",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "healthCheck",
+              "version": 1
+            },
+            {
+              "id": "light",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "Light",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-10-28T00:23:29.482Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "ZIGBEE",
+        "deviceTypeId": "52969956-xxxx-xxxx-xxxx-1bb46cfef033",
+        "deviceTypeName": "ZigBee Dimmer",
+        "executingLocally": true,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    },
+    {
+      "deviceId": "a5967b9a-xxxx-xxxx-xxxx-864989ecba8d",
+      "name": "Zooz Outlet #2 - Left",
+      "label": "Loveseat Lamp",
+      "manufacturerName": "SmartThings",
+      "presentationId": "generic-switch-power-energy",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+      "deviceTypeName": "Zooz Double Plug Outlet",
+      "deviceNetworkType": "UNKNOWN",
+      "components": [
+        {
+          "id": "main",
+          "label": "Loveseat Lamp",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "sensor",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "outlet",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-11-02T01:55:26.611Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "UNKNOWN",
+        "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+        "deviceTypeName": "Zooz Double Plug Outlet",
+        "executingLocally": false,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    },
+    {
+      "deviceId": "ff237cb5-xxxx-xxxx-xxxx-591d5c2e71c1",
+      "name": "Zooz Outlet #4 - Left",
+      "label": "Corner Lamp",
+      "manufacturerName": "SmartThings",
+      "presentationId": "generic-switch-power-energy",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "6ab1824d-xxxx-xxxx-xxxx-eafb1596336d",
+      "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+      "deviceTypeName": "Zooz Double Plug Outlet",
+      "deviceNetworkType": "UNKNOWN",
+      "components": [
+        {
+          "id": "main",
+          "label": "Corner Lamp",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "sensor",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "outlet",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-11-02T05:00:40.708Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "UNKNOWN",
+        "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+        "deviceTypeName": "Zooz Double Plug Outlet",
+        "executingLocally": false,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    },
+    {
+      "deviceId": "4461fbe1-xxxx-xxxx-xxxx-081ed04a3e01",
+      "name": "Zooz Outlet #1 - Right",
+      "label": "Front Window Lamp",
+      "manufacturerName": "SmartThings",
+      "presentationId": "generic-switch-power-energy",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+      "deviceTypeName": "Zooz Double Plug Outlet",
+      "deviceNetworkType": "UNKNOWN",
+      "components": [
+        {
+          "id": "main",
+          "label": "Front Window Lamp",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "sensor",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "outlet",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-11-02T01:42:39.846Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "UNKNOWN",
+        "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+        "deviceTypeName": "Zooz Double Plug Outlet",
+        "executingLocally": false,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    },
+    {
+      "deviceId": "99ca768e-xxxx-xxxx-xxxx-cf2f7e27c09d",
+      "name": "Zooz Outlet #1 - Left",
+      "label": "",
+      "manufacturerName": "SmartThings",
+      "presentationId": "generic-switch-power-energy",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+      "deviceTypeName": "Zooz Double Plug Outlet",
+      "deviceNetworkType": "UNKNOWN",
+      "components": [
+        {
+          "id": "main",
+          "label": "Christmas Tree",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "sensor",
+              "version": 1
+            },
+            {
+              "id": "actuator",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "outlet",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-11-02T01:42:38.878Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "dth": {
+        "completedSetup": true,
+        "deviceNetworkType": "UNKNOWN",
+        "deviceTypeId": "aad59e1b-xxxx-xxxx-xxxx-1386a20cbc01",
+        "deviceTypeName": "Zooz Double Plug Outlet",
+        "executingLocally": false,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "UNKNOWN"
+      },
+      "type": "DTH",
+      "restrictionTier": 0
+    }
+  ],
+  "_links": {}
+}

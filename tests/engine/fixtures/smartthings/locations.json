@@ -1,0 +1,13 @@
+{
+  "items": [
+    {
+      "locationId": "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2",
+      "name": "My House",
+      "parent": {
+        "type": "ACCOUNT",
+        "id": "a80c9f8a-xxxx-xxxx-xxxx-50ffe46f2b7d"
+      }
+    }
+  ],
+  "_links": null
+}

@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "roomId": "d948d523-xxxx-xxxx-xxxx-eb9a3a7bca62",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "name": "Office",
+      "backgroundImage": null,
+      "created": 1632669327138,
+      "lastModified": 1632669327138
+    },
+    {
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "name": "Living Room",
+      "backgroundImage": null,
+      "created": 1632671991916,
+      "lastModified": 1636227011509
+    },
+    {
+      "roomId": "6ab1824d-xxxx-xxxx-xxxx-eafb1596336d",
+      "locationId": "15526d0a-afc9-xxxx-xxxx-b6247aacbbb2",
+      "name": "Basement",
+      "backgroundImage": null,
+      "created": 1635387706796,
+      "lastModified": 1635387706796
+    }
+  ],
+  "_links": null
+}

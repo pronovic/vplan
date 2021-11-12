@@ -26,6 +26,22 @@ SIMPLE_TIME_REGEX = re.compile(r"^((\d{2}):(\d{2}))$")
 ONLY_ACCOUNT = "default"
 
 
+class ServerException(Exception):
+    """A server exception."""
+
+    def __init__(self, message: str):
+        super().__init__(message)
+        self.message = message
+
+
+class AlreadyExistsError(ServerException):
+    """A resource already exists."""
+
+
+class SmartThingsClientError(ServerException):
+    """An error invoking the SmartThings API."""
+
+
 class SwitchState(str, Enum):
     """States that a switch can be in."""
 
@@ -99,18 +115,6 @@ class SmartThingsId(ConstrainedStr):
     """A SmartThings identifier (either a name or id), opaque to us."""
 
     min_length = 1
-
-
-class ServerException(Exception):
-    """A server exception."""
-
-    def __init__(self, message: str):
-        super().__init__(message)
-        self.message = message
-
-
-class AlreadyExistsError(ServerException):
-    """A resource already exists."""
 
 
 class Health(YamlModel):
