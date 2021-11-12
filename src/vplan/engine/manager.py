@@ -5,7 +5,7 @@
 Manage high-level actions on behalf of the routers.
 """
 import datetime
-import time
+from time import sleep
 from typing import List
 
 from vplan.engine.config import config
@@ -48,10 +48,10 @@ def toggle_devices(pat_token: str, location: str, devices: List[Device], toggles
     with SmartThings(pat_token, location):
         for test in range(0, toggles):
             if test > 0:
-                time.sleep(config().smartthings.toggle_delay_sec)
+                sleep(config().smartthings.toggle_delay_sec)
             for device in devices:
                 set_switch(device, SwitchState.ON)
-            time.sleep(config().smartthings.toggle_delay_sec)
+            sleep(config().smartthings.toggle_delay_sec)
             for device in devices:
                 set_switch(device, SwitchState.OFF)
 
