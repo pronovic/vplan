@@ -168,31 +168,31 @@ class TestPlan:
 
     @patch("vplan.client.client.requests.get")
     def test_retrieve_plan_found(self, requests_get, api_url, raise_for_status):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
-        response = _response(model=plan)
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        response = _response(model=schema)
         requests_get.side_effect = [response]
         result = retrieve_plan("xxx")
-        assert result == plan
+        assert result == schema
         raise_for_status.assert_called_once_with(response)
         requests_get.assert_called_once_with(url="http://whatever/plan/xxx")
 
     @patch("vplan.client.client.requests.post")
     def test_create_plan(self, requests_post, api_url, raise_for_status):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         response = _response()
         requests_post.side_effect = [response]
-        create_plan(plan)
+        create_plan(schema)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan", data=plan.json())
+        requests_post.assert_called_once_with(url="http://whatever/plan", data=schema.json())
 
     @patch("vplan.client.client.requests.put")
     def test_update_plan(self, requests_put, api_url, raise_for_status):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
         response = _response()
         requests_put.side_effect = [response]
-        update_plan(plan)
+        update_plan(schema)
         raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/plan", data=plan.json())
+        requests_put.assert_called_once_with(url="http://whatever/plan", data=schema.json())
 
     @patch("vplan.client.client.requests.delete")
     def test_delete_plan(self, requests_delete, api_url, raise_for_status):

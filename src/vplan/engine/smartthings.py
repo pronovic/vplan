@@ -20,15 +20,19 @@ def st_schedule_immediate_refresh(plan_name: str) -> None:
     # removed in SmartThings.  The action taken by the job is based on the state of
     # the plan at the time the job is executed.
 
+    # TODO: this immediate refresh action probably needs to include the
+    #       account credentiials to use (the PAT token) otherwise if we
+    #       delete the account, we can't clean up
+
     # TODO: if there is a refresh for this job already scheduled for immediate
     #       execution, then this is a no-op
 
 
-def st_test_group(plan_name: str, group_name: str, toggle_count: int) -> None:
+def st_toggle_group(plan_name: str, group_name: str, toggle_count: int) -> None:
     """Test a device group that is part of a plan."""
     # TODO: implement st_test_group()
 
 
-def st_test_device(plan_name: str, room: str, device: str, toggle_count: int) -> None:
+def st_toggle_device(plan_name: str, room: str, device: str, toggle_count: int) -> None:
     """Test a device that is part of a plan."""
     # TODO: implement test_device()

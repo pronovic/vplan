@@ -38,7 +38,7 @@ def create_or_replace_account(account: Account) -> None:
 @ROUTER.delete("/account", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def delete_account() -> None:
     """Delete account information stored in the plan engine."""
-    db_delete_account()
     for plan_name in db_retrieve_all_plans():
         db_update_plan_enabled(plan_name=plan_name, enabled=False)
         st_schedule_immediate_refresh(plan_name=plan_name)
+    db_delete_account()

@@ -21,7 +21,7 @@ from vplan.engine.database import (
 )
 from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.interface import PlanSchema, Status
-from vplan.engine.smartthings import st_schedule_daily_refresh, st_schedule_immediate_refresh, st_test_device, st_test_group
+from vplan.engine.smartthings import st_schedule_daily_refresh, st_schedule_immediate_refresh, st_toggle_device, st_toggle_group
 
 ROUTER = APIRouter()
 
@@ -57,8 +57,8 @@ def update_plan(schema: PlanSchema) -> None:
 @ROUTER.delete("/plan/{plan_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def delete_plan(plan_name: str) -> None:
     """Delete a plan stored in the plan engine."""
-    db_delete_plan(plan_name=plan_name)
     st_schedule_immediate_refresh(plan_name=plan_name)
+    db_delete_plan(plan_name=plan_name)
 
 
 @ROUTER.get("/plan/{plan_name}/status", status_code=HTTP_200_OK)
@@ -82,12 +82,12 @@ def refresh_plan(plan_name: str) -> None:
 
 
 @ROUTER.post("/plan/{plan_name}/test/group/{group_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def test_group(plan_name: str, group_name: str, toggle_count: int) -> None:
+def toggle_group(plan_name: str, group_name: str, toggle_count: int = 2) -> None:
     """Test a device group that is part of a plan."""
-    st_test_group(plan_name=plan_name, group_name=group_name, toggle_count=toggle_count)
+    st_toggle_group(plan_name=plan_name, group_name=group_name, toggle_count=toggle_count)
 
 
 @ROUTER.post("/plan/{plan_name}/test/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def test_device(plan_name: str, room: str, device: str, toggle_count: int) -> None:
+def toggle_device(plan_name: str, room: str, device: str, toggle_count: int = 2) -> None:
     """Test a device that is part of a plan."""
-    st_test_device(plan_name=plan_name, room=room, device=device, toggle_count=toggle_count)
+    st_toggle_device(plan_name=plan_name, room=room, device=device, toggle_count=toggle_count)
