@@ -275,16 +275,14 @@ class TestModelsAndValidation:
 
 class TestYamlParsing:
     def test_parsing_valid(self):
-        with open(VALID_PLAN_FILE, "r", encoding="utf8") as fp:
-            schema = PlanSchema.parse_raw(fp.read())
-            assert schema == PLAN_EXPECTED
-            assert schema.devices() == DEVICES_EXPECTED
-            assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
+        schema = PlanSchema.parse_file(VALID_PLAN_FILE)
+        assert schema == PLAN_EXPECTED
+        assert schema.devices() == DEVICES_EXPECTED
+        assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
 
     def test_parsing_invalid(self):
-        with open(INVALID_PLAN_FILE, "r", encoding="utf8") as fp:
-            with pytest.raises(ValueError):
-                PlanSchema.parse_raw(fp.read())
+        with pytest.raises(ValueError):
+            PlanSchema.parse_file(INVALID_PLAN_FILE)
 
 
 class TestUtil:

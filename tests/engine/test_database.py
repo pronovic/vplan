@@ -103,7 +103,6 @@ class TestDatabase:
             db_retrieve_plan("bbb")
 
     def test_plan_full_yaml(self, database):
-        with open(PLAN_FILE, "r", encoding="utf8") as fp:
-            schema = PlanSchema.parse_raw(fp.read())
-            db_create_plan(schema)
-            assert db_retrieve_plan(schema.plan.name) == schema
+        schema = PlanSchema.parse_file(PLAN_FILE)
+        db_create_plan(schema)
+        assert db_retrieve_plan(schema.plan.name) == schema
