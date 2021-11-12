@@ -7,6 +7,7 @@ The public API model.
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
 
 import re
+from enum import Enum
 from typing import List, Optional, Tuple, Type, Union
 
 import pytz
@@ -23,6 +24,13 @@ TRIGGER_VARIATION_REGEX = re.compile(r"^(disabled|none|([+]/-|[+]|-) (\d+) (hour
 SIMPLE_TIME_REGEX = re.compile(r"^((\d{2}):(\d{2}))$")
 
 ONLY_ACCOUNT = "default"
+
+
+class SwitchAction(str, Enum):
+    """Actions valid for a switch."""
+
+    ON = "on"
+    OFF = "off"
 
 
 class VplanName(ConstrainedStr):
