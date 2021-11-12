@@ -26,8 +26,8 @@ SIMPLE_TIME_REGEX = re.compile(r"^((\d{2}):(\d{2}))$")
 ONLY_ACCOUNT = "default"
 
 
-class SwitchAction(str, Enum):
-    """Actions valid for a switch."""
+class SwitchState(str, Enum):
+    """States that a switch can be in."""
 
     ON = "on"
     OFF = "off"
