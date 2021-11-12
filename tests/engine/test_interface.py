@@ -35,6 +35,7 @@ PLAN_EXPECTED = PlanSchema(
         name="my-house",
         location="My House",
         refresh_time="00:30",
+        refresh_zone="America/Chicago",
         groups=[
             DeviceGroup(
                 name="first-floor-lights",
@@ -197,38 +198,49 @@ class TestModelsAndValidation:
             DeviceGroup(name=name, devices=[], triggers=[])
 
     @pytest.mark.parametrize(
-        "name,location,refresh_time",
+        "name,location,refresh_time,refresh_zone",
         [
-            ("n", "l", "00:00"),
-            (" n ", " l ", " 12:00 "),
-            (VALID_NAME, "location", "23:59"),
+            ("n", "l", "00:00", "UTC"),
+            (" n ", " l ", " 12:00 ", " America/Chicago "),
+            (VALID_NAME, "location", "23:59", "US/Eastern"),
         ],
         ids=["short", "whitespace", "long"],
     )
-    def test_plan_valid(self, name, location, refresh_time):
-        model = Plan(name=name, location=location, refresh_time=refresh_time)
+    def test_plan_valid(self, name, location, refresh_time, refresh_zone):
+        model = Plan(name=name, location=location, refresh_time=refresh_time, refresh_zone=refresh_zone)
         assert model.name == name.strip()
         assert model.location == location  # not stripped, it's a SmartThings identifier
         assert model.refresh_time == refresh_time.strip()
         assert model.groups == []
 
     @pytest.mark.parametrize(
-        "name,location,refresh_time",
+        "name,location,refresh_time,refresh_zone",
         [
-            ("", "location", "18:02"),
-            (None, "location", "18:02"),
-            (TOO_LONG_NAME, "location", "18:02"),
-            ("name", "", "18:02"),
-            ("name", None, "18:02"),
-            ("name", "location", ""),
-            ("name", "location", None),
-            ("name", "location", "8:02"),
+            ("", "location", "18:02", "UTC"),
+            (None, "location", "18:02", "UTC"),
+            (TOO_LONG_NAME, "location", "18:02", "UTC"),
+            ("name", "", "18:02", "UTC"),
+            ("name", None, "18:02", "UTC"),
+            ("name", "location", "", "UTC"),
+            ("name", "location", None, "UTC"),
+            ("name", "location", "8:02", "UTC"),
+            ("name", "location", "23:59", "bogus"),
         ],
-        ids=["empty name", "no name", "long name", "empty room", "no room", "empty refresh", "no refresh", "invalid refresh"],
+        ids=[
+            "empty name",
+            "no name",
+            "long name",
+            "empty room",
+            "no room",
+            "empty refresh",
+            "no refresh",
+            "invalid refresh",
+            "invalid zone",
+        ],
     )
-    def test_plan_invalid(self, name, location, refresh_time):
+    def test_plan_invalid(self, name, location, refresh_time, refresh_zone):
         with pytest.raises(ValueError):
-            Plan(name=name, location=location, refresh_time=refresh_time)
+            Plan(name=name, location=location, refresh_time=refresh_time, refresh_zone=refresh_zone)
 
     @pytest.mark.parametrize(
         "pat_token",

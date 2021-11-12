@@ -21,7 +21,13 @@ from vplan.engine.database import (
 )
 from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.interface import PlanSchema, Status
-from vplan.engine.smartthings import st_schedule_daily_refresh, st_schedule_immediate_refresh, st_toggle_device, st_toggle_group
+from vplan.engine.smartthings import (
+    st_schedule_daily_refresh,
+    st_schedule_immediate_refresh,
+    st_toggle_device,
+    st_toggle_group,
+    st_unschedule_daily_refresh,
+)
 
 ROUTER = APIRouter()
 
@@ -42,14 +48,14 @@ def retrieve_plan(plan_name: str) -> PlanSchema:
 def create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
     db_create_plan(schema=schema)
-    st_schedule_daily_refresh(plan_name=schema.plan.name, refresh_time=schema.plan.refresh_time)
+    st_schedule_daily_refresh(plan_name=schema.plan.name, refresh_time=schema.plan.refresh_time, time_zone=schema.plan.refresh_zone)
 
 
 @ROUTER.put("/plan", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     db_update_plan(schema=schema)
-    st_schedule_daily_refresh(plan_name=schema.plan.name, refresh_time=schema.plan.refresh_time)
+    st_schedule_daily_refresh(plan_name=schema.plan.name, refresh_time=schema.plan.refresh_time, time_zone=schema.plan.refresh_zone)
     if db_retrieve_plan_enabled(plan_name=schema.plan.name):
         st_schedule_immediate_refresh(plan_name=schema.plan.name)
 
@@ -57,6 +63,7 @@ def update_plan(schema: PlanSchema) -> None:
 @ROUTER.delete("/plan/{plan_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def delete_plan(plan_name: str) -> None:
     """Delete a plan stored in the plan engine."""
+    st_unschedule_daily_refresh(plan_name=plan_name)
     st_schedule_immediate_refresh(plan_name=plan_name)
     db_delete_plan(plan_name=plan_name)
 

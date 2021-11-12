@@ -52,6 +52,7 @@ tzlocal = "^4.1"
 busypie = "^0.4.5"
 sqlalchemy2-stubs = "^0.0.2-alpha.19"
 types-requests = "^2.25.12"
+types-pytz = "^2021.3.0"
 
 [tool.black]
 line-length = 132

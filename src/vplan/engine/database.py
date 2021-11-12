@@ -16,9 +16,7 @@ from sqlalchemy.orm import Session, registry, sessionmaker
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from vplan.engine.config import config
-from vplan.engine.interface import Account, PlanSchema, ServerException
-
-ONLY_ACCOUNT = "default"
+from vplan.engine.interface import ONLY_ACCOUNT, Account, PlanSchema, ServerException
 
 _REGISTRY = registry()
 _ENGINE: Optional[Engine] = None

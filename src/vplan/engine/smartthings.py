@@ -5,27 +5,34 @@
 """
 Manage SmartThings behaviors.
 """
+import datetime
+
+from vplan.engine.interface import parse_time
+from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
 
 
-def st_schedule_daily_refresh(plan_name: str, refresh_time: str) -> None:
-    """Schedule the daily refresh job"""
+def st_schedule_daily_refresh(plan_name: str, refresh_time: str, time_zone: str) -> None:
+    """Create or replace a job to periodically refresh the plan definition at SmartThings."""
+    job_id = "daily/%s" % plan_name
+    hour, minute = parse_time(refresh_time)
+    time = datetime.time(hour=hour, minute=minute, second=0)
+    func = st_refresh_plan
+    kwargs = {"plan_name": plan_name}
+    schedule_daily_job(job_id, time, func, kwargs, time_zone)
+
+
+def st_unschedule_daily_refresh(plan_name: str) -> None:
+    """Remove any existing daily refresh job."""
+    job_id = "daily/%s" % plan_name
+    unschedule_daily_job(job_id)
 
 
 def st_schedule_immediate_refresh(plan_name: str) -> None:
     """Schedule a job to immediately refresh the plan definition at SmartThings."""
-
-    # The plan refresh action takes into account the current deleted/enabled/disabled
-    # state of the plan.  Plans that are enabled will have their rules regenerated in
-    # SmartThings.  Plans that are disabled or do not exist will have their rules
-    # removed in SmartThings.  The action taken by the job is based on the state of
-    # the plan at the time the job is executed.
-
-    # TODO: this immediate refresh action probably needs to include the
-    #       account credentiials to use (the PAT token) otherwise if we
-    #       delete the account, we can't clean up
-
-    # TODO: if there is a refresh for this job already scheduled for immediate
-    #       execution, then this is a no-op
+    job_id = "immediate/%s/%s" % (plan_name, datetime.datetime.now().isoformat())
+    func = st_refresh_plan
+    kwargs = {"plan_name": plan_name}
+    schedule_immediate_job(job_id, func, kwargs)
 
 
 def st_toggle_group(plan_name: str, group_name: str, toggle_count: int) -> None:
@@ -36,3 +43,7 @@ def st_toggle_group(plan_name: str, group_name: str, toggle_count: int) -> None:
 def st_toggle_device(plan_name: str, room: str, device: str, toggle_count: int) -> None:
     """Test a device that is part of a plan."""
     # TODO: implement test_device()
+
+
+def st_refresh_plan(plan_name: str) -> None:
+    """Refresh the plan definition at SmartThings, either replacing or removing all relevant rules."""

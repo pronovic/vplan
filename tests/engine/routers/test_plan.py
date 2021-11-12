@@ -41,7 +41,7 @@ class TestRoutes:
         assert response.status_code == 201
         assert not response.text
         db_create_plan.assert_called_once_with(schema=schema)
-        st_schedule_daily_refresh.assert_called_once_with(plan_name="name", refresh_time="00:30")
+        st_schedule_daily_refresh.assert_called_once_with(plan_name="name", refresh_time="00:30", time_zone="UTC")
 
     @patch("vplan.engine.routers.plan.st_schedule_daily_refresh")
     @patch("vplan.engine.routers.plan.db_create_plan")
@@ -68,7 +68,7 @@ class TestRoutes:
         assert response.status_code == 204
         assert not response.text
         db_update_plan.assert_called_once_with(schema=schema)
-        st_schedule_daily_refresh.assert_called_once_with(plan_name="name", refresh_time="00:30")
+        st_schedule_daily_refresh.assert_called_once_with(plan_name="name", refresh_time="00:30", time_zone="UTC")
         db_retrieve_plan_enabled.assert_called_once_with(plan_name="name")
         if enabled:
             st_schedule_immediate_refresh.assert_called_once_with(plan_name="name")
@@ -93,21 +93,25 @@ class TestRoutes:
         st_schedule_immediate_refresh.assert_not_called()
 
     @patch("vplan.engine.routers.plan.st_schedule_immediate_refresh")
+    @patch("vplan.engine.routers.plan.st_unschedule_daily_refresh")
     @patch("vplan.engine.routers.plan.db_delete_plan")
-    def test_delete_plan(self, db_delete_plan, st_schedule_immediate_refresh):
+    def test_delete_plan(self, db_delete_plan, st_unschedule_daily_refresh, st_schedule_immediate_refresh):
         response = CLIENT.delete(url="/plan/name")
         assert response.status_code == 204
         assert not response.text
+        st_unschedule_daily_refresh.assert_called_once_with(plan_name="name")
         st_schedule_immediate_refresh.assert_called_once_with(plan_name="name")
         db_delete_plan.assert_called_once_with(plan_name="name")
 
     @patch("vplan.engine.routers.plan.st_schedule_immediate_refresh")
+    @patch("vplan.engine.routers.plan.st_unschedule_daily_refresh")
     @patch("vplan.engine.routers.plan.db_delete_plan")
-    def test_delete_plan_not_found(self, db_delete_plan, st_schedule_immediate_refresh):
+    def test_delete_plan_not_found(self, db_delete_plan, st_unschedule_daily_refresh, st_schedule_immediate_refresh):
         db_delete_plan.side_effect = NoResultFound("hello")
         response = CLIENT.delete(url="/plan/name")
         assert response.status_code == 404
         assert not response.text
+        st_unschedule_daily_refresh.assert_called_once_with(plan_name="name")
         st_schedule_immediate_refresh.assert_called_once_with(plan_name="name")
         db_delete_plan.assert_called_once_with(plan_name="name")
 
