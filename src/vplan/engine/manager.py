@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
-# pylint: disable=unused-argument
 
 """
 Manage high-level actions on behalf of the routers.
@@ -57,5 +56,5 @@ def toggle_devices(pat_token: str, location: str, devices: List[Device], toggles
                 set_switch(device, SwitchState.OFF)
 
 
-def refresh_plan(plan_name: str) -> None:
+def refresh_plan(_plan_name: str) -> None:
     """Refresh the plan definition at SmartThings, either replacing or removing all relevant rules."""

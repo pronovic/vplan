@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
-# pylint: disable=unused-argument
 
 import json
 import os
@@ -87,7 +86,7 @@ class TestUtil:
 @patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
 @patch("vplan.engine.smartthings.requests.get")
 class TestContext:
-    def test_load_context(self, requests_get, api_url, raise_for_status):
+    def test_load_context(self, requests_get, _api_url, raise_for_status):
         locations = fixture("locations.json")
         rooms = fixture("rooms.json")
         devices = fixture("devices.json")

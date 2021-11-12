@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
-# pylint: disable=unused-argument
 
 """
 SmartThings API client
@@ -52,12 +51,12 @@ class LocationContext:
     def __init__(self, pat_token: str, location: str):
         self.pat_token = pat_token
         self.location = location
-        self.headers = self._derive_headers(pat_token)
+        self.headers = self._derive_headers()
         self.location_id = self._derive_location_id(location)
         self.room_by_id, self.room_by_name = self._derive_rooms()
         self.device_by_id, self.device_by_name = self._derive_devices()
 
-    def _derive_headers(self, pat_token: str) -> Dict[str, str]:
+    def _derive_headers(self) -> Dict[str, str]:
         """Fill standard headers for API requests."""
         return {
             "Accept": "application/vnd.smartthings+json;v=1",
