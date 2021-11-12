@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+import os
 from typing import List
 from unittest.mock import MagicMock, patch
 
@@ -8,6 +9,10 @@ from click.testing import CliRunner, Result
 
 from vplan.client.cli import vplan as command
 from vplan.engine.interface import DeviceGroup, Plan, PlanSchema, Status
+
+
+def fixture(filename: str) -> str:
+    return os.path.join(os.path.dirname(__file__), "..", "fixtures", "interface", filename)
 
 
 # noinspection PyTypeChecker
@@ -66,6 +71,22 @@ class TestCreate:
         assert result.exit_code == 0
         assert result.output == "Created plan: name\n"
         create_plan.assert_called_once_with(schema)
+
+    @patch("vplan.client.commands.plan.create_plan")
+    def test_command_file_invalid(self, create_plan):
+        p = fixture("bad.yaml")
+        result = invoke(["create", p])
+        assert result.exit_code == 1
+        assert (
+            result.output
+            == r"""Error: 2 validation errors for PlanSchema
+plan -> refresh_time
+  string does not match regex "^((\d{2}):(\d{2}))$" (type=value_error.str.regex; pattern=^((\d{2}):(\d{2}))$)
+plan -> groups -> 0 -> name
+  string does not match regex "^[a-z0-9-]+$" (type=value_error.str.regex; pattern=^[a-z0-9-]+$)
+"""
+        )
+        create_plan.assert_not_called()
 
 
 class TestDelete:
@@ -383,3 +404,19 @@ class TestUpdate:
         assert result.exit_code == 0
         assert result.output == "Updated plan: name\n"
         update_plan.assert_called_once_with(schema)
+
+    @patch("vplan.client.commands.plan.update_plan")
+    def test_command_file_invalid(self, update_plan):
+        p = fixture("bad.yaml")
+        result = invoke(["update", p])
+        assert result.exit_code == 1
+        assert (
+            result.output
+            == r"""Error: 2 validation errors for PlanSchema
+plan -> refresh_time
+  string does not match regex "^((\d{2}):(\d{2}))$" (type=value_error.str.regex; pattern=^((\d{2}):(\d{2}))$)
+plan -> groups -> 0 -> name
+  string does not match regex "^[a-z0-9-]+$" (type=value_error.str.regex; pattern=^[a-z0-9-]+$)
+"""
+        )
+        update_plan.assert_not_called()

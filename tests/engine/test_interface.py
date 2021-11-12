@@ -26,7 +26,9 @@ def fixture(filename: str) -> str:
     return os.path.join(os.path.dirname(__file__), "fixtures", "interface", filename)
 
 
-PLAN_FILE = fixture("plan.yaml")
+VALID_PLAN_FILE = fixture("plan.yaml")
+INVALID_PLAN_FILE = fixture("bad.yaml")
+
 PLAN_EXPECTED = PlanSchema(
     version="1.0.0",
     plan=Plan(
@@ -252,10 +254,15 @@ class TestModelsAndValidation:
 
 
 class TestYamlParsing:
-    def test_parsing(self):
-        with open(PLAN_FILE, "r", encoding="utf8") as fp:
+    def test_parsing_valid(self):
+        with open(VALID_PLAN_FILE, "r", encoding="utf8") as fp:
             schema = PlanSchema.parse_raw(fp.read())
             assert schema == PLAN_EXPECTED
+
+    def test_parsing_invalid(self):
+        with open(INVALID_PLAN_FILE, "r", encoding="utf8") as fp:
+            with pytest.raises(ValueError):
+                PlanSchema.parse_raw(fp.read())
 
 
 class TestUtil:
