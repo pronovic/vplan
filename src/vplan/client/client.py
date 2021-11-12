@@ -152,17 +152,17 @@ def refresh_plan(plan_name: str) -> None:
     _raise_for_status(response)
 
 
-def toggle_group(plan_name: str, group_name: str, toggle_count: int) -> None:
+def toggle_group(plan_name: str, group_name: str, toggles: int) -> None:
     """Test a device group that is part of a plan."""
     url = _plan("/%s/test/group/%s" % (plan_name, group_name))
-    params = {"toggle_count": toggle_count}
+    params = {"toggles": toggles}
     response = requests.post(url=url, params=params)
     _raise_for_status(response)
 
 
-def toggle_device(plan_name: str, room: str, device: str, toggle_count: int) -> None:
+def toggle_device(plan_name: str, room: str, device: str, toggles: int) -> None:
     """Test a device that is part of a plan."""
     url = _plan("/%s/test/device/%s/%s" % (plan_name, room, device))
-    params = {"toggle_count": toggle_count}
+    params = {"toggles": toggles}
     response = requests.post(url=url, params=params)
     _raise_for_status(response)

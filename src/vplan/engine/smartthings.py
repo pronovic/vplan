@@ -6,8 +6,9 @@
 Manage SmartThings behaviors.
 """
 import datetime
+from typing import List
 
-from vplan.engine.interface import parse_time
+from vplan.engine.interface import Device, parse_time
 from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
 
 
@@ -35,14 +36,8 @@ def st_schedule_immediate_refresh(plan_name: str) -> None:
     schedule_immediate_job(job_id, func, kwargs)
 
 
-def st_toggle_group(plan_name: str, group_name: str, toggle_count: int) -> None:
-    """Test a device group that is part of a plan."""
-    # TODO: implement st_test_group()
-
-
-def st_toggle_device(plan_name: str, room: str, device: str, toggle_count: int) -> None:
-    """Test a device that is part of a plan."""
-    # TODO: implement test_device()
+def st_toggle_devices(pat_token: str, location: str, devices: List[Device], toggles: int) -> None:
+    """Test toggling a group of devices, switching them on and off a certain number of times."""
 
 
 def st_refresh_plan(plan_name: str) -> None:

@@ -204,7 +204,7 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
 @click.option(
     "--toggles",
     "-t",
-    "toggle_count",
+    "toggles",
     metavar="<toggles>",
     required=False,
     default=2,
@@ -212,9 +212,7 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     show_default=True,
     help="Number of times to toggle each device or group.",
 )
-def test(
-    plan_name: str, auto: bool, toggle_count: int, group_name: Optional[str] = None, device_path: Optional[str] = None
-) -> None:
+def test(plan_name: str, auto: bool, toggles: int, group_name: Optional[str] = None, device_path: Optional[str] = None) -> None:
     """
     Test all devices that are a part of a plan.
 
@@ -233,10 +231,10 @@ def test(
     if device_path:
         room, device = device_path.split("/")
         click.secho("Testing device: %s/%s" % (room, device))
-        toggle_device(plan_name, room, device, toggle_count)
+        toggle_device(plan_name, room, device, toggles)
     elif group_name:
         click.secho("Testing group: %s" % group_name)
-        toggle_group(plan_name, group_name, toggle_count)
+        toggle_group(plan_name, group_name, toggles)
     else:
         result = retrieve_plan(plan_name)
         if not result:
@@ -245,4 +243,4 @@ def test(
             click.secho("Testing group: %s" % group.name)
             if not auto:
                 click.prompt("Press enter to continue")
-            toggle_group(plan_name, group.name, toggle_count)
+            toggle_group(plan_name, group.name, toggles)

@@ -7,7 +7,7 @@ The public API model.
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
 
 import re
-from typing import List, Tuple, Type, Union
+from typing import List, Optional, Tuple, Type, Union
 
 import pytz
 from pydantic import ConstrainedList, ConstrainedStr, Field  # pylint: disable=no-name-in-module
@@ -177,6 +177,15 @@ class PlanSchema(VersionedYamlModel):
 
     version: SemVer = Field(..., description="Plan schema version")
     plan: Plan = Field(..., description="Vacation plan")
+
+    def devices(self, group_name: Optional[str] = None) -> List[Device]:
+        """Return a list of devices in a plan, optionally filtered by group name."""
+        result = []
+        for group in self.plan.groups:
+            if group_name is None or group.name == group_name:
+                for device in group.devices:
+                    result.append(device)
+        return result
 
 
 class Account(YamlModel):

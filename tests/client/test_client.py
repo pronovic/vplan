@@ -244,7 +244,7 @@ class TestPlan:
         requests_post.side_effect = [response]
         toggle_group("xxx", "yyy", 2)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/group/yyy", params={"toggle_count": 2})
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/group/yyy", params={"toggles": 2})
 
     @patch("vplan.client.client.requests.post")
     def test_toggle_device(self, requests_post, api_url, raise_for_status):
@@ -252,4 +252,4 @@ class TestPlan:
         requests_post.side_effect = [response]
         toggle_device("xxx", "yyy", "zzz", 2)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggle_count": 2})
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggles": 2})

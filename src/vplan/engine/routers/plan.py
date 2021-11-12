@@ -8,11 +8,13 @@ Router for plan endpoints.
 from typing import List
 
 from fastapi import APIRouter
+from sqlalchemy.exc import NoResultFound
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 
 from vplan.engine.database import (
     db_create_plan,
     db_delete_plan,
+    db_retrieve_account,
     db_retrieve_all_plans,
     db_retrieve_plan,
     db_retrieve_plan_enabled,
@@ -20,12 +22,11 @@ from vplan.engine.database import (
     db_update_plan_enabled,
 )
 from vplan.engine.fastapi.extensions import EmptyResponse
-from vplan.engine.interface import PlanSchema, Status
+from vplan.engine.interface import Device, PlanSchema, Status
 from vplan.engine.smartthings import (
     st_schedule_daily_refresh,
     st_schedule_immediate_refresh,
-    st_toggle_device,
-    st_toggle_group,
+    st_toggle_devices,
     st_unschedule_daily_refresh,
 )
 
@@ -89,12 +90,25 @@ def refresh_plan(plan_name: str) -> None:
 
 
 @ROUTER.post("/plan/{plan_name}/test/group/{group_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def toggle_group(plan_name: str, group_name: str, toggle_count: int = 2) -> None:
+def toggle_group(plan_name: str, group_name: str, toggles: int = 2) -> None:
     """Test a device group that is part of a plan."""
-    st_toggle_group(plan_name=plan_name, group_name=group_name, toggle_count=toggle_count)
+    account = db_retrieve_account()
+    schema = db_retrieve_plan(plan_name=plan_name)
+    location = schema.plan.location
+    devices = schema.devices(group_name=group_name)
+    if not devices:
+        raise NoResultFound("Group not found or no devices in group")
+    st_toggle_devices(pat_token=account.pat_token, location=location, devices=devices, toggles=toggles)
 
 
 @ROUTER.post("/plan/{plan_name}/test/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def toggle_device(plan_name: str, room: str, device: str, toggle_count: int = 2) -> None:
+def toggle_device(plan_name: str, room: str, device: str, toggles: int = 2) -> None:
     """Test a device that is part of a plan."""
-    st_toggle_device(plan_name=plan_name, room=room, device=device, toggle_count=toggle_count)
+    item = Device(room=room, device=device)
+    account = db_retrieve_account()
+    schema = db_retrieve_plan(plan_name=plan_name)
+    location = schema.plan.location
+    devices = schema.devices()
+    if not item in devices:
+        raise NoResultFound("Device not found in plan")
+    st_toggle_devices(pat_token=account.pat_token, location=location, devices=[item], toggles=toggles)

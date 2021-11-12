@@ -72,6 +72,14 @@ PLAN_EXPECTED = PlanSchema(
     ),
 )
 
+DEVICES_EXPECTED = [
+    Device(room="Living Room", device="Sofa Table Lamp"),
+    Device(room="Living Room", device="China Cabinet"),
+    Device(room="Ken's Office", device="Desk Lamp"),
+    Device(room="Julie's Office", device="Dresser Lamp"),
+    Device(room="Basement", device="Lamp Under Window"),
+]
+
 
 class TestExceptions:
     def test_server_exception(self):
@@ -270,6 +278,8 @@ class TestYamlParsing:
         with open(VALID_PLAN_FILE, "r", encoding="utf8") as fp:
             schema = PlanSchema.parse_raw(fp.read())
             assert schema == PLAN_EXPECTED
+            assert schema.devices() == DEVICES_EXPECTED
+            assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
 
     def test_parsing_invalid(self):
         with open(INVALID_PLAN_FILE, "r", encoding="utf8") as fp:
