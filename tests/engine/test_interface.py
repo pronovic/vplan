@@ -204,7 +204,7 @@ class TestModelsAndValidation:
         ids=["short", "whitespace", "long"],
     )
     def test_plan_valid(self, name, location, refresh_time):
-        model = Plan(name=name, location=location, refresh_time=refresh_time, groups=[])
+        model = Plan(name=name, location=location, refresh_time=refresh_time)
         assert model.name == name.strip()
         assert model.location == location  # not stripped, it's a SmartThings identifier
         assert model.refresh_time == refresh_time.strip()
@@ -226,7 +226,7 @@ class TestModelsAndValidation:
     )
     def test_plan_invalid(self, name, location, refresh_time):
         with pytest.raises(ValueError):
-            Plan(name=name, location=location, refresh_time=refresh_time, groups=[])
+            Plan(name=name, location=location, refresh_time=refresh_time)
 
     @pytest.mark.parametrize(
         "pat_token",
@@ -254,8 +254,8 @@ class TestModelsAndValidation:
 class TestYamlParsing:
     def test_parsing(self):
         with open(PLAN_FILE, "r", encoding="utf8") as fp:
-            config = PlanSchema.parse_raw(fp.read())
-            assert config == PLAN_EXPECTED
+            schema = PlanSchema.parse_raw(fp.read())
+            assert schema == PLAN_EXPECTED
 
 
 class TestUtil:
@@ -263,5 +263,10 @@ class TestUtil:
         "time,hour,minute",
         [("00:00", 0, 0), ("08:10", 8, 10), ("23:59", 23, 59)],
     )
-    def test_parse_time(self, time, hour, minute):
+    def test_parse_time_valid(self, time, hour, minute):
         assert parse_time(time) == (hour, minute)
+
+    @pytest.mark.parametrize("time", [None, "", "1", "11", "1:", "11:", "1:1", "1:01", "10:1", "24:02", "11:67"])
+    def test_parse_time_invalid(self, time):
+        with pytest.raises(ValueError):
+            parse_time(time)

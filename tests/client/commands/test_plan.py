@@ -48,7 +48,7 @@ class TestCreate:
     @patch("vplan.client.commands.plan.create_plan")
     @patch("vplan.client.commands.plan.sys")
     def test_command_stdin(self, sys, create_plan):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         sys.stdin = MagicMock()
         sys.stdin.read = MagicMock()
         sys.stdin.read.return_value = schema.yaml()
@@ -59,7 +59,7 @@ class TestCreate:
 
     @patch("vplan.client.commands.plan.create_plan")
     def test_command_file(self, create_plan, tmpdir):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         p = tmpdir.join("plan.yaml")
         p.write(schema.yaml())
         result = invoke(["create", "%s" % p])
@@ -142,7 +142,7 @@ class TestExport:
 
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_stdout(self, retrieve_plan):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         retrieve_plan.return_value = schema
         result = invoke(["export", "plan-name"])
         assert result.exit_code == 0
@@ -155,7 +155,7 @@ class TestExport:
     )
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_file(self, retrieve_plan, option, tmpdir):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         retrieve_plan.return_value = schema
         p = tmpdir.join("plan.yaml").realpath()
         result = invoke(["export", "plan-name", option, p])
@@ -218,7 +218,7 @@ class TestShow:
 
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_found(self, retrieve_plan):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         retrieve_plan.return_value = schema
         result = invoke(["show", "plan-name"])
         assert result.exit_code == 0
@@ -365,7 +365,7 @@ class TestUpdate:
     @patch("vplan.client.commands.plan.update_plan")
     @patch("vplan.client.commands.plan.sys")
     def test_command_stdin(self, sys, update_plan):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         sys.stdin = MagicMock()
         sys.stdin.read = MagicMock()
         sys.stdin.read.return_value = schema.yaml()
@@ -376,7 +376,7 @@ class TestUpdate:
 
     @patch("vplan.client.commands.plan.update_plan")
     def test_command_file(self, update_plan, tmpdir):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         p = tmpdir.join("plan.yaml")
         p.write(schema.yaml())
         result = invoke(["update", "%s" % p])

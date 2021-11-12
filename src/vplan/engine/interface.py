@@ -168,7 +168,10 @@ class Account(YamlModel):
 
 def parse_time(time: str) -> Tuple[int, int]:
     """Parse a time string in SimpleTime format and return (hour, minute)."""
-    match = SIMPLE_TIME_REGEX.match(time)
+    match = SIMPLE_TIME_REGEX.match(time) if time else None
     if not match:
         raise ValueError("Invalid SimpleTime: %s" % time)
-    return int(match.group(2)), int(match.group(3))
+    hour, minute = int(match.group(2)), int(match.group(3))
+    if (hour < 0 or hour > 23) or (minute < 0 or minute > 59):
+        raise ValueError("Invalid SimpleTime: %s" % time)
+    return hour, minute

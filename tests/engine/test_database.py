@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
 # pylint: disable=redefined-outer-name,unused-argument
-
+import os
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -22,6 +22,13 @@ from vplan.engine.database import (
     setup_database,
 )
 from vplan.engine.interface import Account, Plan, PlanSchema
+
+
+def fixture(filename: str) -> str:
+    return os.path.join(os.path.dirname(__file__), "fixtures", "interface", filename)
+
+
+PLAN_FILE = fixture("plan.yaml")
 
 
 @pytest.fixture
@@ -57,12 +64,12 @@ class TestDatabase:
         with pytest.raises(NoResultFound):
             db_retrieve_plan("name")
 
-        schema_a1 = PlanSchema(version="1.0.0", plan=Plan(name="aaa", location="location1", refresh_time="00:11", groups=[]))
+        schema_a1 = PlanSchema(version="1.0.0", plan=Plan(name="aaa", location="location1", refresh_time="00:11"))
         db_create_plan(schema_a1)
         assert db_retrieve_all_plans() == ["aaa"]
         assert db_retrieve_plan("aaa") == schema_a1
 
-        schema_a2 = PlanSchema(version="1.0.0", plan=Plan(name="aaa", location="location2", refresh_time="00:22", groups=[]))
+        schema_a2 = PlanSchema(version="1.0.0", plan=Plan(name="aaa", location="location2", refresh_time="00:22"))
         with pytest.raises(IntegrityError):
             db_create_plan(schema_a2)  # duplicate key
         db_update_plan(schema_a2)
@@ -75,7 +82,7 @@ class TestDatabase:
         db_update_plan_enabled("aaa", False)
         assert db_retrieve_plan_enabled("aaa") is False
 
-        schema_b1 = PlanSchema(version="1.0.0", plan=Plan(name="bbb", location="locationB", refresh_time="00:33", groups=[]))
+        schema_b1 = PlanSchema(version="1.0.0", plan=Plan(name="bbb", location="locationB", refresh_time="00:33"))
         with pytest.raises(NoResultFound):
             db_update_plan(schema_b1)
         db_create_plan(schema_b1)
@@ -94,3 +101,9 @@ class TestDatabase:
             db_retrieve_plan("aaa")
         with pytest.raises(NoResultFound):
             db_retrieve_plan("bbb")
+
+    def test_plan_full_yaml(self, database):
+        with open(PLAN_FILE, "r", encoding="utf8") as fp:
+            schema = PlanSchema.parse_raw(fp.read())
+            db_create_plan(schema)
+            assert db_retrieve_plan(schema.plan.name) == schema
