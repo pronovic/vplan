@@ -10,7 +10,7 @@ from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/
 import logging
 from typing import List, Optional
 
-from sqlalchemy import Boolean, Column, String, create_engine, update
+from sqlalchemy import Boolean, Column, String, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, registry, sessionmaker
 from sqlalchemy.orm.decl_api import DeclarativeMeta
@@ -91,6 +91,7 @@ def db_retrieve_account() -> Account:
 def db_create_or_replace_account(account: Account) -> None:
     """Create or replace account information stored in the plan engine."""
     with db_session() as session:
+        session.query(_AccountEntity).where(_AccountEntity.account_name == ONLY_ACCOUNT).delete()
         entity = _AccountEntity()
         entity.account_name = ONLY_ACCOUNT
         entity.pat_token = account.pat_token
@@ -129,22 +130,26 @@ def db_create_plan(schema: PlanSchema) -> None:
 def db_update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     with db_session() as session:
-        session.execute(update(_PlanEntity).where(_PlanEntity.plan_name == schema.plan.name).values(definition=schema.yaml()))
+        entity = session.query(_PlanEntity).where(_PlanEntity.plan_name == schema.plan.name).one()
+        entity.definition = schema.yaml()
 
 
 def db_delete_plan(plan_name: str) -> None:
     """Delete a plan stored in the plan engine."""
     with db_session() as session:
-        session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).delete()
+        entity = session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).one()
+        session.delete(entity)
 
 
 def db_retrieve_plan_enabled(plan_name: str) -> bool:
     """Return the enabled/disabled status of a plan in the plan engine."""
     with db_session() as session:
-        return session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).one().enabled  # type: ignore[no-any-return]
+        entity = session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).one()
+        return entity.enabled  # type: ignore[no-any-return]
 
 
 def db_update_plan_enabled(plan_name: str, enabled: bool) -> None:
     """Set the enabled/disabled status of a plan in the plan engine."""
     with db_session() as session:
-        session.execute(update(_PlanEntity).where(_PlanEntity.plan_name == plan_name).values(enabled=enabled))
+        entity = session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).one()
+        entity.enabled = enabled
