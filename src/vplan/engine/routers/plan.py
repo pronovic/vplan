@@ -23,12 +23,7 @@ from vplan.engine.database import (
 )
 from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.interface import Device, PlanSchema, Status
-from vplan.engine.smartthings import (
-    st_schedule_daily_refresh,
-    st_schedule_immediate_refresh,
-    st_toggle_devices,
-    st_unschedule_daily_refresh,
-)
+from vplan.engine.manager import schedule_daily_refresh, schedule_immediate_refresh, toggle_devices, unschedule_daily_refresh
 
 ROUTER = APIRouter()
 
@@ -49,23 +44,23 @@ def retrieve_plan(plan_name: str) -> PlanSchema:
 def create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
     db_create_plan(schema=schema)
-    st_schedule_daily_refresh(plan_name=schema.plan.name, refresh_time=schema.plan.refresh_time, time_zone=schema.plan.refresh_zone)
+    schedule_daily_refresh(plan_name=schema.plan.name, refresh_time=schema.plan.refresh_time, time_zone=schema.plan.refresh_zone)
 
 
 @ROUTER.put("/plan", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     db_update_plan(schema=schema)
-    st_schedule_daily_refresh(plan_name=schema.plan.name, refresh_time=schema.plan.refresh_time, time_zone=schema.plan.refresh_zone)
+    schedule_daily_refresh(plan_name=schema.plan.name, refresh_time=schema.plan.refresh_time, time_zone=schema.plan.refresh_zone)
     if db_retrieve_plan_enabled(plan_name=schema.plan.name):
-        st_schedule_immediate_refresh(plan_name=schema.plan.name)
+        schedule_immediate_refresh(plan_name=schema.plan.name)
 
 
 @ROUTER.delete("/plan/{plan_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def delete_plan(plan_name: str) -> None:
     """Delete a plan stored in the plan engine."""
-    st_unschedule_daily_refresh(plan_name=plan_name)
-    st_schedule_immediate_refresh(plan_name=plan_name)
+    unschedule_daily_refresh(plan_name=plan_name)
+    schedule_immediate_refresh(plan_name=plan_name)
     db_delete_plan(plan_name=plan_name)
 
 
@@ -80,13 +75,13 @@ def retrieve_status(plan_name: str) -> Status:
 def update_status(plan_name: str, status: Status) -> None:
     """Set the enabled/disabled status of a plan in the plan engine."""
     db_update_plan_enabled(plan_name=plan_name, enabled=status.enabled)
-    st_schedule_immediate_refresh(plan_name=plan_name)
+    schedule_immediate_refresh(plan_name=plan_name)
 
 
 @ROUTER.post("/plan/{plan_name}/refresh", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def refresh_plan(plan_name: str) -> None:
     """Refresh the plan rules in the SmartThings infrastructure."""
-    st_schedule_immediate_refresh(plan_name=plan_name)
+    schedule_immediate_refresh(plan_name=plan_name)
 
 
 @ROUTER.post("/plan/{plan_name}/test/group/{group_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
@@ -98,7 +93,7 @@ def toggle_group(plan_name: str, group_name: str, toggles: int = 2) -> None:
     devices = schema.devices(group_name=group_name)
     if not devices:
         raise NoResultFound("Group not found or no devices in group")
-    st_toggle_devices(pat_token=account.pat_token, location=location, devices=devices, toggles=toggles)
+    toggle_devices(pat_token=account.pat_token, location=location, devices=devices, toggles=toggles)
 
 
 @ROUTER.post("/plan/{plan_name}/test/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
@@ -111,4 +106,4 @@ def toggle_device(plan_name: str, room: str, device: str, toggles: int = 2) -> N
     devices = schema.devices()
     if not item in devices:
         raise NoResultFound("Device not found in plan")
-    st_toggle_devices(pat_token=account.pat_token, location=location, devices=[item], toggles=toggles)
+    toggle_devices(pat_token=account.pat_token, location=location, devices=[item], toggles=toggles)

@@ -3,20 +3,17 @@
 # pylint: disable=unused-argument
 
 """
-Manage SmartThings behaviors.
+SmartThings API client
 """
-import datetime
 import json
 import logging
-import time
 from contextvars import ContextVar
-from typing import Any, Dict, List
+from typing import Any, Dict
 
 import requests
 
 from vplan.engine.config import config
-from vplan.engine.interface import Device, ServerException, SwitchState, parse_time
-from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
+from vplan.engine.interface import Device, ServerException, SwitchState
 
 PAT_TOKEN: ContextVar[str] = ContextVar("PAT_TOKEN")
 HEADERS: ContextVar[Dict[str, Any]] = ContextVar("HEADERS")
@@ -29,6 +26,7 @@ LOCATION_LIMIT = "100"
 ROOM_LIMIT = "250"
 DEVICE_LIMIT = "1000"
 
+# JSON commands against the SmartThings API, stored as dictionaries
 ON_COMMAND = {"commands": [{"component": "main", "capability": "switch", "command": "on"}]}
 OFF_COMMAND = {"commands": [{"component": "main", "capability": "switch", "command": "off"}]}
 
@@ -125,7 +123,7 @@ def _derive_devices() -> Dict[str, str]:
     return devices
 
 
-def _set_switch(device: Device, state: SwitchState) -> None:
+def set_switch(device: Device, state: SwitchState) -> None:
     """Switch a device on or off."""
     url = _url("/devices/%s/commands" % _device_id(device))
     command = ON_COMMAND if state is SwitchState.ON else OFF_COMMAND
@@ -133,56 +131,9 @@ def _set_switch(device: Device, state: SwitchState) -> None:
     response.raise_for_status()
 
 
-def _check_switch(device: Device) -> SwitchState:
+def check_switch(device: Device) -> SwitchState:
     """Check the state of a switch."""
     url = _url("/devices/%s/components/main/capabilities/switch/status" % _device_id(device))
     response = requests.get(url, headers=HEADERS.get())
     response.raise_for_status()
     return SwitchState.ON if response.json()["switch"]["value"] == "on" else SwitchState.OFF
-
-
-def st_schedule_daily_refresh(plan_name: str, refresh_time: str, time_zone: str) -> None:
-    """Create or replace a job to periodically refresh the plan definition at SmartThings."""
-    job_id = "daily/%s" % plan_name
-    hour, minute = parse_time(refresh_time)
-    trigger_time = datetime.time(hour=hour, minute=minute, second=0)
-    func = st_refresh_plan
-    kwargs = {"plan_name": plan_name}
-    schedule_daily_job(job_id, trigger_time, func, kwargs, time_zone)
-
-
-def st_unschedule_daily_refresh(plan_name: str) -> None:
-    """Remove any existing daily refresh job."""
-    job_id = "daily/%s" % plan_name
-    unschedule_daily_job(job_id)
-
-
-def st_schedule_immediate_refresh(plan_name: str) -> None:
-    """Schedule a job to immediately refresh the plan definition at SmartThings."""
-    job_id = "immediate/%s/%s" % (plan_name, datetime.datetime.now().isoformat())
-    func = st_refresh_plan
-    kwargs = {"plan_name": plan_name}
-    schedule_immediate_job(job_id, func, kwargs)
-
-
-def st_toggle_devices(pat_token: str, location: str, devices: List[Device], toggles: int) -> None:
-    """Toggle group of devices, switching them on and off a certain number of times."""
-
-    # This sort of test is sensitive.  I've found that if you try to toggle the state
-    # too quickly, even for local Zigbee devices, that sometimes the toggles don't work
-    # as expected.  So, I recommend at least a 5-second delay between toggles in config.
-    # It might work better to check the state before toggling the next time.
-
-    with LocationContext(pat_token, location):
-        for test in range(0, toggles):
-            if test > 0:
-                time.sleep(config().smartthings.toggle_delay_sec)
-            for device in devices:
-                _set_switch(device, SwitchState.ON)
-            time.sleep(config().smartthings.toggle_delay_sec)
-            for device in devices:
-                _set_switch(device, SwitchState.OFF)
-
-
-def st_refresh_plan(plan_name: str) -> None:
-    """Refresh the plan definition at SmartThings, either replacing or removing all relevant rules."""

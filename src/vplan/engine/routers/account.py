@@ -18,7 +18,7 @@ from vplan.engine.database import (
 )
 from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.interface import Account
-from vplan.engine.smartthings import st_schedule_immediate_refresh
+from vplan.engine.manager import schedule_immediate_refresh
 
 ROUTER = APIRouter()
 
@@ -40,5 +40,5 @@ def delete_account() -> None:
     """Delete account information stored in the plan engine."""
     for plan_name in db_retrieve_all_plans():
         db_update_plan_enabled(plan_name=plan_name, enabled=False)
-        st_schedule_immediate_refresh(plan_name=plan_name)
+        schedule_immediate_refresh(plan_name=plan_name)
     db_delete_account()
