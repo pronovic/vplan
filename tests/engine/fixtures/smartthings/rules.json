@@ -1,7 +1,7 @@
 {
   "items": [
     {
-      "name": "vplan/plan/group/trigger[0]/on",
+      "name": "vplan/winter/office/trigger[0]/on",
       "actions": [
         {
           "every": {

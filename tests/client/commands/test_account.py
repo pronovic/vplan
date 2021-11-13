@@ -46,11 +46,32 @@ class TestDelete:
         result = invoke(["delete", "--help"])
         assert result.exit_code == 0
 
+    @patch("vplan.client.commands.account.retrieve_all_plans")
     @patch("vplan.client.commands.account.delete_account")
-    def test_command(self, delete_account):
+    def test_command_no_plans(self, delete_account, retrieve_all_plans):
+        retrieve_all_plans.return_value = []
         result = invoke(["delete"])
         assert result.exit_code == 0
-        assert result.output == "Account deleted\n"
+        assert result.output == "Account information deleted\n"
+        delete_account.assert_called_once()
+
+    @patch("vplan.client.commands.account.retrieve_all_plans")
+    @patch("vplan.client.commands.account.delete_account")
+    def test_command_with_plans(self, delete_account, retrieve_all_plans):
+        retrieve_all_plans.return_value = ["id"]
+        result = invoke(["delete"])
+        assert result.exit_code == 1
+        assert result.output == "Error: Plans still exist\n"
+        delete_account.assert_not_called()
+
+    @pytest.mark.parametrize("option", ["--force", "-f"])
+    @patch("vplan.client.commands.account.retrieve_all_plans")
+    @patch("vplan.client.commands.account.delete_account")
+    def test_command_with_plans_force(self, delete_account, retrieve_all_plans, option):
+        retrieve_all_plans.return_value = ["id"]
+        result = invoke(["delete", option])
+        assert result.exit_code == 0
+        assert result.output == "Account information deleted\nWarning: plans still exist, but force-deleted anyway\n"
         delete_account.assert_called_once()
 
 
@@ -69,7 +90,7 @@ class TestSet:
         prompt.return_value = "token"
         result = invoke(["set"])
         assert result.exit_code == 0
-        assert result.output == "Account set\n"
+        assert result.output == "Account information set\n"
         create_or_replace_account.assert_called_once_with(Account(pat_token="token"))
 
     @pytest.mark.parametrize("option", ["--token", "-t"])
@@ -77,7 +98,7 @@ class TestSet:
     def test_command_token(self, create_or_replace_account, option):
         result = invoke(["set", option, "token"])
         assert result.exit_code == 0
-        assert result.output == "Account set\n"
+        assert result.output == "Account information set\n"
         create_or_replace_account.assert_called_once_with(Account(pat_token="token"))
 
 
@@ -95,7 +116,7 @@ class TestShow:
         retrieve_account.return_value = None
         result = invoke(["show"])
         assert result.exit_code == 0
-        assert result.output == "Account is not set\n"
+        assert result.output == "Account information is not set\n"
 
     @pytest.mark.parametrize(
         "token,output",

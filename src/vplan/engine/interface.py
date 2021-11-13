@@ -165,7 +165,7 @@ class Plan(YamlModel):
     """Vacation lighting plan."""
 
     name: VplanName = Field(..., description="Vacation plan name")
-    location: SmartThingsId = Field(..., description="SmartThings location name, where the plan will execute")
+    location: SmartThingsId = Field(..., description="SmartThings location name where the plan will execute")
     refresh_time: SimpleTime = Field(..., description="The time of day that the daily refresh job runs")
     refresh_zone: TimeZone = Field("UTC", description="The time zone that the daily refresh job runs in (default=UTC)")
     groups: List[DeviceGroup] = Field(description="List of device groups managed by the plan", default_factory=lambda: [])

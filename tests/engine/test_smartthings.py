@@ -39,7 +39,7 @@ PAT_TOKEN = "AAA"
 LOCATION = "My House"
 LOCATION_ID = "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2"
 RULE_ID = "88c05897-xxxx-xxxx-xxxx-ae6451501c27"
-RULE_NAME = "vplan/plan/group/trigger[0]/on"
+RULE_NAME = "vplan/winter/office/trigger[0]/on"
 HEADERS = {
     "Accept": "application/vnd.smartthings+json;v=1",
     "Accept-Language": "en_US",
@@ -138,18 +138,18 @@ class TestUtil:
 
     def test_managed_rule_ids(self, test_context):
         with test_context:
-            assert managed_rule_ids() == [RULE_ID]
+            assert managed_rule_ids("winter") == [RULE_ID]
+            assert managed_rule_ids("unknown") == []
 
     def test_replace_managed_rules(self, test_context):
         rules = [
-            {"id": "aaa", "name": "vplan/aaa"},
-            {"id": "bbb", "name": "vplan/bbb"},
-            {"id": "ccc", "name": "other"},  # note that we'll assume this is managed, even if the name doesn't match
+            {"id": "aaa", "name": "vplan/winter/A"},
+            {"id": "bbb", "name": "vplan/winter/B"},
         ]
         with test_context:
-            assert managed_rule_ids() == [RULE_ID]
-            replace_managed_rules(rules)
-            assert managed_rule_ids() == ["aaa", "bbb", "ccc"]
+            assert managed_rule_ids("winter") == [RULE_ID]
+            replace_managed_rules("winter", rules)
+            assert managed_rule_ids("winter") == ["aaa", "bbb"]
 
 
 class TestParsers:
@@ -551,7 +551,23 @@ class TestRules:
     @patch("vplan.engine.smartthings.build_plan_rules")
     @patch("vplan.engine.smartthings.create_rule")
     @patch("vplan.engine.smartthings.delete_rule")
-    def test_replace_rules(self, _delete_rule, _create_rule, _build_plan_rules, _managed_rule_ids, _replace_managed_rules):
+    def test_replace_rules_disabled(self, _delete_rule, _create_rule, _build_plan_rules, _managed_rule_ids, _replace_managed_rules):
+        _managed_rule_ids.return_value = ["managed"]
+
+        replace_rules("plan", None)  # we'll get none if the plan is disabled or deleted
+
+        _managed_rule_ids.assert_called_once_with("plan")
+        _delete_rule.assert_called_once_with("managed")
+        _build_plan_rules.assert_not_called()
+        _create_rule.assert_not_called()
+        _replace_managed_rules.assert_called_once_with("plan", [])
+
+    @patch("vplan.engine.smartthings.replace_managed_rules")
+    @patch("vplan.engine.smartthings.managed_rule_ids")
+    @patch("vplan.engine.smartthings.build_plan_rules")
+    @patch("vplan.engine.smartthings.create_rule")
+    @patch("vplan.engine.smartthings.delete_rule")
+    def test_replace_rules_enabled(self, _delete_rule, _create_rule, _build_plan_rules, _managed_rule_ids, _replace_managed_rules):
         schema = MagicMock()
         generated = MagicMock()
         returned = MagicMock()
@@ -559,12 +575,13 @@ class TestRules:
         _build_plan_rules.return_value = [generated]
         _create_rule.return_value = returned
 
-        replace_rules(schema)
+        replace_rules("plan", schema)
 
+        _managed_rule_ids.assert_called_once_with("plan")
         _delete_rule.assert_called_once_with("managed")
         _build_plan_rules.assert_called_once_with(schema)
         _create_rule.assert_called_once_with(generated)
-        _replace_managed_rules.assert_called_once_with([returned])
+        _replace_managed_rules.assert_called_once_with("plan", [returned])
 
 
 @patch("vplan.engine.smartthings._raise_for_status")

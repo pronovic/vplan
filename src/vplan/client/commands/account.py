@@ -9,7 +9,7 @@ from typing import Optional
 
 import click
 
-from vplan.client.client import create_or_replace_account, delete_account, retrieve_account
+from vplan.client.client import create_or_replace_account, delete_account, retrieve_account, retrieve_all_plans
 from vplan.engine.interface import Account
 
 
@@ -69,14 +69,39 @@ def set_account(token: Optional[str]) -> None:
         token = click.prompt("Enter PAT token")
     result = Account(pat_token=token)
     create_or_replace_account(result)
-    click.secho("Account set")
+    click.secho("Account information set")
 
 
 @account.command()
-def delete() -> None:
-    """Delete the account information stored in the plan engine."""
-    delete_account()
-    click.secho("Account deleted")
+@click.option(
+    "--force",
+    "-f",
+    "force",
+    metavar="<force>",
+    is_flag=True,
+    required=False,
+    default=False,
+    help="Whether to force-delete the account info even if plans exist",
+)
+def delete(force: bool) -> None:
+    """
+    Delete the account information stored in the plan engine.
+
+    If you force-delete your account information while there are still some
+    enabled plans, they will keep running at SmartThings forever, and
+    will not be refreshed until or unless you set account information
+    again.
+    """
+    if retrieve_all_plans():
+        if force:
+            delete_account()
+            click.secho("Account information deleted")
+            click.secho("Warning: plans still exist, but force-deleted anyway")
+        else:
+            raise click.ClickException("Plans still exist")
+    else:
+        delete_account()
+        click.secho("Account information deleted")
 
 
 @account.command()
@@ -94,7 +119,7 @@ def show(unmask: bool) -> None:
     """Show the account information stored in the plan engine."""
     result = retrieve_account()
     if not result:
-        click.secho("Account is not set")
+        click.secho("Account information is not set")
     else:
         token = result.pat_token if unmask else _mask_token(result.pat_token)
         click.secho("PAT token: %s" % token)

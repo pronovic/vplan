@@ -28,15 +28,8 @@ class TestRoutes:
         assert not response.text
         db_create_or_replace_account.assert_called_once_with(account)
 
-    @patch("vplan.engine.routers.account.schedule_immediate_refresh")
-    @patch("vplan.engine.routers.account.db_update_plan_enabled")
-    @patch("vplan.engine.routers.account.db_retrieve_all_plans")
     @patch("vplan.engine.routers.account.db_delete_account")
-    def test_delete_account(self, db_delete_account, db_retrieve_all_plans, db_update_plan_enabled, schedule_immediate_refresh):
-        plans = ["a"]
-        db_retrieve_all_plans.return_value = plans
+    def test_delete_account(self, db_delete_account):
         response = CLIENT.delete(url="/account")
         assert response.status_code == 204
-        db_update_plan_enabled.assert_called_once_with(plan_name="a", enabled=False)
-        schedule_immediate_refresh.assert_called_once_with(plan_name="a")
         db_delete_account.assert_called_once()

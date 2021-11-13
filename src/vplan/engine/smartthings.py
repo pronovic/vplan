@@ -226,15 +226,20 @@ def location_id() -> str:
     return CONTEXT.get().location_id
 
 
-def managed_rule_ids() -> List[str]:
-    """Get a list of the managed rule ids from the context."""
-    return [rule["id"] for rule in CONTEXT.get().rule_by_id.values()]
+def managed_rule_ids(plan_name: str) -> List[str]:
+    """Get a list of the managed rule ids from the context, filtered to those associated with a plan."""
+    return [
+        rule["id"]
+        for rule in CONTEXT.get().rule_by_id.values()
+        if rule["name"].startswith("%s/%s" % (VPLAN_RULE_PREFIX, plan_name))
+    ]
 
 
-def replace_managed_rules(managed_rules: List[Dict[str, Any]]) -> None:
-    """Replace the managed rules in the context."""
-    CONTEXT.get().rule_by_id.clear()
-    for rule in managed_rules:  # note that all rules are assumed to be managed
+def replace_managed_rules(plan_name: str, managed_rules: List[Dict[str, Any]]) -> None:
+    """Replace the managed rules for this plan in the context."""
+    for rule_id in managed_rule_ids(plan_name):
+        del CONTEXT.get().rule_by_id[rule_id]
+    for rule in managed_rules:
         CONTEXT.get().rule_by_id[rule["id"]] = rule
 
 
@@ -276,14 +281,15 @@ def build_plan_rules(schema: PlanSchema) -> List[Dict[str, Any]]:
     return rules
 
 
-def replace_rules(schema: PlanSchema) -> None:
-    """Replace all existing rules with new rules based on the schema, and update the context."""
-    for rule_id in managed_rule_ids():
+def replace_rules(plan_name: str, schema: Optional[PlanSchema]) -> None:
+    """Replace all existing rules for a plan with new rules based on the schema."""
+    for rule_id in managed_rule_ids(plan_name):
         delete_rule(rule_id)
     created = []
-    for rule in build_plan_rules(schema):
-        created.append(create_rule(rule))
-    replace_managed_rules(created)
+    if schema:  # if there is no schema, that means it's been deleted or disabled
+        for rule in build_plan_rules(schema):
+            created.append(create_rule(rule))
+    replace_managed_rules(plan_name, created)
 
 
 def delete_rule(rule_id: str) -> None:
