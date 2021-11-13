@@ -9,15 +9,8 @@ from typing import Optional
 
 import click
 
-from vplan.client.client import (
-    create_account,
-    delete_account,
-    retrieve_account,
-    retrieve_account_status,
-    update_account,
-    update_account_status,
-)
-from vplan.engine.interface import Account, Status
+from vplan.client.client import create_or_replace_account, delete_account, retrieve_account, retrieve_all_plans
+from vplan.engine.interface import Account
 
 
 def _mask_token(token: str) -> str:
@@ -27,15 +20,6 @@ def _mask_token(token: str) -> str:
         return token
     else:
         return "%s%s%s" % (token[0:4], len(token[4:-4]) * "*", token[-4:])
-
-
-def _display_account_status() -> None:
-    """Display the account status."""
-    result = retrieve_account_status()
-    if not result:
-        click.secho("Account does not exist")
-    else:
-        click.secho("Account is %s" % ("enabled" if result.enabled else "disabled"))
 
 
 @click.group()
@@ -54,7 +38,7 @@ def account() -> None:
 )
 def set_account(token: Optional[str]) -> None:
     """
-    Set your account information in the plan engine.
+    Set the account information stored in the plan engine.
 
     You must provide a SmartThings PAT token.  The PAT token will be used to
     interact with the SmartThings API. By default, the token is accepted
@@ -82,43 +66,42 @@ def set_account(token: Optional[str]) -> None:
          Control this rule (x:rules:*)
     """
     if not token:
-        token = click.prompt("Enter PAT token: ")
-    result = retrieve_account()
-    if result:
-        result = Account(name="default", pat_token=token)
-        update_account(result)
-        click.secho("Account updated")
+        token = click.prompt("Enter PAT token")
+    result = Account(pat_token=token)
+    create_or_replace_account(result)
+    click.secho("Account information set")
+
+
+@account.command()
+@click.option(
+    "--force",
+    "-f",
+    "force",
+    metavar="<force>",
+    is_flag=True,
+    required=False,
+    default=False,
+    help="Whether to force-delete the account info even if plans exist",
+)
+def delete(force: bool) -> None:
+    """
+    Delete the account information stored in the plan engine.
+
+    If you force-delete your account information while there are still some
+    enabled plans, they will keep running at SmartThings forever, and
+    will not be refreshed until or unless you set account information
+    again.
+    """
+    if retrieve_all_plans():
+        if force:
+            delete_account()
+            click.secho("Account information deleted")
+            click.secho("Warning: plans still exist, but force-deleted anyway")
+        else:
+            raise click.ClickException("Plans still exist")
     else:
-        result = Account(name="default", pat_token=token)
-        create_account(result)
-        click.secho("Account created")
-
-
-@account.command()
-def delete() -> None:
-    """Delete your account and all plans in the plan engine."""
-    delete_account()
-    click.secho("Account deleted")
-
-
-@account.command()
-def status() -> None:
-    """Check the enabled/disabled status of your account."""
-    _display_account_status()
-
-
-@account.command()
-def enable() -> None:
-    """Enable your account, allowing any enabled plans to execute."""
-    update_account_status(Status(enabled=True))
-    _display_account_status()
-
-
-@account.command()
-def disable() -> None:
-    """Disable your account, preventing all plans from executing."""
-    update_account_status(Status(enabled=False))
-    _display_account_status()
+        delete_account()
+        click.secho("Account information deleted")
 
 
 @account.command()
@@ -136,8 +119,7 @@ def show(unmask: bool) -> None:
     """Show the account information stored in the plan engine."""
     result = retrieve_account()
     if not result:
-        click.secho("Account does not exist")
+        click.secho("Account information is not set")
     else:
         token = result.pat_token if unmask else _mask_token(result.pat_token)
-        click.secho("Account name: %s" % result.name)
         click.secho("PAT token: %s" % token)

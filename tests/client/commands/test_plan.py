@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+import os
 from typing import List
 from unittest.mock import MagicMock, patch
 
@@ -8,6 +9,10 @@ from click.testing import CliRunner, Result
 
 from vplan.client.cli import vplan as command
 from vplan.engine.interface import DeviceGroup, Plan, PlanSchema, Status
+
+
+def fixture(filename: str) -> str:
+    return os.path.join(os.path.dirname(__file__), "..", "fixtures", "interface", filename)
 
 
 # noinspection PyTypeChecker
@@ -48,24 +53,40 @@ class TestCreate:
     @patch("vplan.client.commands.plan.create_plan")
     @patch("vplan.client.commands.plan.sys")
     def test_command_stdin(self, sys, create_plan):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         sys.stdin = MagicMock()
         sys.stdin.read = MagicMock()
-        sys.stdin.read.return_value = plan.yaml()
+        sys.stdin.read.return_value = schema.yaml()
         result = invoke(["create", "-"])
         assert result.exit_code == 0
         assert result.output == "Created plan: name\n"
-        create_plan.assert_called_once_with(plan)
+        create_plan.assert_called_once_with(schema)
 
     @patch("vplan.client.commands.plan.create_plan")
     def test_command_file(self, create_plan, tmpdir):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         p = tmpdir.join("plan.yaml")
-        p.write(plan.yaml())
+        p.write(schema.yaml())
         result = invoke(["create", "%s" % p])
         assert result.exit_code == 0
         assert result.output == "Created plan: name\n"
-        create_plan.assert_called_once_with(plan)
+        create_plan.assert_called_once_with(schema)
+
+    @patch("vplan.client.commands.plan.create_plan")
+    def test_command_file_invalid(self, create_plan):
+        p = fixture("bad.yaml")
+        result = invoke(["create", p])
+        assert result.exit_code == 1
+        assert (
+            result.output
+            == r"""Error: 2 validation errors for PlanSchema
+plan -> refresh_time
+  string does not match regex "^((\d{2}):(\d{2}))$" (type=value_error.str.regex; pattern=^((\d{2}):(\d{2}))$)
+plan -> groups -> 0 -> name
+  string does not match regex "^[a-z0-9-]+$" (type=value_error.str.regex; pattern=^[a-z0-9-]+$)
+"""
+        )
+        create_plan.assert_not_called()
 
 
 class TestDelete:
@@ -136,17 +157,17 @@ class TestExport:
     def test_command_not_found(self, retrieve_plan):
         retrieve_plan.return_value = None
         result = invoke(["export", "plan-name"])
-        assert result.exit_code == 2
+        assert result.exit_code == 1
         assert "Plan does not exist: plan-name" in result.output
         retrieve_plan.assert_called_once_with("plan-name")
 
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_stdout(self, retrieve_plan):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
-        retrieve_plan.return_value = plan
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+        retrieve_plan.return_value = schema
         result = invoke(["export", "plan-name"])
         assert result.exit_code == 0
-        assert result.output == "%s\n" % plan.yaml()
+        assert result.output == "%s\n" % schema.yaml()
         retrieve_plan.assert_called_once_with("plan-name")
 
     @pytest.mark.parametrize(
@@ -155,13 +176,13 @@ class TestExport:
     )
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_file(self, retrieve_plan, option, tmpdir):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
-        retrieve_plan.return_value = plan
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+        retrieve_plan.return_value = schema
         p = tmpdir.join("plan.yaml").realpath()
         result = invoke(["export", "plan-name", option, p])
         assert result.exit_code == 0
         assert result.output == "Plan written to: %s\n" % p
-        assert p.read() == plan.yaml()
+        assert p.read() == schema.yaml()
         retrieve_plan.assert_called_once_with("plan-name")
 
 
@@ -212,14 +233,14 @@ class TestShow:
     def test_command_not_found(self, retrieve_plan):
         retrieve_plan.return_value = None
         result = invoke(["show", "plan-name"])
-        assert result.exit_code == 2
+        assert result.exit_code == 1
         assert "Plan does not exist: plan-name" in result.output
         retrieve_plan.assert_called_once_with("plan-name")
 
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_command_found(self, retrieve_plan):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
-        retrieve_plan.return_value = plan
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+        retrieve_plan.return_value = schema
         result = invoke(["show", "plan-name"])
         assert result.exit_code == 0
         assert (
@@ -300,7 +321,7 @@ class TestTest:
     def test_not_found(self, retrieve_plan):
         retrieve_plan.return_value = None
         result = invoke(["test", "xxx"])
-        assert result.exit_code == 2
+        assert result.exit_code == 1
         assert "Plan does not exist: xxx" in result.output
         retrieve_plan.assert_called_once_with("xxx")
 
@@ -309,8 +330,8 @@ class TestTest:
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_entire_plan(self, retrieve_plan, toggle_group, prompt):
         groups = [DeviceGroup(name="group", devices=[], triggers=[])]
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
-        retrieve_plan.return_value = plan
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
+        retrieve_plan.return_value = schema
         result = invoke(["test", "xxx"])
         assert result.exit_code == 0
         assert result.output == "Testing group: group\n"
@@ -326,8 +347,8 @@ class TestTest:
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_entire_plan_auto(self, retrieve_plan, toggle_group, option):
         groups = [DeviceGroup(name="group", devices=[], triggers=[])]
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
-        retrieve_plan.return_value = plan
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
+        retrieve_plan.return_value = schema
         result = invoke(["test", "xxx", option])
         assert result.exit_code == 0
         assert result.output == "Testing group: group\n"
@@ -343,8 +364,8 @@ class TestTest:
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_entire_plan_toggles(self, retrieve_plan, toggle_group, prompt, option):
         groups = [DeviceGroup(name="group", devices=[], triggers=[])]
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
-        retrieve_plan.return_value = plan
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
+        retrieve_plan.return_value = schema
         result = invoke(["test", "xxx", option, "99"])
         assert result.exit_code == 0
         assert result.output == "Testing group: group\n"
@@ -365,21 +386,37 @@ class TestUpdate:
     @patch("vplan.client.commands.plan.update_plan")
     @patch("vplan.client.commands.plan.sys")
     def test_command_stdin(self, sys, update_plan):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         sys.stdin = MagicMock()
         sys.stdin.read = MagicMock()
-        sys.stdin.read.return_value = plan.yaml()
+        sys.stdin.read.return_value = schema.yaml()
         result = invoke(["update", "-"])
         assert result.exit_code == 0
         assert result.output == "Updated plan: name\n"
-        update_plan.assert_called_once_with(plan)
+        update_plan.assert_called_once_with(schema)
 
     @patch("vplan.client.commands.plan.update_plan")
     def test_command_file(self, update_plan, tmpdir):
-        plan = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=[]))
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         p = tmpdir.join("plan.yaml")
-        p.write(plan.yaml())
+        p.write(schema.yaml())
         result = invoke(["update", "%s" % p])
         assert result.exit_code == 0
         assert result.output == "Updated plan: name\n"
-        update_plan.assert_called_once_with(plan)
+        update_plan.assert_called_once_with(schema)
+
+    @patch("vplan.client.commands.plan.update_plan")
+    def test_command_file_invalid(self, update_plan):
+        p = fixture("bad.yaml")
+        result = invoke(["update", p])
+        assert result.exit_code == 1
+        assert (
+            result.output
+            == r"""Error: 2 validation errors for PlanSchema
+plan -> refresh_time
+  string does not match regex "^((\d{2}):(\d{2}))$" (type=value_error.str.regex; pattern=^((\d{2}):(\d{2}))$)
+plan -> groups -> 0 -> name
+  string does not match regex "^[a-z0-9-]+$" (type=value_error.str.regex; pattern=^[a-z0-9-]+$)
+"""
+        )
+        update_plan.assert_not_called()

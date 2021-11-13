@@ -74,17 +74,10 @@ def retrieve_account() -> Optional[Account]:
     return Account.parse_raw(response.text)
 
 
-def create_account(account: Account) -> None:
-    """Create your account in the plan engine."""
+def create_or_replace_account(account: Account) -> None:
+    """Create or replace account information stored in the plan engine."""
     url = _account()
-    response = requests.post(url=url, json=account.json())
-    _raise_for_status(response)
-
-
-def update_account(account: Account) -> None:
-    """Update your account in the plan engine."""
-    url = _account()
-    response = requests.put(url=url, json=account.json())
+    response = requests.post(url=url, data=account.json())
     _raise_for_status(response)
 
 
@@ -92,23 +85,6 @@ def delete_account() -> None:
     """Delete account information stored in the plan engine."""
     url = _account()
     response = requests.delete(url=url)
-    _raise_for_status(response)
-
-
-def retrieve_account_status() -> Optional[Status]:
-    """Retrieve the enabled/disabled status of your account in the plan engine."""
-    url = _account("/status")
-    response = requests.get(url=url)
-    if response.status_code == 404:
-        return None
-    _raise_for_status(response)
-    return Status.parse_raw(response.text)
-
-
-def update_account_status(status: Status) -> None:
-    """Set the enabled/disabled status of your account in the plan engine."""
-    url = _account("/status")
-    response = requests.put(url=url, json=status.json())
     _raise_for_status(response)
 
 
@@ -131,17 +107,17 @@ def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
     return PlanSchema.parse_raw(response.text)
 
 
-def create_plan(plan: PlanSchema) -> None:
+def create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
     url = _plan()
-    response = requests.post(url=url, json=plan.json())
+    response = requests.post(url=url, data=schema.json())
     _raise_for_status(response)
 
 
-def update_plan(plan: PlanSchema) -> None:
+def update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
-    url = _plan("/%s" % plan.plan.name)
-    response = requests.put(url=url, json=plan.json())
+    url = _plan()
+    response = requests.put(url=url, data=schema.json())
     _raise_for_status(response)
 
 
@@ -165,7 +141,7 @@ def retrieve_plan_status(plan_name: str) -> Optional[Status]:
 def update_plan_status(plan_name: str, status: Status) -> None:
     """Set the enabled/disabled status of a plan in the plan engine."""
     url = _plan("/%s/status" % plan_name)
-    response = requests.put(url=url, json=status.json())
+    response = requests.put(url=url, data=status.json())
     _raise_for_status(response)
 
 
@@ -176,17 +152,17 @@ def refresh_plan(plan_name: str) -> None:
     _raise_for_status(response)
 
 
-def toggle_group(plan_name: str, group_name: str, toggle_count: int) -> None:
+def toggle_group(plan_name: str, group_name: str, toggles: int) -> None:
     """Test a device group that is part of a plan."""
     url = _plan("/%s/test/group/%s" % (plan_name, group_name))
-    params = {"toggle_count": toggle_count}
+    params = {"toggles": toggles}
     response = requests.post(url=url, params=params)
     _raise_for_status(response)
 
 
-def toggle_device(plan_name: str, room: str, device: str, toggle_count: int) -> None:
+def toggle_device(plan_name: str, room: str, device: str, toggles: int) -> None:
     """Test a device that is part of a plan."""
     url = _plan("/%s/test/device/%s/%s" % (plan_name, room, device))
-    params = {"toggle_count": toggle_count}
+    params = {"toggles": toggles}
     response = requests.post(url=url, params=params)
     _raise_for_status(response)

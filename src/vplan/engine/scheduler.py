@@ -8,6 +8,7 @@ import datetime
 from typing import Any, Callable, Dict, Optional
 
 from apscheduler.executors.pool import ThreadPoolExecutor
+from apscheduler.jobstores.base import JobLookupError
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -21,7 +22,7 @@ _SCHEDULER: Optional[BackgroundScheduler] = None
 def _init_scheduler(scheduler_config: SchedulerConfig) -> BackgroundScheduler:
     """Initialize the scheduler."""
     jobstores = {"sqlite": SQLAlchemyJobStore(url=scheduler_config.database_url)}
-    executors = {"default": ThreadPoolExecutor(scheduler_config.thread_pool_size)}
+    executors = {"default": ThreadPoolExecutor(max_workers=1)}  # only one job can run at a time; simpler to manage
     job_defaults = {"coalesce": True, "max_instances": 1}
     return BackgroundScheduler(jobstores=jobstores, executors=executors, job_defaults=job_defaults, timezone="UTC")
 
@@ -33,25 +34,45 @@ def scheduler() -> BackgroundScheduler:
     return _SCHEDULER
 
 
+# pylint: disable=global-statement
 def start_scheduler() -> None:
     """Start the scheduler, if it is not alrady started."""
-    global _SCHEDULER  # pylint: disable=global-statement
+    global _SCHEDULER
     if _SCHEDULER is None:
         _SCHEDULER = _init_scheduler(config().scheduler)
         _SCHEDULER.start()
 
 
+# pylint: disable=global-statement
 def shutdown_scheduler() -> None:
     """Shutdown the scheduler, if it is started."""
-    global _SCHEDULER  # pylint: disable=global-statement
+    global _SCHEDULER
     if _SCHEDULER is not None:
         _SCHEDULER.shutdown(wait=True)
         _SCHEDULER = None
 
 
+def schedule_immediate_job(
+    job_id: str,
+    func: Callable[..., None],
+    kwargs: Dict[str, Any],
+) -> None:
+    """
+    Create a new job that will run immediately.
+
+    Args:
+        job_id(str): Job identifier, unique across the entire system
+        func(Callable): Job function to invoke on the schedule
+        kwargs(Dict[str, Any]): Keyword arguments to pass to the job function when invoked
+    """
+    if not _SCHEDULER:
+        raise ServerException("Scheduler has not been started.")
+    _SCHEDULER.add_job(id=job_id, jobstore="sqlite", func=func, kwargs=kwargs)
+
+
 def schedule_daily_job(
     job_id: str,
-    time: datetime.time,
+    trigger_time: datetime.time,
     func: Callable[..., None],
     kwargs: Dict[str, Any],
     time_zone: str,
@@ -61,7 +82,7 @@ def schedule_daily_job(
 
     Args:
         job_id(str): Job identifier, unique across the entire system
-        time(str): The time when the job should be executed
+        trigger_time(str): The time when the job should be executed
         func(Callable): Job function to invoke on the schedule
         kwargs(Dict[str, Any]): Keyword arguments to pass to the job function when invoked
         time_zone: Time zone in which to execute the job
@@ -70,7 +91,8 @@ def schedule_daily_job(
         raise ServerException("Scheduler has not been started.")
     jitter = config().scheduler.daily_job.jitter_sec
     grace = config().scheduler.daily_job.misfire_grace_sec
-    trigger = CronTrigger(hour=time.hour, minute=time.minute, second=time.second, timezone=time_zone, jitter=jitter)
+    hour, minute, second = trigger_time.hour, trigger_time.minute, trigger_time.second
+    trigger = CronTrigger(hour=hour, minute=minute, second=second, timezone=time_zone, jitter=jitter)
     _SCHEDULER.add_job(
         id=job_id,
         jobstore="sqlite",
@@ -86,4 +108,7 @@ def unschedule_daily_job(job_id: str) -> None:
     """Unschedule a daily job, which stops it from running"""
     if not _SCHEDULER:
         raise ServerException("Scheduler has not been started.")
-    _SCHEDULER.remove_job(job_id=job_id)
+    try:
+        _SCHEDULER.remove_job(job_id=job_id)
+    except JobLookupError:
+        pass

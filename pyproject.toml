@@ -35,7 +35,6 @@ SQLAlchemy = "^1.4.26"
 pytest-asyncio = "^0.16.0"
 APScheduler = "^3.8.1"
 python-dotenv = "^0.19.1"
-sqlalchemy-json = "^0.4.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2"
@@ -53,6 +52,7 @@ tzlocal = "^4.1"
 busypie = "^0.4.5"
 sqlalchemy2-stubs = "^0.0.2-alpha.19"
 types-requests = "^2.25.12"
+types-pytz = "^2021.3.0"
 
 [tool.black]
 line-length = 132

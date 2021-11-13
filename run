@@ -172,6 +172,24 @@ run_tox() {
 
 # Run the vplan REST server at localhost:8080
 run_server() {
+   remove="no"
+
+   while getopts ":r" option; do
+     case $option in
+       r) 
+         remove="yes"
+         ;;
+       ?) 
+         echo "invalid option -$OPTARG"
+         exit 1
+         ;;
+     esac
+   done
+
+   if [ $remove == "yes" ]; then
+      run_rmdb
+   fi
+
    poetry run which uvicorn > /dev/null
    if [ $? != 0 ]; then
       run_install
@@ -187,6 +205,11 @@ run_server() {
 # Run the vplan client against localhost:8080
 run_client() {
    poetry run vplan --config config/local/vplan/client/application.yaml $*
+}
+
+# Remove the sqlite database files used for local testing
+run_rmdb() {
+   rm -f config/local/vplan/server/db/*.sqlite
 }
 
 # Execute one of the developer tasks
@@ -236,11 +259,15 @@ case $1 in
       run_tox
       ;;
    server)
-      run_server
+      shift 1
+      run_server $*
       ;;
    vplan|client)
       shift 1
       run_client $*
+      ;;
+   rmdb)
+      run_rmdb
       ;;
    *)
       echo ""
@@ -259,7 +286,9 @@ case $1 in
       echo "- run test -ch: Run the unit tests with coverage and open the HTML report"
       echo "- run tox: Run the Tox test suite used by the GitHub CI action"
       echo "- run server: Run the vplan REST server at localhost:8080"
+      echo "- run server -r: Run the vplan REST server, removing the database first"
       echo "- run vplan: Run the vplan client against localhost:8080"
+      echo "- run rmdb: Remove the sqlite database files used for local testing"
       echo ""
       exit 1
 esac

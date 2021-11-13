@@ -1,8 +1,10 @@
 database_dir: {VPLAN_DATABASE_PATH}
 database_url: sqlite+pysqlite:///{VPLAN_DATABASE_PATH}/vplan.sqlite
+smartthings:
+   toggle_delay_sec: 5
+   base_api_url: https://api.smartthings.com
 scheduler:
    database_url: sqlite+pysqlite:///{VPLAN_DATABASE_PATH}/jobs.sqlite  # this is a relative path
-   thread_pool_size: 10
    daily_job:
       jitter_sec: 300
       misfire_grace_sec: 1800

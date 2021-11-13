@@ -14,13 +14,16 @@ def fixture(filename: str) -> str:
     return os.path.join(os.path.dirname(__file__), "fixtures", "interface", filename)
 
 
-PLAN_FILE = fixture("plan.yaml")
+VALID_PLAN_FILE = fixture("plan.yaml")
+INVALID_PLAN_FILE = fixture("bad.yaml")
+
 PLAN_EXPECTED = PlanSchema(
     version="1.0.0",
     plan=Plan(
         name="my-house",
         location="My House",
         refresh_time="00:30",
+        refresh_zone="America/Chicago",
         groups=[
             DeviceGroup(
                 name="first-floor-lights",
@@ -50,12 +53,20 @@ PLAN_EXPECTED = PlanSchema(
                     Device(room="Basement", device="Lamp Under Window"),
                 ],
                 triggers=[
-                    Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 seconds"),
+                    Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 minutes"),
                 ],
             ),
         ],
     ),
 )
+
+DEVICES_EXPECTED = [
+    Device(room="Living Room", device="Sofa Table Lamp"),
+    Device(room="Living Room", device="China Cabinet"),
+    Device(room="Ken's Office", device="Desk Lamp"),
+    Device(room="Julie's Office", device="Dresser Lamp"),
+    Device(room="Basement", device="Lamp Under Window"),
+]
 
 
 class TestExceptions:
@@ -87,7 +98,6 @@ class TestModelsAndValidation:
             ([], "00:00", " 23:59", "Disabled"),
             ([], "00:00 ", "23:59", "+ 5 minutes"),
             ([], " 00:00 ", "23:59", "- 2 HOURS "),
-            ([], "midnight", "noon", "+/- 45 Seconds"),
             (["weekday"], "midnight", "noon", "none"),
             (["Weekdays"], "midnight", "noon", "none"),
             (["WEEKEND"], "midnight", "noon", "none"),
@@ -183,71 +193,80 @@ class TestModelsAndValidation:
             DeviceGroup(name=name, devices=[], triggers=[])
 
     @pytest.mark.parametrize(
-        "name,location,refresh_time",
+        "name,location,refresh_time,refresh_zone",
         [
-            ("n", "l", "00:00"),
-            (" n ", " l ", " 12:00 "),
-            (VALID_NAME, "location", "23:59"),
+            ("n", "l", "00:00", "UTC"),
+            (" n ", " l ", " 12:00 ", " America/Chicago "),
+            (VALID_NAME, "location", "23:59", "US/Eastern"),
         ],
         ids=["short", "whitespace", "long"],
     )
-    def test_plan_valid(self, name, location, refresh_time):
-        model = Plan(name=name, location=location, refresh_time=refresh_time, groups=[])
+    def test_plan_valid(self, name, location, refresh_time, refresh_zone):
+        model = Plan(name=name, location=location, refresh_time=refresh_time, refresh_zone=refresh_zone)
         assert model.name == name.strip()
         assert model.location == location  # not stripped, it's a SmartThings identifier
         assert model.refresh_time == refresh_time.strip()
         assert model.groups == []
 
     @pytest.mark.parametrize(
-        "name,location,refresh_time",
+        "name,location,refresh_time,refresh_zone",
         [
-            ("", "location", "18:02"),
-            (None, "location", "18:02"),
-            (TOO_LONG_NAME, "location", "18:02"),
-            ("name", "", "18:02"),
-            ("name", None, "18:02"),
-            ("name", "location", ""),
-            ("name", "location", None),
-            ("name", "location", "8:02"),
+            ("", "location", "18:02", "UTC"),
+            (None, "location", "18:02", "UTC"),
+            (TOO_LONG_NAME, "location", "18:02", "UTC"),
+            ("name", "", "18:02", "UTC"),
+            ("name", None, "18:02", "UTC"),
+            ("name", "location", "", "UTC"),
+            ("name", "location", None, "UTC"),
+            ("name", "location", "8:02", "UTC"),
+            ("name", "location", "23:59", "bogus"),
         ],
-        ids=["empty name", "no name", "long name", "empty room", "no room", "empty refresh", "no refresh", "invalid refresh"],
+        ids=[
+            "empty name",
+            "no name",
+            "long name",
+            "empty room",
+            "no room",
+            "empty refresh",
+            "no refresh",
+            "invalid refresh",
+            "invalid zone",
+        ],
     )
-    def test_plan_invalid(self, name, location, refresh_time):
+    def test_plan_invalid(self, name, location, refresh_time, refresh_zone):
         with pytest.raises(ValueError):
-            Plan(name=name, location=location, refresh_time=refresh_time, groups=[])
+            Plan(name=name, location=location, refresh_time=refresh_time, refresh_zone=refresh_zone)
 
     @pytest.mark.parametrize(
-        "name,pat_token",
+        "pat_token",
         [
-            ("n", "t"),
-            (" n ", " t "),
-            (VALID_NAME, "token"),
+            "t",
+            " t ",
+            "token",
         ],
         ids=["short", "whitespace", "long"],
     )
-    def test_account_valid(self, name, pat_token):
-        model = Account(name=name, pat_token=pat_token)
-        assert model.name == name.strip()
+    def test_account_valid(self, pat_token):
+        model = Account(pat_token=pat_token)
         assert model.pat_token == pat_token  # not stripped, it's a SmartThings identifier
 
     @pytest.mark.parametrize(
-        "name,pat_token",
-        [
-            ("", "token"),
-            (None, "token"),
-            (TOO_LONG_NAME, "token"),
-            ("name", ""),
-            ("name", None),
-        ],
-        ids=["empty name", "no name", "long name", "empty token", "no token"],
+        "pat_token",
+        ["", None],
+        ids=["empty token", "no token"],
     )
-    def test_account_invalid(self, name, pat_token):
+    def test_account_invalid(self, pat_token):
         with pytest.raises(ValueError):
-            Account(name=name, pat_token=pat_token)
+            Account(pat_token=pat_token)
 
 
 class TestYamlParsing:
-    def test_parsing(self):
-        with open(PLAN_FILE, "r", encoding="utf8") as fp:
-            config = PlanSchema.parse_raw(fp.read())
-            assert config == PLAN_EXPECTED
+    def test_parsing_valid(self):
+        schema = PlanSchema.parse_file(VALID_PLAN_FILE)
+        assert schema == PLAN_EXPECTED
+        assert schema.devices() == DEVICES_EXPECTED
+        assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
+
+    def test_parsing_invalid(self):
+        with pytest.raises(ValueError):
+            PlanSchema.parse_file(INVALID_PLAN_FILE)
