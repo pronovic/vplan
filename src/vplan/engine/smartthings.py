@@ -337,8 +337,11 @@ def parse_day(day: Union[str, TriggerDay]) -> List[str]:
 
 def parse_days(days: Union[List[str], List[TriggerDay]]) -> List[str]:
     """Parse a list of trigger days and return a normalized list of SmartThings days."""
+    sort = {"Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3, "Thu": 4, "Fri": 5, "Sat": 6}
     result = set()
+    if days is None:
+        raise ValueError("Days is None")
     for day in days:
         for normalized in parse_day(day):
             result.add(normalized)
-    return list(result)
+    return sorted(list(result), key=lambda day: sort[day])

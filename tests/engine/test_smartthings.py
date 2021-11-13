@@ -16,6 +16,8 @@ from vplan.engine.smartthings import (
     _base_api_url,
     _raise_for_status,
     check_switch,
+    parse_day,
+    parse_days,
     parse_time,
     parse_trigger_time,
     set_switch,
@@ -190,6 +192,58 @@ class TestParsers:
     )
     def test_parse_trigger_time(self, trigger, variation, expected):
         assert parse_trigger_time(trigger, variation) == expected
+
+    @pytest.mark.parametrize("time", [None, "", "bogus"])
+    def test_parse_trigger_time_invalid(self, time):
+        with pytest.raises(ValueError):
+            parse_trigger_time(time, None)
+
+    @pytest.mark.parametrize("day", [None, "", "bogus"])
+    def test_parse_day_invalid(self, day):
+        with pytest.raises(ValueError):
+            parse_day(day)
+
+    @pytest.mark.parametrize(
+        "days,expected",
+        [
+            # empty list is passed through
+            ([], []),
+            # individual days get translated 1-for-1
+            (["sun"], ["Sun"]),
+            (["mon"], ["Mon"]),
+            (["tue"], ["Tue"]),
+            (["wed"], ["Wed"]),
+            (["thu"], ["Thu"]),
+            (["fri"], ["Fri"]),
+            (["sat"], ["Sat"]),
+            (["sunday"], ["Sun"]),
+            (["monday"], ["Mon"]),
+            (["tuesday"], ["Tue"]),
+            (["wednesday"], ["Wed"]),
+            (["thursday"], ["Thu"]),
+            (["friday"], ["Fri"]),
+            (["saturday"], ["Sat"]),
+            # weekend gets translated to 2 days
+            (["weekend"], ["Sun", "Sat"]),
+            (["weekends"], ["Sun", "Sat"]),
+            # weekday gets translated to 5 days
+            (["weekday"], ["Mon", "Tue", "Wed", "Thu", "Fri"]),
+            (["weekdays"], ["Mon", "Tue", "Wed", "Thu", "Fri"]),
+            # multiple can be combined together and the result is sorted appropriately
+            (["fri", "tue"], ["Tue", "Fri"]),
+            (["weekend", "weekdays"], ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]),
+            # duplicates get merged out
+            (["tue", "tue"], ["Tue"]),
+            (["tue", "fri", "weekday"], ["Mon", "Tue", "Wed", "Thu", "Fri"]),
+        ],
+    )
+    def test_parse_days(self, days, expected):
+        assert parse_days(days) == expected  # also tests parse day
+
+    @pytest.mark.parametrize("days", [None, ["bogus"]])
+    def test_parse_days_invalid(self, days):
+        with pytest.raises(ValueError):
+            parse_days(days)
 
 
 @patch("vplan.engine.smartthings._raise_for_status")
