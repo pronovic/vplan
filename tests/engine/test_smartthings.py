@@ -9,8 +9,17 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from requests.models import HTTPError
 
-from vplan.engine.interface import Device, SmartThingsClientError, SwitchState, parse_time, parse_trigger_time
-from vplan.engine.smartthings import CONTEXT, SmartThings, _base_api_url, _raise_for_status, check_switch, set_switch
+from vplan.engine.interface import Device, SmartThingsClientError, SwitchState
+from vplan.engine.smartthings import (
+    CONTEXT,
+    SmartThings,
+    _base_api_url,
+    _raise_for_status,
+    check_switch,
+    parse_time,
+    parse_trigger_time,
+    set_switch,
+)
 
 # This is the data we expect when loading the SmartThings location context
 PAT_TOKEN = "AAA"

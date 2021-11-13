@@ -11,13 +11,13 @@ from typing import List
 import pytz
 
 from vplan.engine.config import config
-from vplan.engine.interface import Device, SwitchState, parse_time
+from vplan.engine.interface import Device, SimpleTime, SwitchState, TimeZone
 from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
-from vplan.engine.smartthings import SmartThings, set_switch
+from vplan.engine.smartthings import SmartThings, parse_time, set_switch
 from vplan.util import now
 
 
-def schedule_daily_refresh(plan_name: str, refresh_time: str, time_zone: str) -> None:
+def schedule_daily_refresh(plan_name: str, refresh_time: SimpleTime, time_zone: TimeZone) -> None:
     """Create or replace a job to periodically refresh the plan definition at SmartThings."""
     job_id = "daily/%s" % plan_name
     hour, minute = parse_time(refresh_time)
