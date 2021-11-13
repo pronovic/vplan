@@ -15,6 +15,7 @@ from vplan.engine.smartthings import (
     SmartThings,
     _base_api_url,
     _raise_for_status,
+    build_rule,
     check_switch,
     parse_days,
     parse_time,
@@ -339,6 +340,98 @@ class TestContext:
                 ),
             ]
         )
+
+
+class TestRules:
+    @patch("vplan.engine.smartthings.parse_days")
+    @patch("vplan.engine.smartthings.parse_trigger_time")
+    @patch("vplan.engine.smartthings.parse_variation")
+    def test_build_rule_no_offset(self, _parse_variation, _parse_trigger_time, _parse_days):
+        # This tests a rule that has no offset time.
+        # It mimics a test that I did manually via Insomnia
+
+        _parse_variation.return_value = 999
+        _parse_trigger_time.return_value = "Sunrise", None
+        _parse_days.return_value = ["Sun", "Mon"]
+
+        name = "Turn on Lamp"
+        device_ids = ["6498f80e-2c39-4f06-bf5c-d1b1916d48f2"]
+        days = ["xxx"]
+        trigger_time = "03:00"
+        variation = "none"
+        state = SwitchState.OFF
+
+        rule = build_rule(name, device_ids, days, trigger_time, variation, state)
+
+        _parse_variation.assert_called_once_with(variation)
+        _parse_trigger_time.assert_called_once_with(trigger_time, 999)
+        _parse_days.assert_called_once_with(days)
+
+        assert rule == {
+            "name": "Turn on Lamp",
+            "actions": [
+                {
+                    "every": {
+                        "specific": {"daysOfWeek": ["Sun", "Mon"], "reference": "Sunrise"},
+                        "actions": [
+                            {
+                                "command": {
+                                    "devices": ["6498f80e-2c39-4f06-bf5c-d1b1916d48f2"],
+                                    "commands": [{"component": "main", "capability": "switch", "command": "off"}],
+                                }
+                            }
+                        ],
+                    }
+                }
+            ],
+        }
+
+    @patch("vplan.engine.smartthings.parse_days")
+    @patch("vplan.engine.smartthings.parse_trigger_time")
+    @patch("vplan.engine.smartthings.parse_variation")
+    def test_build_rule_with_offset(self, _parse_variation, _parse_trigger_time, _parse_days):
+        # This tests a rule that has an offset time.
+        # It mimics a test that I did manually via Insomnia
+
+        _parse_variation.return_value = 999
+        _parse_trigger_time.return_value = "Midnight", 333
+        _parse_days.return_value = ["Sun", "Mon"]
+
+        name = "Turn on Lamp"
+        device_ids = ["6498f80e-2c39-4f06-bf5c-d1b1916d48f2"]
+        days = ["xxx"]
+        trigger_time = "03:00"
+        variation = "none"
+        state = SwitchState.ON
+
+        rule = build_rule(name, device_ids, days, trigger_time, variation, state)
+
+        _parse_variation.assert_called_once_with(variation)
+        _parse_trigger_time.assert_called_once_with(trigger_time, 999)
+        _parse_days.assert_called_once_with(days)
+
+        assert rule == {
+            "name": "Turn on Lamp",
+            "actions": [
+                {
+                    "every": {
+                        "specific": {
+                            "daysOfWeek": ["Sun", "Mon"],
+                            "reference": "Midnight",
+                            "offset": {"value": {"integer": 333}, "unit": "Minute"},
+                        },
+                        "actions": [
+                            {
+                                "command": {
+                                    "devices": ["6498f80e-2c39-4f06-bf5c-d1b1916d48f2"],
+                                    "commands": [{"component": "main", "capability": "switch", "command": "on"}],
+                                }
+                            }
+                        ],
+                    }
+                }
+            ],
+        }
 
 
 @patch("vplan.engine.smartthings._raise_for_status")

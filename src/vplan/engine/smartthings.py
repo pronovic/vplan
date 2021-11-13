@@ -4,14 +4,14 @@
 """
 SmartThings API client.
 
-Note that all of the public functions in this class are expected to be invoked from
-within a SmartThings context, like:
+Note that all of the public functions in this class that interact with an
+API are expected to be invoked from within a SmartThings context, like:
 
     with SmartThings(pat_token="token", location="My House"):
         set_switch(room="Office", device="Desk Lamp")
 
-The caller is responsible for setting up the context.  If you get a LookupError
-from any function, then you've forgotten to set the context.
+If you get a LookupError from any function, then you've forgotten to
+set the context.
 """
 
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
@@ -197,7 +197,11 @@ def _raise_for_status(response: Response) -> None:
         raise SmartThingsClientError("%s" % e) from e
 
 
-def _build_specific(days: List[TriggerDay], trigger_time: TriggerTime, variation: TriggerVariation) -> Dict[str, Any]:
+def _build_specific(
+    days: Union[List[str], List[TriggerDay]],
+    trigger_time: Union[str, TriggerTime],
+    variation: Union[str, TriggerVariation],
+) -> Dict[str, Any]:
     """Build a specific time for a rule to execute."""
     variation_minutes = parse_variation(variation)
     reference, offset = parse_trigger_time(trigger_time, variation_minutes)
@@ -205,7 +209,7 @@ def _build_specific(days: List[TriggerDay], trigger_time: TriggerTime, variation
     specific: Dict[str, Any] = {"reference": reference, "daysOfWeek": days_of_week}
     if offset:
         specific["offset"] = {"value": {"integer": offset}, "unit": "Minute"}
-    return {"specific": specific}
+    return specific
 
 
 def _build_actions(device_ids: List[str], state: SwitchState) -> List[Dict[str, Any]]:
@@ -214,12 +218,12 @@ def _build_actions(device_ids: List[str], state: SwitchState) -> List[Dict[str, 
     return [{"command": {"devices": device_ids, "commands": [command]}}]
 
 
-def _build_rule(
+def build_rule(
     name: str,
     device_ids: List[str],
-    days: List[TriggerDay],
-    trigger_time: TriggerTime,
-    variation: TriggerVariation,
+    days: Union[List[str], List[TriggerDay]],
+    trigger_time: Union[str, TriggerTime],
+    variation: Union[str, TriggerVariation],
     state: SwitchState,
 ) -> Dict[str, Any]:
     """Build a rule for a trigger state change, either on or off."""
@@ -228,19 +232,19 @@ def _build_rule(
     return {"name": name, "actions": [{"every": {"specific": specific, "actions": actions}}]}
 
 
-def _build_trigger(name: str, device_ids: List[str], trigger: Trigger) -> List[Dict[str, Any]]:
+def build_trigger_rules(name: str, device_ids: List[str], trigger: Trigger) -> List[Dict[str, Any]]:
     """Build all rules for a trigger."""
-    on = _build_rule("%s/on" % name, device_ids, trigger.days, trigger.on_time, trigger.variation, SwitchState.ON)
-    off = _build_rule("%s/off" % name, device_ids, trigger.days, trigger.off_time, trigger.variation, SwitchState.OFF)
+    on = build_rule("%s/on" % name, device_ids, trigger.days, trigger.on_time, trigger.variation, SwitchState.ON)
+    off = build_rule("%s/off" % name, device_ids, trigger.days, trigger.off_time, trigger.variation, SwitchState.OFF)
     return [on, off]
 
 
-def _build_group(name: str, group: DeviceGroup) -> List[Dict[str, Any]]:
+def build_group_rules(name: str, group: DeviceGroup) -> List[Dict[str, Any]]:
     """Build all rules for a device group."""
     rules = []
     device_ids = [_device_id(device) for device in group.devices]
     for index, trigger in enumerate(group.triggers):
-        rules += _build_trigger("%s/%s/trigger[%d]" % (name, group.name, index), device_ids, trigger)
+        rules += build_trigger_rules("%s/%s/trigger[%d]" % (name, group.name, index), device_ids, trigger)
     return rules
 
 
@@ -248,7 +252,7 @@ def build_plan_rules(schema: PlanSchema) -> List[Dict[str, Any]]:
     """Build all rules for a plan."""
     rules = []
     for group in schema.plan.groups:
-        rules += _build_group("vplan/%s" % schema.plan.name, group)
+        rules += build_group_rules("vplan/%s" % schema.plan.name, group)
     return rules
 
 
