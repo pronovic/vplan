@@ -16,10 +16,10 @@ from vplan.engine.smartthings import (
     _base_api_url,
     _raise_for_status,
     check_switch,
-    parse_day,
     parse_days,
     parse_time,
     parse_trigger_time,
+    parse_variation,
     set_switch,
 )
 
@@ -118,6 +118,33 @@ class TestUtil:
 
 class TestParsers:
     @pytest.mark.parametrize(
+        "variation,minimum,maximum",
+        [
+            ("disabled", None, None),
+            ("none", None, None),
+            ("+ 5 minutes", 0, 5),
+            ("- 5 minutes", -5, 0),
+            ("+/- 5 minutes", -5, 5),
+            ("+ 2 hours", 0, 120),
+            ("- 2 hours", -120, 0),
+            ("+/- 2 hours", -120, 120),
+        ],
+    )
+    @patch("vplan.engine.smartthings.randint")
+    def test_parse_variation_valid(self, randint, variation, minimum, maximum):
+        if minimum is None or maximum is None:
+            assert parse_variation(variation) is None
+        else:
+            randint.return_value = 999
+            assert parse_variation(variation) == 999
+            randint.assert_called_with(minimum, maximum)
+
+    @pytest.mark.parametrize("variation", [None, "", "bogus"])
+    def test_parse_variation_invalid(self, variation):
+        with pytest.raises(ValueError):
+            parse_variation(variation)
+
+    @pytest.mark.parametrize(
         "time,hour,minute",
         [("00:00", 0, 0), ("08:10", 8, 10), ("23:59", 23, 59)],
     )
@@ -190,18 +217,13 @@ class TestParsers:
             ("22:10", -1331, ("Midnight", None)),
         ],
     )
-    def test_parse_trigger_time(self, trigger, variation, expected):
+    def test_parse_trigger_time_valid(self, trigger, variation, expected):
         assert parse_trigger_time(trigger, variation) == expected
 
     @pytest.mark.parametrize("time", [None, "", "bogus"])
     def test_parse_trigger_time_invalid(self, time):
         with pytest.raises(ValueError):
             parse_trigger_time(time, None)
-
-    @pytest.mark.parametrize("day", [None, "", "bogus"])
-    def test_parse_day_invalid(self, day):
-        with pytest.raises(ValueError):
-            parse_day(day)
 
     @pytest.mark.parametrize(
         "days,expected",
@@ -237,10 +259,18 @@ class TestParsers:
             (["tue", "fri", "weekday"], ["Mon", "Tue", "Wed", "Thu", "Fri"]),
         ],
     )
-    def test_parse_days(self, days, expected):
+    def test_parse_days_valid(self, days, expected):
         assert parse_days(days) == expected  # also tests parse day
 
-    @pytest.mark.parametrize("days", [None, ["bogus"]])
+    @pytest.mark.parametrize(
+        "days",
+        [
+            None,
+            [""],
+            [None],
+            ["bogus"],
+        ],
+    )
     def test_parse_days_invalid(self, days):
         with pytest.raises(ValueError):
             parse_days(days)
