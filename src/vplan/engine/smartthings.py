@@ -33,6 +33,7 @@ from vplan.engine.interface import (
     TRIGGER_DAY_REGEX,
     TRIGGER_TIME_REGEX,
     TRIGGER_VARIATION_REGEX,
+    VPLAN_RULE_PREFIX,
     Device,
     DeviceGroup,
     PlanSchema,
@@ -100,9 +101,9 @@ class LocationContext:
             locations[item["name"]] = item["locationId"]
         if not location in locations:
             raise SmartThingsClientError("Configured location not found: %s" % location)
-        location_id: str = locations[location]
-        logging.info("Location id: %s", location_id)
-        return location_id
+        lid: str = locations[location]
+        logging.info("Location id: %s", lid)
+        return lid
 
     def _derive_rooms(self) -> Tuple[Dict[str, str], Dict[str, str]]:
         """Derive the mapping from room id->name and name->id for the location."""
@@ -139,16 +140,18 @@ class LocationContext:
         return device_by_id, device_by_name
 
     def _derive_rule_by_id(self) -> Dict[str, Dict[str, Any]]:
+        """Derive the mapping from rule id->name, including only rules managed by us."""
         rule_by_id = {}
         url = _url("/rules")
         params = {"locationId": self.location_id, "limit": LocationContext.RULES_LIMIT}
         response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
         for item in response.json()["items"]:
-            rule_id = item["id"]
-            rule_by_id[rule_id] = item
-        logging.info("Location [%s] has %d rules", self.location, len(rule_by_id))
-        logging.debug("Rules by id:\n%s", json.dumps(rule_by_id, indent=2))
+            if item["name"].startswith("%s/" % VPLAN_RULE_PREFIX):  # we identify our rules by name
+                rule_id = item["id"]
+                rule_by_id[rule_id] = item
+        logging.info("Location [%s] has %d managed rules", self.location, len(rule_by_id))
+        logging.debug("Managed rules by id:\n%s", json.dumps(rule_by_id, indent=2))
         return rule_by_id
 
 
@@ -214,8 +217,25 @@ def _build_actions(device_ids: List[str], state: SwitchState) -> List[Dict[str, 
 
 
 def device_id(device: Device) -> str:
-    """Get the device id for a device."""
+    """Get the device id for a device from the context."""
     return CONTEXT.get().device_by_name["%s/%s" % (device.room, device.device)]
+
+
+def location_id() -> str:
+    """Get the location id from the context."""
+    return CONTEXT.get().location_id
+
+
+def managed_rule_ids() -> List[str]:
+    """Get a list of the managed rule ids from the context."""
+    return [rule["id"] for rule in CONTEXT.get().rule_by_id.values()]
+
+
+def replace_managed_rules(managed_rules: List[Dict[str, Any]]) -> None:
+    """Replace the managed rules in the context."""
+    CONTEXT.get().rule_by_id.clear()
+    for rule in managed_rules:  # note that all rules are assumed to be managed
+        CONTEXT.get().rule_by_id[rule["id"]] = rule
 
 
 def build_rule(
@@ -252,8 +272,35 @@ def build_plan_rules(schema: PlanSchema) -> List[Dict[str, Any]]:
     """Build all rules for a plan."""
     rules = []
     for group in schema.plan.groups:
-        rules += build_group_rules("vplan/%s" % schema.plan.name, group)
+        rules += build_group_rules("%s/%s" % (VPLAN_RULE_PREFIX, schema.plan.name), group)
     return rules
+
+
+def replace_rules(schema: PlanSchema) -> None:
+    """Replace all existing rules with new rules based on the schema, and update the context."""
+    for rule_id in managed_rule_ids():
+        delete_rule(rule_id)
+    created = []
+    for rule in build_plan_rules(schema):
+        created.append(create_rule(rule))
+    replace_managed_rules(created)
+
+
+def delete_rule(rule_id: str) -> None:
+    """Delete an existing rule."""
+    url = _url("/rules/%s" % rule_id)
+    params = {"locationId": location_id()}
+    response = requests.delete(url=url, headers=_headers(), params=params)
+    _raise_for_status(response)
+
+
+def create_rule(rule: Dict[str, Any]) -> Dict[str, Any]:
+    """Create a rule, returning the result from SmartThings."""
+    url = _url("/rules")
+    params = {"locationId": CONTEXT.get().location_id}
+    response = requests.post(url=url, headers=_headers(), params=params, json=rule)
+    _raise_for_status(response)
+    return response.json()  # type: ignore[no-any-return]
 
 
 def set_switch(device: Device, state: SwitchState) -> None:

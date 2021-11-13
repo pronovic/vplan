@@ -41,6 +41,46 @@
       "creator": "SMARTTHINGS",
       "dateCreated": "2021-11-12T07:33:54Z",
       "dateUpdated": "2021-11-12T07:33:54Z"
+    },
+    {
+      "name": "Turn on Lamp",
+      "actions": [
+        {
+          "every": {
+            "specific": {
+              "daysOfWeek": [
+                "Sun",
+                "Mon"
+              ],
+              "reference": "Sunrise"
+            },
+            "actions": [
+              {
+                "command": {
+                  "devices": [
+                    "6498f80e-xxxx-xxxx-xxxx-d1b1916d48f2"
+                  ],
+                  "commands": [
+                    {
+                      "component": "main",
+                      "capability": "switch",
+                      "command": "off"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "id": "be750af8-xxxx-xxxx-xxxx-7ba300533d41",
+      "status": "Enabled",
+      "executionLocation": "Local",
+      "ownerType": "Location",
+      "ownerId": "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2",
+      "creator": "SMARTTHINGS",
+      "dateCreated": "2021-11-13T17:09:28.639381Z",
+      "dateUpdated": "2021-11-13T17:09:28.639381Z"
     }
   ]
 }

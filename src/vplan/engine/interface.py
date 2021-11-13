@@ -24,6 +24,7 @@ TRIGGER_VARIATION_REGEX = re.compile(r"^(disabled|none|([+]/-|[+]|-) (\d+) (hour
 SIMPLE_TIME_REGEX = re.compile(r"^((\d{2}):(\d{2}))$")
 
 ONLY_ACCOUNT = "default"
+VPLAN_RULE_PREFIX = "vplan"
 
 
 class ServerException(Exception):

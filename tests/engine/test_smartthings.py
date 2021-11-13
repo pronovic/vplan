@@ -20,11 +20,17 @@ from vplan.engine.smartthings import (
     build_rule,
     build_trigger_rules,
     check_switch,
+    create_rule,
+    delete_rule,
     device_id,
+    location_id,
+    managed_rule_ids,
     parse_days,
     parse_time,
     parse_trigger_time,
     parse_variation,
+    replace_managed_rules,
+    replace_rules,
     set_switch,
 )
 
@@ -32,6 +38,8 @@ from vplan.engine.smartthings import (
 PAT_TOKEN = "AAA"
 LOCATION = "My House"
 LOCATION_ID = "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2"
+RULE_ID = "88c05897-xxxx-xxxx-xxxx-ae6451501c27"
+RULE_NAME = "vplan/plan/group/trigger[0]/on"
 HEADERS = {
     "Accept": "application/vnd.smartthings+json;v=1",
     "Accept-Language": "en_US",
@@ -123,6 +131,25 @@ class TestUtil:
     def test_device_id(self, test_context):
         with test_context:
             assert device_id(Device(room="Office", device="Desk Lamp")) == "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc"
+
+    def test_location_id(self, test_context):
+        with test_context:
+            assert location_id() == LOCATION_ID
+
+    def test_managed_rule_ids(self, test_context):
+        with test_context:
+            assert managed_rule_ids() == [RULE_ID]
+
+    def test_replace_managed_rules(self, test_context):
+        rules = [
+            {"id": "aaa", "name": "vplan/aaa"},
+            {"id": "bbb", "name": "vplan/bbb"},
+            {"id": "ccc", "name": "other"},  # note that we'll assume this is managed, even if the name doesn't match
+        ]
+        with test_context:
+            assert managed_rule_ids() == [RULE_ID]
+            replace_managed_rules(rules)
+            assert managed_rule_ids() == ["aaa", "bbb", "ccc"]
 
 
 class TestParsers:
@@ -321,8 +348,8 @@ class TestContext:
             assert context.room_by_name == ROOM_BY_NAME
             assert context.device_by_id == DEVICE_BY_ID
             assert context.device_by_name == DEVICE_BY_NAME
-            assert len(context.rule_by_id) == 1
-            assert context.rule_by_id["88c05897-xxxx-xxxx-xxxx-ae6451501c27"]["name"] == "vplan/plan/group/trigger[0]/on"
+            assert len(context.rule_by_id) == 1  # only our managed rules, identified by name, will be included
+            assert context.rule_by_id[RULE_ID]["name"] == RULE_NAME
 
         with pytest.raises(LookupError):
             CONTEXT.get()  # the context should not be available outside the SmartThings() block above
@@ -519,10 +546,57 @@ class TestRules:
             ]
         )
 
+    @patch("vplan.engine.smartthings.replace_managed_rules")
+    @patch("vplan.engine.smartthings.managed_rule_ids")
+    @patch("vplan.engine.smartthings.build_plan_rules")
+    @patch("vplan.engine.smartthings.create_rule")
+    @patch("vplan.engine.smartthings.delete_rule")
+    def test_replace_rules(self, _delete_rule, _create_rule, _build_plan_rules, _managed_rule_ids, _replace_managed_rules):
+        schema = MagicMock()
+        generated = MagicMock()
+        returned = MagicMock()
+        _managed_rule_ids.return_value = ["managed"]
+        _build_plan_rules.return_value = [generated]
+        _create_rule.return_value = returned
+
+        replace_rules(schema)
+
+        _delete_rule.assert_called_once_with("managed")
+        _build_plan_rules.assert_called_once_with(schema)
+        _create_rule.assert_called_once_with(generated)
+        _replace_managed_rules.assert_called_once_with([returned])
+
 
 @patch("vplan.engine.smartthings._raise_for_status")
 @patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
-class TestSwitch:
+class TestClient:
+    @patch("vplan.engine.smartthings.requests.delete")
+    def test_delete_rule(self, requests_delete, _, raise_for_status, test_context):
+        with test_context:
+            response = _response()
+            requests_delete.side_effect = [response]
+            delete_rule("id")
+            raise_for_status.assert_called_once_with(response)
+            requests_delete.assert_called_once_with(
+                url="http://whatever/rules/id", headers=HEADERS, params={"locationId": LOCATION_ID}
+            )
+
+    @patch("vplan.engine.smartthings.requests.post")
+    def test_create_rule(self, requests_post, _, raise_for_status, test_context):
+        with test_context:
+            input_rule = {"input": "value"}
+            output_rule = {"output": "value"}
+            response = _response(data=json.dumps(output_rule))
+            requests_post.side_effect = [response]
+            assert create_rule(input_rule) == output_rule
+            raise_for_status.assert_called_once_with(response)
+            requests_post.assert_called_once_with(
+                url="http://whatever/rules",
+                headers=HEADERS,
+                params={"locationId": LOCATION_ID},
+                json=input_rule,
+            )
+
     @pytest.mark.parametrize(
         "state,command",
         [(SwitchState.ON, "on"), (SwitchState.OFF, "off")],
