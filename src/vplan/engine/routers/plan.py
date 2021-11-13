@@ -116,6 +116,6 @@ def toggle_device(plan_name: str, room: str, device: str, toggles: int = 2) -> N
     schema = db_retrieve_plan(plan_name=plan_name)
     location = schema.plan.location
     devices = schema.devices()
-    if not item in devices:
+    if item not in devices:
         raise NoResultFound("Device not found in plan")
     toggle_devices(pat_token=account.pat_token, location=location, devices=[item], toggles=toggles)
