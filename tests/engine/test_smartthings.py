@@ -128,23 +128,68 @@ class TestParsers:
             parse_time(time)
 
     @pytest.mark.parametrize(
-        "trigger,expected",
+        "trigger,variation,expected",
         [
-            ("noon", ("Noon", None)),
-            ("midnight", ("Midnight", None)),
-            ("sunrise", ("Sunrise", None)),
-            ("sunset", ("Sunset", None)),
-            ("00:00", ("Midnight", None)),
-            ("00:01", ("Midnight", 1)),
-            ("00:10", ("Midnight", 10)),
-            ("01:00", ("Midnight", 60)),
-            ("12:42", ("Midnight", 762)),
-            ("22:10", ("Midnight", 1330)),
+            # no variation always gets None
+            ("noon", None, ("Noon", None)),
+            ("midnight", None, ("Midnight", None)),
+            ("sunrise", None, ("Sunrise", None)),
+            ("sunset", None, ("Sunset", None)),
+            ("00:00", None, ("Midnight", None)),
+            # zero variation turns into None
+            ("noon", 0, ("Noon", None)),
+            ("midnight", 0, ("Midnight", None)),
+            ("sunrise", 0, ("Sunrise", None)),
+            ("sunset", 0, ("Sunset", None)),
+            ("00:00", 0, ("Midnight", None)),
+            # positive variation gets passed through
+            ("noon", 1, ("Noon", 1)),
+            ("midnight", 1, ("Midnight", 1)),
+            ("sunrise", 1, ("Sunrise", 1)),
+            ("sunset", 1, ("Sunset", 1)),
+            ("00:00", 1, ("Midnight", 1)),
+            # negative variation gets passed through, except for Midnight (can't be used there)
+            ("noon", -1, ("Noon", -1)),
+            ("midnight", -1, ("Midnight", None)),
+            ("sunrise", -1, ("Sunrise", -1)),
+            ("sunset", -1, ("Sunset", -1)),
+            ("00:00", -1, ("Midnight", None)),
+            # no variation and zero variation are equivalent in calculations
+            ("00:01", None, ("Midnight", 1)),
+            ("00:10", None, ("Midnight", 10)),
+            ("01:00", None, ("Midnight", 60)),
+            ("12:42", None, ("Midnight", 762)),
+            ("22:10", None, ("Midnight", 1330)),
+            ("00:01", 0, ("Midnight", 1)),
+            ("00:10", 0, ("Midnight", 10)),
+            ("01:00", 0, ("Midnight", 60)),
+            ("12:42", 0, ("Midnight", 762)),
+            ("22:10", 0, ("Midnight", 1330)),
+            # positive variation always gets added
+            ("00:01", 1, ("Midnight", 2)),
+            ("00:10", 1, ("Midnight", 11)),
+            ("01:00", 1, ("Midnight", 61)),
+            ("12:42", 1, ("Midnight", 763)),
+            ("22:10", 1, ("Midnight", 1331)),
+            # negative variation gets subtracted, but a total at or below zero gets converted to None
+            ("00:01", -1, ("Midnight", None)),
+            ("00:10", -1, ("Midnight", 9)),
+            ("01:00", -1, ("Midnight", 59)),
+            ("12:42", -1, ("Midnight", 761)),
+            ("22:10", -1, ("Midnight", 1329)),
+            ("00:10", -10, ("Midnight", None)),
+            ("01:00", -60, ("Midnight", None)),
+            ("12:42", -762, ("Midnight", None)),
+            ("22:10", -1330, ("Midnight", None)),
+            ("00:01", -2, ("Midnight", None)),
+            ("00:10", -11, ("Midnight", None)),
+            ("01:00", -61, ("Midnight", None)),
+            ("12:42", -763, ("Midnight", None)),
+            ("22:10", -1331, ("Midnight", None)),
         ],
-        ids=["noon", "midnight", "sunrise", "sunset", "00:00", "00:01", "00:10", "01:00", "12:42", "22:10"],
     )
-    def test_parse_trigger_time(self, trigger, expected):
-        assert parse_trigger_time(trigger, None) == expected
+    def test_parse_trigger_time(self, trigger, variation, expected):
+        assert parse_trigger_time(trigger, variation) == expected
 
 
 @patch("vplan.engine.smartthings._raise_for_status")

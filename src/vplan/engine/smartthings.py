@@ -306,18 +306,18 @@ def parse_trigger_time(trigger: Union[str, TriggerTime], variation: Optional[int
     if not match:
         raise ValueError("Invalid trigger_time")
     if match.group(1) == "sunrise":
-        return "Sunrise", variation
+        return "Sunrise", variation if variation and variation != 0 else None
     elif match.group(1) == "sunset":
-        return "Sunset", variation
+        return "Sunset", variation if variation and variation != 0 else None
     elif match.group(1) == "midnight":
-        return "Midnight", variation if variation else None  # can't use negative numbers with Midnight
+        return "Midnight", variation if variation and variation > 0 else None  # can't use negative numbers
     elif match.group(1) == "noon":
-        return "Noon", variation
+        return "Noon", variation if variation and variation != 0 else None
     else:
         seconds = (datetime.strptime(match.group(1), "%H:%M") - datetime.strptime("00:00", "%H:%M")).total_seconds()
         minutes = round(seconds / 60) if seconds >= 0 else 0
         offset = minutes + (variation if variation else 0)
-        return "Midnight", offset if offset else None  # can't use negative numbers with Midnight
+        return "Midnight", offset if offset and offset > 0 else None  # can't use negative numbers
 
 
 def parse_day(day: Union[str, TriggerDay]) -> List[str]:
