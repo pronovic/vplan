@@ -9,14 +9,18 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from requests.models import HTTPError
 
-from vplan.engine.interface import Device, SmartThingsClientError, SwitchState
+from vplan.engine.interface import Device, DeviceGroup, SmartThingsClientError, SwitchState, Trigger
 from vplan.engine.smartthings import (
     CONTEXT,
     SmartThings,
     _base_api_url,
     _raise_for_status,
+    build_group_rules,
+    build_plan_rules,
     build_rule,
+    build_trigger_rules,
     check_switch,
+    device_id,
     parse_days,
     parse_time,
     parse_trigger_time,
@@ -115,6 +119,10 @@ class TestUtil:
         response.raise_for_status.side_effect = HTTPError("hello")
         with pytest.raises(SmartThingsClientError, match="^hello"):
             _raise_for_status(response)
+
+    def test_device_id(self, test_context):
+        with test_context:
+            assert device_id(Device(room="Office", device="Desk Lamp")) == "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc"
 
 
 class TestParsers:
@@ -252,6 +260,9 @@ class TestParsers:
             # weekday gets translated to 5 days
             (["weekday"], ["Mon", "Tue", "Wed", "Thu", "Fri"]),
             (["weekdays"], ["Mon", "Tue", "Wed", "Thu", "Fri"]),
+            # all or every gets translated to 7 days
+            (["all"], ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]),
+            (["every"], ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]),
             # multiple can be combined together and the result is sorted appropriately
             (["fri", "tue"], ["Tue", "Fri"]),
             (["weekend", "weekdays"], ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]),
@@ -281,6 +292,13 @@ class TestParsers:
 @patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
 @patch("vplan.engine.smartthings.requests.get")
 class TestContext:
+    def test_load_context_unknown_location(self, requests_get, _api_url, _):
+        locations = fixture("locations.json")
+        locations_response = _response(locations)
+        requests_get.side_effect = [locations_response]
+        with pytest.raises(SmartThingsClientError, match="^Configured location not found"):
+            SmartThings(pat_token=PAT_TOKEN, location="bogus")
+
     def test_load_context(self, requests_get, _api_url, raise_for_status):
         locations = fixture("locations.json")
         rooms = fixture("rooms.json")
@@ -432,6 +450,74 @@ class TestRules:
                 }
             ],
         }
+
+    @patch("vplan.engine.smartthings.build_rule")
+    def test_build_trigger_rules(self, _build_rule):
+        name = "whatever"
+        device_ids = ["id"]
+        trigger = Trigger(days=["weekdays"], on_time="sunrise", off_time="03:00", variation="none")
+
+        on = [{"fake": "on"}]
+        off = [{"fake": "on"}]
+        _build_rule.side_effect = [on, off]
+
+        assert build_trigger_rules(name, device_ids, trigger) == [on, off]
+
+        _build_rule.assert_has_calls(
+            [
+                call("whatever/on", device_ids, ["weekdays"], "sunrise", "none", SwitchState.ON),
+                call("whatever/off", device_ids, ["weekdays"], "03:00", "none", SwitchState.OFF),
+            ]
+        )
+
+    @patch("vplan.engine.smartthings.build_trigger_rules")
+    @patch("vplan.engine.smartthings.device_id")
+    def test_build_group_rules(self, _device_id, _build_trigger_rules):
+        name = "whatever"
+        device1 = Device(room="a", device="1")
+        device2 = Device(room="a", device="2")
+        devices = [device1, device2]
+        trigger1 = Trigger(days=["weekdays"], on_time="sunrise", off_time="03:00", variation="none")
+        trigger2 = Trigger(days=["tue"], on_time="09:00", off_time="12:30", variation="+ 5 minutes")
+        triggers = [trigger1, trigger2]
+        group = DeviceGroup(name="group", devices=devices, triggers=triggers)
+
+        rules1 = [{"fake": "trigger1-1"}, {"fake": "trigger1-2"}]
+        rules2 = [{"fake": "trigger2"}]
+        _device_id.side_effect = ["id1", "id2"]
+        _build_trigger_rules.side_effect = [rules1, rules2]
+
+        assert build_group_rules(name, group) == rules1 + rules2
+
+        _device_id.assert_has_calls([call(device1), call(device2)])
+        _build_trigger_rules.assert_has_calls(
+            [
+                call("whatever/group/trigger[0]", ["id1", "id2"], trigger1),
+                call("whatever/group/trigger[1]", ["id1", "id2"], trigger2),
+            ]
+        )
+
+    @patch("vplan.engine.smartthings.build_group_rules")
+    def test_build_plan_rules(self, _build_group_rules):
+        group1 = MagicMock()
+        group2 = MagicMock()
+        plan = MagicMock()
+        plan.name = "whatever"
+        plan.groups = [group1, group2]
+        schema = MagicMock(plan=plan)
+
+        rules1 = [{"fake": "trigger1-1"}, {"fake": "trigger1-2"}]
+        rules2 = [{"fake": "trigger2"}]
+        _build_group_rules.side_effect = [rules1, rules2]
+
+        assert build_plan_rules(schema) == rules1 + rules2
+
+        _build_group_rules.assert_has_calls(
+            [
+                call("vplan/whatever", group1),
+                call("vplan/whatever", group2),
+            ]
+        )
 
 
 @patch("vplan.engine.smartthings._raise_for_status")

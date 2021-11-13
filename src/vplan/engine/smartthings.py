@@ -128,12 +128,12 @@ class LocationContext:
         response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
         for item in response.json()["items"]:
-            device_id = item["deviceId"]
+            did = item["deviceId"]
             device_name = item["label"] if item["label"] else item["name"]  # users see the label, if there is one
             room_name = self.room_by_id[item["roomId"]]
             device = Device(room=room_name, device=device_name)
-            device_by_id[device_id] = device
-            device_by_name["%s/%s" % (room_name, device.device)] = device_id
+            device_by_id[did] = device
+            device_by_name["%s/%s" % (room_name, device.device)] = did
         logging.info("Location [%s] has %d devices", self.location, len(device_by_id))
         logging.debug("Devices by name:\n%s", json.dumps(device_by_name, indent=2))
         return device_by_id, device_by_name
@@ -179,11 +179,6 @@ def _url(endpoint: str) -> str:
     return "%s%s" % (_base_api_url(), endpoint)
 
 
-def _device_id(device: Device) -> str:
-    """Get the device id for a device."""
-    return CONTEXT.get().device_by_name["%s/%s" % (device.room, device.device)]
-
-
 def _headers() -> Dict[str, str]:
     """Get the headers to use for requests."""
     return CONTEXT.get().headers
@@ -218,6 +213,11 @@ def _build_actions(device_ids: List[str], state: SwitchState) -> List[Dict[str, 
     return [{"command": {"devices": device_ids, "commands": [command]}}]
 
 
+def device_id(device: Device) -> str:
+    """Get the device id for a device."""
+    return CONTEXT.get().device_by_name["%s/%s" % (device.room, device.device)]
+
+
 def build_rule(
     name: str,
     device_ids: List[str],
@@ -242,7 +242,7 @@ def build_trigger_rules(name: str, device_ids: List[str], trigger: Trigger) -> L
 def build_group_rules(name: str, group: DeviceGroup) -> List[Dict[str, Any]]:
     """Build all rules for a device group."""
     rules = []
-    device_ids = [_device_id(device) for device in group.devices]
+    device_ids = [device_id(device) for device in group.devices]
     for index, trigger in enumerate(group.triggers):
         rules += build_trigger_rules("%s/%s/trigger[%d]" % (name, group.name, index), device_ids, trigger)
     return rules
@@ -260,14 +260,14 @@ def set_switch(device: Device, state: SwitchState) -> None:
     """Switch a device on or off."""
     command = "on" if state == SwitchState.ON else "off"
     request = {"commands": [{"component": "main", "capability": "switch", "command": command}]}
-    url = _url("/devices/%s/commands" % _device_id(device))
+    url = _url("/devices/%s/commands" % device_id(device))
     response = requests.post(url=url, headers=_headers(), json=request)
     _raise_for_status(response)
 
 
 def check_switch(device: Device) -> SwitchState:
     """Check the state of a switch."""
-    url = _url("/devices/%s/components/main/capabilities/switch/status" % _device_id(device))
+    url = _url("/devices/%s/components/main/capabilities/switch/status" % device_id(device))
     response = requests.get(url=url, headers=_headers())
     _raise_for_status(response)
     return SwitchState.ON if response.json()["switch"]["value"] == "on" else SwitchState.OFF
