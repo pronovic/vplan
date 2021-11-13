@@ -76,6 +76,10 @@ def update(yaml_path: str) -> None:
 
     Specify a path on disk for <yaml-file>, or use "-" to read from stdin.  An
     existing plan will be modified based on the name in the YAML definition.
+
+    When you update a plan, all existing rules at SmartThings will be removed
+    and replaced with new rules.  All devices associated with those existing
+    rules will be left in their current state.
     """
     yaml = _read_plan_yaml(yaml_path)
     update_plan(yaml)
