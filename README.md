@@ -188,7 +188,7 @@ Each trigger consists of:
 - a list of **days** - days of week like `sun`, `tue`, or `thursday` or the special days `all`, `weekends` or `weekdays`
 - an **on time** - either a time in HH24:MM format or special times `sunrise`, `sunset`, `midnight`, or `noon`
 - an **off time** - either a time in HH24:MM format or special times `sunrise`, `sunset`, `midnight`, or `noon`
-- a **variation** - either `none` or a specifier like `- 15 minutes`, `+ 30 seconds` or `+/- 2 hours`
+- a **variation** - either `none` or a specifier like `- 15 minutes` or `+/- 2 hours`
 
 The **on time** and **off time** are in the timezone of your location, as
 defined in SmartThings.  In the YAML, you should always quote times, like
@@ -199,7 +199,7 @@ and off times.  If a variation is configured, each day will be slightly
 different.  A specifier like `- 15 minutes` means that the device group will
 turn on or off up to 15 minutes earlier than the given time.  Similarly, `+ 15
 minutes` means 15 minutes later, and `+/- 15 minutes` means 15 minutes earlier
-or later.  You can create specifiers using `seconds`, `minutes`, or `hours`.
+or later.  You can create specifiers using `minutes` or `hours`.
 In the YAML, you should always quote these specifiers with double quotes, like
 `"+/- 15 minutes"`.
 

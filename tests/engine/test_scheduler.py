@@ -20,6 +20,7 @@ from vplan.engine.scheduler import (
     start_scheduler,
     unschedule_daily_job,
 )
+from vplan.util import now
 
 INDICATOR = None
 JOB_DELAY_SEC = 2  # if the job is intermittently unreliable, increase this value slightly
@@ -33,8 +34,8 @@ def job_function(message):
 
 def in_future(seconds, tz):
     """Return a time some number of seconds into the future"""
-    now = datetime.datetime.now(tz=tz)
-    future = now + datetime.timedelta(seconds=seconds)
+    timestamp = now(tz=tz)
+    future = timestamp + datetime.timedelta(seconds=seconds)
     return future.time().replace(microsecond=0)
 
 

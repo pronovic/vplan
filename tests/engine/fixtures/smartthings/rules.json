@@ -1,0 +1,46 @@
+{
+  "items": [
+    {
+      "name": "vplan/plan/group/trigger[0]/on",
+      "actions": [
+        {
+          "every": {
+            "specific": {
+              "reference": "Midnight",
+              "offset": {
+                "value": {
+                  "integer": 1255
+                },
+                "unit": "Minute"
+              }
+            },
+            "actions": [
+              {
+                "command": {
+                  "devices": [
+                    "6498f80e-xxxx-xxxx-xxxx-d1b1916d48f2"
+                  ],
+                  "commands": [
+                    {
+                      "component": "main",
+                      "capability": "switch",
+                      "command": "on"
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "id": "88c05897-xxxx-xxxx-xxxx-ae6451501c27",
+      "status": "Enabled",
+      "executionLocation": "Local",
+      "ownerType": "Location",
+      "ownerId": "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2",
+      "creator": "SMARTTHINGS",
+      "dateCreated": "2021-11-12T07:33:54Z",
+      "dateUpdated": "2021-11-12T07:33:54Z"
+    }
+  ]
+}

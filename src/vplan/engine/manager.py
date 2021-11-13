@@ -8,10 +8,13 @@ import datetime
 from time import sleep
 from typing import List
 
+import pytz
+
 from vplan.engine.config import config
 from vplan.engine.interface import Device, SwitchState, parse_time
 from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
 from vplan.engine.smartthings import SmartThings, set_switch
+from vplan.util import now
 
 
 def schedule_daily_refresh(plan_name: str, refresh_time: str, time_zone: str) -> None:
@@ -32,7 +35,7 @@ def unschedule_daily_refresh(plan_name: str) -> None:
 
 def schedule_immediate_refresh(plan_name: str) -> None:
     """Schedule a job to immediately refresh the plan definition at SmartThings."""
-    job_id = "immediate/%s/%s" % (plan_name, datetime.datetime.now().isoformat())
+    job_id = "immediate/%s/%s" % (plan_name, now(pytz.UTC).isoformat())
     func = refresh_plan
     kwargs = {"plan_name": plan_name}
     schedule_immediate_job(job_id, func, kwargs)

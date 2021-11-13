@@ -9,8 +9,8 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from requests.models import HTTPError
 
-from vplan.engine.interface import Device, SmartThingsClientError, SwitchState
-from vplan.engine.smartthings import CONTEXT, ON_COMMAND, SmartThings, _base_api_url, _raise_for_status, check_switch, set_switch
+from vplan.engine.interface import Device, SmartThingsClientError, SwitchState, parse_time, parse_trigger_time
+from vplan.engine.smartthings import CONTEXT, SmartThings, _base_api_url, _raise_for_status, check_switch, set_switch
 
 # This is the data we expect when loading the SmartThings location context
 PAT_TOKEN = "AAA"
@@ -81,10 +81,12 @@ def test_context(requests_get, _):
     locations = fixture("locations.json")
     rooms = fixture("rooms.json")
     devices = fixture("devices.json")
+    rules = fixture("rules.json")
     locations_response = _response(locations)
     rooms_response = _response(rooms)
     devices_response = _response(devices)
-    requests_get.side_effect = [locations_response, rooms_response, devices_response]
+    rules_response = _response(rules)
+    requests_get.side_effect = [locations_response, rooms_response, devices_response, rules_response]
     return SmartThings(PAT_TOKEN, LOCATION)
 
 
@@ -103,6 +105,39 @@ class TestUtil:
             _raise_for_status(response)
 
 
+class TestParsers:
+    @pytest.mark.parametrize(
+        "time,hour,minute",
+        [("00:00", 0, 0), ("08:10", 8, 10), ("23:59", 23, 59)],
+    )
+    def test_parse_time_valid(self, time, hour, minute):
+        assert parse_time(time) == (hour, minute)
+
+    @pytest.mark.parametrize("time", [None, "", "1", "11", "1:", "11:", "1:1", "1:01", "10:1", "24:02", "11:67"])
+    def test_parse_time_invalid(self, time):
+        with pytest.raises(ValueError):
+            parse_time(time)
+
+    @pytest.mark.parametrize(
+        "trigger,expected",
+        [
+            ("noon", ("Noon", None)),
+            ("midnight", ("Midnight", None)),
+            ("sunrise", ("Sunrise", None)),
+            ("sunset", ("Sunset", None)),
+            ("00:00", ("Midnight", None)),
+            ("00:01", ("Midnight", 1)),
+            ("00:10", ("Midnight", 10)),
+            ("01:00", ("Midnight", 60)),
+            ("12:42", ("Midnight", 762)),
+            ("22:10", ("Midnight", 1330)),
+        ],
+        ids=["noon", "midnight", "sunrise", "sunset", "00:00", "00:01", "00:10", "01:00", "12:42", "22:10"],
+    )
+    def test_parse_trigger_time(self, trigger, expected):
+        assert parse_trigger_time(trigger, None) == expected
+
+
 @patch("vplan.engine.smartthings._raise_for_status")
 @patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
 @patch("vplan.engine.smartthings.requests.get")
@@ -111,11 +146,13 @@ class TestContext:
         locations = fixture("locations.json")
         rooms = fixture("rooms.json")
         devices = fixture("devices.json")
+        rules = fixture("rules.json")
 
         locations_response = _response(locations)
         rooms_response = _response(rooms)
         devices_response = _response(devices)
-        requests_get.side_effect = [locations_response, rooms_response, devices_response]
+        rules_response = _response(rules)
+        requests_get.side_effect = [locations_response, rooms_response, devices_response, rules_response]
 
         with SmartThings(pat_token=PAT_TOKEN, location=LOCATION):
             context = CONTEXT.get()
@@ -127,6 +164,8 @@ class TestContext:
             assert context.room_by_name == ROOM_BY_NAME
             assert context.device_by_id == DEVICE_BY_ID
             assert context.device_by_name == DEVICE_BY_NAME
+            assert len(context.rule_by_id) == 1
+            assert context.rule_by_id["88c05897-xxxx-xxxx-xxxx-ae6451501c27"]["name"] == "vplan/plan/group/trigger[0]/on"
 
         with pytest.raises(LookupError):
             CONTEXT.get()  # the context should not be available outside the SmartThings() block above
@@ -155,6 +194,11 @@ class TestContext:
                     headers=HEADERS,
                     params={"locationId": LOCATION_ID, "capability": "switch", "limit": "1000"},
                 ),
+                call(
+                    url="http://whatever/rules",
+                    headers=HEADERS,
+                    params={"locationId": LOCATION_ID, "limit": "100"},
+                ),
             ]
         )
 
@@ -162,15 +206,21 @@ class TestContext:
 @patch("vplan.engine.smartthings._raise_for_status")
 @patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
 class TestSwitch:
+    @pytest.mark.parametrize(
+        "state,command",
+        [(SwitchState.ON, "on"), (SwitchState.OFF, "off")],
+    )
     @patch("vplan.engine.smartthings.requests.post")
-    def test_set_switch(self, requests_post, _, raise_for_status, test_context):
+    def test_set_switch(self, requests_post, _, raise_for_status, test_context, state, command):
         with test_context:
             response = _response()
             requests_post.side_effect = [response]
-            set_switch(Device(room="Office", device="Desk Lamp"), SwitchState.ON)
+            set_switch(Device(room="Office", device="Desk Lamp"), state)
             raise_for_status.assert_called_once_with(response)
             requests_post.assert_called_once_with(
-                url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/commands", headers=HEADERS, json=ON_COMMAND
+                url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/commands",
+                headers=HEADERS,
+                json={"commands": [{"component": "main", "capability": "switch", "command": command}]},
             )
 
     @pytest.mark.parametrize("file,expected", [("switch_on.json", SwitchState.ON), ("switch_off.json", SwitchState.OFF)])

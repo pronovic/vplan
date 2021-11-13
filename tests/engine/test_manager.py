@@ -1,23 +1,46 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+import datetime
 from unittest.mock import MagicMock, call, patch
 
 from vplan.engine.interface import Device, SwitchState
-from vplan.engine.manager import toggle_devices
+from vplan.engine.manager import (
+    refresh_plan,
+    schedule_daily_refresh,
+    schedule_immediate_refresh,
+    toggle_devices,
+    unschedule_daily_refresh,
+)
 
 
 class TestScheduler:
     @patch("vplan.engine.manager.schedule_daily_job")
     def test_schedule_daily_refresh(self, schedule_daily_job):
-        pass
+        schedule_daily_refresh("plan", "00:30", "America/Chicago")
+        schedule_daily_job.assert_called_once_with(
+            "daily/plan",
+            datetime.time(hour=0, minute=30),
+            refresh_plan,
+            {"plan_name": "plan"},
+            "America/Chicago",
+        )
 
     @patch("vplan.engine.manager.unschedule_daily_job")
     def test_unschedule_daily_refresh(self, unschedule_daily_job):
-        pass
+        unschedule_daily_refresh("plan")
+        unschedule_daily_job.assert_called_once_with("daily/plan")
 
+    @patch("vplan.engine.manager.now")
     @patch("vplan.engine.manager.schedule_immediate_job")
-    def test_schedule_immediate_refresh(self, schedule_immediate_job):
-        pass
+    def test_schedule_immediate_refresh(self, schedule_immediate_job, now):
+        now.return_value = MagicMock()
+        now.return_value.isoformat = MagicMock(return_value="thetime")
+        schedule_immediate_refresh("plan")
+        schedule_immediate_job.assert_called_once_with(
+            "immediate/plan/thetime",
+            refresh_plan,
+            {"plan_name": "plan"},
+        )
 
 
 @patch("vplan.engine.manager.SmartThings")

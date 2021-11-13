@@ -4,19 +4,7 @@ import os
 
 import pytest
 
-from vplan.engine.interface import (
-    Account,
-    Device,
-    DeviceGroup,
-    Health,
-    Plan,
-    PlanSchema,
-    ServerException,
-    Status,
-    Trigger,
-    Version,
-    parse_time,
-)
+from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, ServerException, Status, Trigger, Version
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long
@@ -65,7 +53,7 @@ PLAN_EXPECTED = PlanSchema(
                     Device(room="Basement", device="Lamp Under Window"),
                 ],
                 triggers=[
-                    Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 seconds"),
+                    Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 minutes"),
                 ],
             ),
         ],
@@ -110,7 +98,6 @@ class TestModelsAndValidation:
             ([], "00:00", " 23:59", "Disabled"),
             ([], "00:00 ", "23:59", "+ 5 minutes"),
             ([], " 00:00 ", "23:59", "- 2 HOURS "),
-            ([], "midnight", "noon", "+/- 45 Seconds"),
             (["weekday"], "midnight", "noon", "none"),
             (["Weekdays"], "midnight", "noon", "none"),
             (["WEEKEND"], "midnight", "noon", "none"),
@@ -283,17 +270,3 @@ class TestYamlParsing:
     def test_parsing_invalid(self):
         with pytest.raises(ValueError):
             PlanSchema.parse_file(INVALID_PLAN_FILE)
-
-
-class TestUtil:
-    @pytest.mark.parametrize(
-        "time,hour,minute",
-        [("00:00", 0, 0), ("08:10", 8, 10), ("23:59", 23, 59)],
-    )
-    def test_parse_time_valid(self, time, hour, minute):
-        assert parse_time(time) == (hour, minute)
-
-    @pytest.mark.parametrize("time", [None, "", "1", "11", "1:", "11:", "1:1", "1:01", "10:1", "24:02", "11:67"])
-    def test_parse_time_invalid(self, time):
-        with pytest.raises(ValueError):
-            parse_time(time)

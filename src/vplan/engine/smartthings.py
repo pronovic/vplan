@@ -19,18 +19,27 @@ from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/
 import json
 import logging
 from contextvars import ContextVar
-from typing import Dict, Tuple
+from typing import Any, Dict, List, Tuple
 
 import requests
 from requests import Response
 from requests.models import HTTPError
 
 from vplan.engine.config import config
-from vplan.engine.interface import Device, SmartThingsClientError, SwitchState
-
-# JSON commands to turn switches on and off
-ON_COMMAND = {"commands": [{"component": "main", "capability": "switch", "command": "on"}]}
-OFF_COMMAND = {"commands": [{"component": "main", "capability": "switch", "command": "off"}]}
+from vplan.engine.interface import (
+    Device,
+    DeviceGroup,
+    PlanSchema,
+    SmartThingsClientError,
+    SwitchState,
+    Trigger,
+    TriggerDay,
+    TriggerTime,
+    TriggerVariation,
+    parse_days,
+    parse_trigger_time,
+    parse_variation,
+)
 
 
 class LocationContext:
@@ -56,6 +65,7 @@ class LocationContext:
     LOCATION_LIMIT = "100"
     ROOM_LIMIT = "250"
     DEVICE_LIMIT = "1000"
+    RULES_LIMIT = "100"  # you can't create more than 100 as of this writing, anyway
 
     def __init__(self, pat_token: str, location: str):
         self.pat_token = pat_token
@@ -64,6 +74,7 @@ class LocationContext:
         self.location_id = self._derive_location_id(location)
         self.room_by_id, self.room_by_name = self._derive_rooms()
         self.device_by_id, self.device_by_name = self._derive_devices()
+        self.rule_by_id = self._derive_rule_by_id()
 
     def _derive_headers(self) -> Dict[str, str]:
         """Fill standard headers for API requests."""
@@ -123,6 +134,19 @@ class LocationContext:
         logging.debug("Devices by name:\n%s", json.dumps(device_by_name, indent=2))
         return device_by_id, device_by_name
 
+    def _derive_rule_by_id(self) -> Dict[str, Dict[str, Any]]:
+        rule_by_id = {}
+        url = _url("/rules")
+        params = {"locationId": self.location_id, "limit": LocationContext.RULES_LIMIT}
+        response = requests.get(url=url, headers=self.headers, params=params)
+        _raise_for_status(response)
+        for item in response.json()["items"]:
+            rule_id = item["id"]
+            rule_by_id[rule_id] = item
+        logging.info("Location [%s] has %d rules", self.location, len(rule_by_id))
+        logging.debug("Rules by id:\n%s", json.dumps(rule_by_id, indent=2))
+        return rule_by_id
+
 
 # Context managed by the SmartThings context manager
 CONTEXT: ContextVar[LocationContext] = ContextVar("CONTEXT")
@@ -169,11 +193,67 @@ def _raise_for_status(response: Response) -> None:
         raise SmartThingsClientError("%s" % e) from e
 
 
+def _build_specific(days: List[TriggerDay], trigger_time: TriggerTime, variation: TriggerVariation) -> Dict[str, Any]:
+    """Build a specific time for a rule to execute."""
+    variation_minutes = parse_variation(variation)
+    reference, offset = parse_trigger_time(trigger_time, variation_minutes)
+    days_of_week = parse_days(days)
+    specific: Dict[str, Any] = {"reference": reference, "daysOfWeek": days_of_week}
+    if offset:
+        specific["offset"] = {"value": {"integer": offset}, "unit": "Minute"}
+    return {"specific": specific}
+
+
+def _build_actions(device_ids: List[str], state: SwitchState) -> List[Dict[str, Any]]:
+    """Build a list of actions (commands) to execute with in a rule."""
+    command = {"component": "main", "capability": "switch", "command": "on" if state == SwitchState.ON else "off"}
+    return [{"command": {"devices": device_ids, "commands": [command]}}]
+
+
+def _build_rule(
+    name: str,
+    device_ids: List[str],
+    days: List[TriggerDay],
+    trigger_time: TriggerTime,
+    variation: TriggerVariation,
+    state: SwitchState,
+) -> Dict[str, Any]:
+    """Build a rule for a trigger state change, either on or off."""
+    specific = _build_specific(days, trigger_time, variation)
+    actions = _build_actions(device_ids, state)
+    return {"name": name, "actions": [{"every": {"specific": specific, "actions": actions}}]}
+
+
+def _build_trigger(name: str, device_ids: List[str], trigger: Trigger) -> List[Dict[str, Any]]:
+    """Build all rules for a trigger."""
+    on = _build_rule("%s/on" % name, device_ids, trigger.days, trigger.on_time, trigger.variation, SwitchState.ON)
+    off = _build_rule("%s/off" % name, device_ids, trigger.days, trigger.off_time, trigger.variation, SwitchState.OFF)
+    return [on, off]
+
+
+def _build_group(name: str, group: DeviceGroup) -> List[Dict[str, Any]]:
+    """Build all rules for a device group."""
+    rules = []
+    device_ids = [_device_id(device) for device in group.devices]
+    for index, trigger in enumerate(group.triggers):
+        rules += _build_trigger("%s/%s/trigger[%d]" % (name, group.name, index), device_ids, trigger)
+    return rules
+
+
+def build_plan_rules(schema: PlanSchema) -> List[Dict[str, Any]]:
+    """Build all rules for a plan."""
+    rules = []
+    for group in schema.plan.groups:
+        rules += _build_group("vplan/%s" % schema.plan.name, group)
+    return rules
+
+
 def set_switch(device: Device, state: SwitchState) -> None:
     """Switch a device on or off."""
+    command = "on" if state == SwitchState.ON else "off"
+    request = {"commands": [{"component": "main", "capability": "switch", "command": command}]}
     url = _url("/devices/%s/commands" % _device_id(device))
-    command = ON_COMMAND if state is SwitchState.ON else OFF_COMMAND
-    response = requests.post(url=url, headers=_headers(), json=command)
+    response = requests.post(url=url, headers=_headers(), json=request)
     _raise_for_status(response)
 
 

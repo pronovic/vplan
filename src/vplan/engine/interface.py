@@ -7,7 +7,9 @@ The public API model.
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
 
 import re
+from datetime import datetime
 from enum import Enum
+from random import randint
 from typing import List, Optional, Tuple, Type, Union
 
 import pytz
@@ -20,7 +22,7 @@ TRIGGER_DAY_REGEX = re.compile(
     r"^(all|every|weekday(s)?|weekend(s)?|(sun(day)?)|mon(day)?|tue(sday)?|wed(nesday)?|thu(rsday)?|fri(day)?|sat(urday)?)$"
 )
 TRIGGER_TIME_REGEX = re.compile(r"^(sunrise|sunset|midnight|noon|\d{2}:\d{2})$")
-TRIGGER_VARIATION_REGEX = re.compile(r"^(disabled|none|([+]/-|[+]|-) (\d+) (hour(s)?|minute(s)?|second(s)?))$")
+TRIGGER_VARIATION_REGEX = re.compile(r"^(disabled|none|([+]/-|[+]|-) (\d+) (hour(s)?|minute(s)?))$")
 SIMPLE_TIME_REGEX = re.compile(r"^((\d{2}):(\d{2}))$")
 
 ONLY_ACCOUNT = "default"
@@ -206,12 +208,76 @@ class Account(YamlModel):
     pat_token: SmartThingsId = Field(..., description="SmartThings PAT token")
 
 
-def parse_time(time: str) -> Tuple[int, int]:
+def parse_variation(variation: str) -> Optional[int]:
+    """Parse a variation, returning random minutes (or None) to modify a trigger time."""
+    match = TRIGGER_VARIATION_REGEX.match(variation) if variation else None
+    if not match:
+        raise ValueError("Invalid variation")
+    if match.group(1) in ["disabled", "none"]:
+        return None
+    direction = match.group(2)
+    duration = int(match.group(3))
+    unit = match.group(4)
+    if unit.startswith("hour"):
+        duration *= 60  # convert all durations to minutes
+    if direction == "+":
+        return randint(0, duration)
+    elif direction == "-":
+        return randint(-duration, 0)
+    else:
+        return randint(-duration, duration)
+
+
+def parse_time(time: Union[str, SimpleTime]) -> Tuple[int, int]:
     """Parse a time string in SimpleTime format and return (hour, minute)."""
     match = SIMPLE_TIME_REGEX.match(time) if time else None
     if not match:
-        raise ValueError("Invalid SimpleTime: %s" % time)
+        raise ValueError("Invalid time")
     hour, minute = int(match.group(2)), int(match.group(3))
     if (hour < 0 or hour > 23) or (minute < 0 or minute > 59):
         raise ValueError("Invalid SimpleTime: %s" % time)
     return hour, minute
+
+
+def parse_trigger_time(trigger: Union[str, TriggerTime], variation: Optional[int]) -> Tuple[str, Optional[int]]:
+    """Parse a trigger time and return (reference, offset)."""
+    match = TRIGGER_TIME_REGEX.match(trigger) if trigger else None
+    if not match:
+        raise ValueError("Invalid trigger_time")
+    if match.group(1) == "sunrise":
+        return "Sunrise", variation
+    elif match.group(1) == "sunset":
+        return "Sunset", variation
+    elif match.group(1) == "midnight":
+        return "Midnight", variation if variation else None  # can't use negative numbers with Midnight
+    elif match.group(1) == "noon":
+        return "Noon", variation
+    else:
+        seconds = (datetime.strptime(match.group(1), "%H:%M") - datetime.strptime("00:00", "%H:%M")).total_seconds()
+        minutes = round(seconds / 60) if seconds >= 0 else 0
+        offset = minutes + (variation if variation else 0)
+        return "Midnight", offset if offset else None  # can't use negative numbers with Midnight
+
+
+def parse_day(day: Union[str, TriggerDay]) -> List[str]:
+    """Parse a trigger day and return a normalized list of SmartThings days."""
+    match = TRIGGER_DAY_REGEX.match(day) if day else None
+    if not match:
+        raise ValueError("Invalid day")
+    if day.startswith("all") or day.startswith("every"):
+        return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    elif day.startswith("weekday"):
+        return ["Mon", "Tue", "Wed", "Thu", "Fri"]
+    elif day.startswith("weekend"):
+        return ["Sun", "Sat"]
+    else:
+        return [day[0:3].capitalize()]
+
+
+def parse_days(days: Union[List[str], List[TriggerDay]]) -> List[str]:
+    """Parse a list of trigger days and return a normalized list of SmartThings days."""
+    result = set()
+    for day in days:
+        for normalized in parse_day(day):
+            result.add(normalized)
+    return list(result)
