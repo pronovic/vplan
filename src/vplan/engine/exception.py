@@ -14,9 +14,5 @@ class EngineError(Exception):
         self.message = message
 
 
-class AlreadyExistsError(EngineError):
-    """A resource already exists."""
-
-
 class SmartThingsClientError(EngineError):
     """An error invoking the SmartThings API."""

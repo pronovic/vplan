@@ -5,9 +5,8 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy.exc import NoResultFound
+from sqlalchemy.exc import IntegrityError, NoResultFound
 
-from vplan.engine.exception import AlreadyExistsError
 from vplan.engine.server import API
 from vplan.interface import Account, Device, Plan, PlanSchema, Status
 
@@ -50,7 +49,7 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.schedule_immediate_refresh")
     @patch("vplan.engine.routers.plan.db_create_plan")
     def test_create_plan_duplicate(self, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
-        db_create_plan.side_effect = AlreadyExistsError("hello")
+        db_create_plan.side_effect = IntegrityError("x", "y", "z")
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         response = CLIENT.post(url="/plan", data=schema.json())
         assert response.status_code == 409
