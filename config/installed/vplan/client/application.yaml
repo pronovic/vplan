@@ -1,2 +1,2 @@
 mode: socket
-api_socket: {HOME}/.config/vplan/run/engine.sock
+api_socket: {HOME}/.config/vplan/server/run/engine.sock

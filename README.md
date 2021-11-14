@@ -115,8 +115,21 @@ $ vplan check
 API is healthy, versions: package='0.2.0' api='1.0.0'
 ```
 
-Finally, reboot and confirm that the service starts automatically, as expected.
-You can use the same `vplan check` test after reboot to confirm things are
+If necessary, you can check the logs from the service:
+
+```
+$ journalctl --user-unit vplan
+```
+
+If you do need to change any of the systemd config files (unlikely), make sure
+to reload them afterwards, before trying to do any further testing:
+
+```
+$ systemctl --user daemon-reload
+```
+
+Finally, reboot and confirm that the service starts automatically.  After
+reboot, use the same `vplan check` command shown above to confirm things are
 working.
 
 ## Setting Up Your Account
