@@ -11,7 +11,7 @@ from busypie import SECOND, wait
 from tzlocal import get_localzone
 
 from vplan.engine.config import DailyJobConfig, SchedulerConfig
-from vplan.engine.interface import ServerException
+from vplan.engine.exception import EngineError
 from vplan.engine.scheduler import (
     schedule_daily_job,
     schedule_immediate_job,
@@ -117,5 +117,5 @@ class TestLifecycle:
 
         finally:
             shutdown_scheduler()
-            with pytest.raises(ServerException, match=r"Scheduler is not available"):
+            with pytest.raises(EngineError, match=r"Scheduler is not available"):
                 scheduler()

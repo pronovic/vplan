@@ -12,7 +12,7 @@ from typing import Optional
 from pydantic import Field, NonNegativeInt  # pylint: disable=no-name-in-module
 from pydantic_yaml import YamlModel
 
-from vplan.engine.interface import ServerException
+from vplan.engine.exception import EngineError
 from vplan.util import replace_envvars
 
 # We read this environment variable to find the server configuration YAML file on disk
@@ -57,9 +57,9 @@ def _load_config(config_path: Optional[str] = None) -> ServerConfig:
     if not config_path:
         config_path = os.environ[CONFIG_VAR] if CONFIG_VAR in os.environ else None
         if not config_path:
-            raise ServerException("Server is not properly configured, no $%s found" % CONFIG_VAR)
+            raise EngineError("Server is not properly configured, no $%s found" % CONFIG_VAR)
     if not (isfile(config_path) and access(config_path, R_OK)):
-        raise ServerException("Server configuration is not readable: %s" % config_path)
+        raise EngineError("Server configuration is not readable: %s" % config_path)
     with open(config_path, "r", encoding="utf8") as fp:
         yaml = replace_envvars(fp.read())
         return ServerConfig.parse_raw(yaml)

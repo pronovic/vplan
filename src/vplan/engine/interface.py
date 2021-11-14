@@ -27,22 +27,6 @@ ONLY_ACCOUNT = "default"
 VPLAN_RULE_PREFIX = "vplan"
 
 
-class ServerException(Exception):
-    """A server exception."""
-
-    def __init__(self, message: str):
-        super().__init__(message)
-        self.message = message
-
-
-class AlreadyExistsError(ServerException):
-    """A resource already exists."""
-
-
-class SmartThingsClientError(ServerException):
-    """An error invoking the SmartThings API."""
-
-
 class SwitchState(str, Enum):
     """States that a switch can be in."""
 

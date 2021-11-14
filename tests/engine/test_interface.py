@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, ServerException, Status, Trigger, Version
+from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, Status, Trigger, Version
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long
@@ -67,13 +67,6 @@ DEVICES_EXPECTED = [
     Device(room="Julie's Office", device="Dresser Lamp"),
     Device(room="Basement", device="Lamp Under Window"),
 ]
-
-
-class TestExceptions:
-    def test_server_exception(self):
-        exception = ServerException("hello")
-        assert isinstance(exception, Exception)  # make sure parent class is right
-        assert exception.message == "hello"
 
 
 class TestModelsAndValidation:

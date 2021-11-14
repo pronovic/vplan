@@ -11,8 +11,9 @@ from sqlalchemy.exc import NoResultFound
 from starlette.responses import Response
 
 from .database import setup_database
+from .exception import AlreadyExistsError
 from .fastapi.extensions import EmptyResponse
-from .interface import AlreadyExistsError, Health, Version
+from .interface import Health, Version
 from .routers import account, plan
 from .scheduler import shutdown_scheduler, start_scheduler
 from .util import setup_directories

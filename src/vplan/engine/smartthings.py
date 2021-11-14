@@ -28,6 +28,7 @@ from requests import Response
 from requests.models import HTTPError
 
 from vplan.engine.config import config
+from vplan.engine.exception import SmartThingsClientError
 from vplan.engine.interface import (
     SIMPLE_TIME_REGEX,
     TRIGGER_DAY_REGEX,
@@ -38,7 +39,6 @@ from vplan.engine.interface import (
     DeviceGroup,
     PlanSchema,
     SimpleTime,
-    SmartThingsClientError,
     SwitchState,
     Trigger,
     TriggerDay,

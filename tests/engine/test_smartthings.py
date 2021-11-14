@@ -9,7 +9,8 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from requests.models import HTTPError
 
-from vplan.engine.interface import Device, DeviceGroup, SmartThingsClientError, SwitchState, Trigger
+from vplan.engine.exception import SmartThingsClientError
+from vplan.engine.interface import Device, DeviceGroup, SwitchState, Trigger
 from vplan.engine.smartthings import (
     CONTEXT,
     SmartThings,

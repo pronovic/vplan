@@ -7,7 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import NoResultFound
 
-from vplan.engine.interface import Account, AlreadyExistsError, Device, Plan, PlanSchema, Status
+from vplan.engine.exception import AlreadyExistsError
+from vplan.engine.interface import Account, Device, Plan, PlanSchema, Status
 from vplan.engine.server import API
 
 CLIENT = TestClient(API)

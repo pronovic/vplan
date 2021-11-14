@@ -16,7 +16,8 @@ from sqlalchemy.orm import Session, registry, sessionmaker
 from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from vplan.engine.config import config
-from vplan.engine.interface import ONLY_ACCOUNT, Account, PlanSchema, ServerException
+from vplan.engine.exception import EngineError
+from vplan.engine.interface import ONLY_ACCOUNT, Account, PlanSchema
 
 _REGISTRY = registry()
 _ENGINE: Optional[Engine] = None
@@ -56,7 +57,7 @@ class _PlanEntity(_BaseEntity):
 def engine() -> Engine:
     """Return a reference to the database engine."""
     if not _ENGINE:
-        raise ServerException("Database engine is not available")
+        raise EngineError("Database engine is not available")
     return _ENGINE
 
 
