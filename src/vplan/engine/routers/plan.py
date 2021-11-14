@@ -115,19 +115,19 @@ def refresh_plan(plan_name: str) -> None:
 
 
 @ROUTER.post("/plan/{plan_name}/test/group/{group_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def toggle_group(plan_name: str, group_name: str, toggles: int = 2) -> None:
+def toggle_group(plan_name: str, group_name: str, toggles: int, delay_sec: int) -> None:
     """Test a device group that is part of a plan."""
     schema = db_retrieve_plan(plan_name=plan_name)
     location = schema.plan.location
     devices = schema.devices(group_name=group_name)
     if not devices:
         raise NoResultFound("Group not found or no devices in group")
-    toggle_devices(location=location, devices=devices, toggles=toggles)
+    toggle_devices(location=location, devices=devices, toggles=toggles, delay_sec=delay_sec)
     logging.info("Toggled group: %s in %s running at location %s", group_name, schema.plan.name, schema.plan.location)
 
 
 @ROUTER.post("/plan/{plan_name}/test/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def toggle_device(plan_name: str, room: str, device: str, toggles: int = 2) -> None:
+def toggle_device(plan_name: str, room: str, device: str, toggles: int, delay_sec: int) -> None:
     """Test a device that is part of a plan."""
     item = Device(room=room, device=device)
     schema = db_retrieve_plan(plan_name=plan_name)
@@ -135,5 +135,5 @@ def toggle_device(plan_name: str, room: str, device: str, toggles: int = 2) -> N
     devices = schema.devices()
     if item not in devices:
         raise NoResultFound("Device not found in plan")
-    toggle_devices(location=location, devices=[item], toggles=toggles)
+    toggle_devices(location=location, devices=[item], toggles=toggles, delay_sec=delay_sec)
     logging.info("Toggled device: %s/%s in %s running at location %s", room, device, schema.plan.name, schema.plan.location)

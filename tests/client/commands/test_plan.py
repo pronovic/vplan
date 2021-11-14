@@ -304,7 +304,7 @@ class TestTest:
         result = invoke(["test", "xxx", option, "room/device"])
         assert result.exit_code == 0
         assert result.output == "Testing device: room/device\n"
-        toggle_device.assert_called_once_with("xxx", "room", "device", 2)
+        toggle_device.assert_called_once_with("xxx", "room", "device", 2, 5)
 
     @pytest.mark.parametrize(
         "option",
@@ -315,7 +315,7 @@ class TestTest:
         result = invoke(["test", "xxx", option, "group"])
         assert result.exit_code == 0
         assert result.output == "Testing group: group\n"
-        toggle_group.assert_called_once_with("xxx", "group", 2)
+        toggle_group.assert_called_once_with("xxx", "group", 2, 5)
 
     @patch("vplan.client.commands.plan.retrieve_plan")
     def test_not_found(self, retrieve_plan):
@@ -325,19 +325,27 @@ class TestTest:
         assert "Plan does not exist: xxx" in result.output
         retrieve_plan.assert_called_once_with("xxx")
 
-    @patch("vplan.client.commands.plan.click.prompt")
+    @patch("vplan.client.commands.plan.click.confirm")
     @patch("vplan.client.commands.plan.toggle_group")
     @patch("vplan.client.commands.plan.retrieve_plan")
-    def test_entire_plan(self, retrieve_plan, toggle_group, prompt):
+    def test_entire_plan(self, retrieve_plan, toggle_group, confirm):
         groups = [DeviceGroup(name="group", devices=[], triggers=[])]
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
         retrieve_plan.return_value = schema
         result = invoke(["test", "xxx"])
+        # print("RESULT:[%s]" % result.output)
         assert result.exit_code == 0
-        assert result.output == "Testing group: group\n"
+        assert (
+            result.output
+            == """Testing entire plan.
+Toggles per device: 2
+Delay between toggles: 5 seconds
+
+"""
+        )
         retrieve_plan.assert_called_once_with("xxx")
-        toggle_group.assert_called_once_with("xxx", "group", 2)
-        prompt.assert_called_once_with("Press enter to continue")
+        toggle_group.assert_called_once_with("xxx", "group", 2, 5)
+        confirm.assert_called_once_with("Press enter to test group group", show_default=False, prompt_suffix="")
 
     @pytest.mark.parametrize(
         "option",
@@ -351,27 +359,67 @@ class TestTest:
         retrieve_plan.return_value = schema
         result = invoke(["test", "xxx", option])
         assert result.exit_code == 0
-        assert result.output == "Testing group: group\n"
+        assert (
+            result.output
+            == """Testing entire plan.
+Toggles per device: 2
+Delay between toggles: 5 seconds
+
+Testing group: group
+"""
+        )
         retrieve_plan.assert_called_once_with("xxx")
-        toggle_group.assert_called_once_with("xxx", "group", 2)
+        toggle_group.assert_called_once_with("xxx", "group", 2, 5)
 
     @pytest.mark.parametrize(
         "option",
         ["--toggles", "-t"],
     )
-    @patch("vplan.client.commands.plan.click.prompt")
+    @patch("vplan.client.commands.plan.click.confirm")
     @patch("vplan.client.commands.plan.toggle_group")
     @patch("vplan.client.commands.plan.retrieve_plan")
-    def test_entire_plan_toggles(self, retrieve_plan, toggle_group, prompt, option):
+    def test_entire_plan_toggles(self, retrieve_plan, toggle_group, confirm, option):
         groups = [DeviceGroup(name="group", devices=[], triggers=[])]
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
         retrieve_plan.return_value = schema
         result = invoke(["test", "xxx", option, "99"])
         assert result.exit_code == 0
-        assert result.output == "Testing group: group\n"
+        assert (
+            result.output
+            == """Testing entire plan.
+Toggles per device: 99
+Delay between toggles: 5 seconds
+
+"""
+        )
         retrieve_plan.assert_called_once_with("xxx")
-        toggle_group.assert_called_once_with("xxx", "group", 99)
-        prompt.assert_called_once_with("Press enter to continue")
+        toggle_group.assert_called_once_with("xxx", "group", 99, 5)
+        confirm.assert_called_once_with("Press enter to test group group", show_default=False, prompt_suffix="")
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--delay-sec", "-s"],
+    )
+    @patch("vplan.client.commands.plan.click.confirm")
+    @patch("vplan.client.commands.plan.toggle_group")
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_entire_plan_delay(self, retrieve_plan, toggle_group, confirm, option):
+        groups = [DeviceGroup(name="group", devices=[], triggers=[])]
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
+        retrieve_plan.return_value = schema
+        result = invoke(["test", "xxx", option, "99"])
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == """Testing entire plan.
+Toggles per device: 2
+Delay between toggles: 99 seconds
+
+"""
+        )
+        retrieve_plan.assert_called_once_with("xxx")
+        toggle_group.assert_called_once_with("xxx", "group", 2, 99)
+        confirm.assert_called_once_with("Press enter to test group group", show_default=False, prompt_suffix="")
 
 
 class TestUpdate:

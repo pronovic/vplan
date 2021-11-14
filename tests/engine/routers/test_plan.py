@@ -207,20 +207,27 @@ class TestRoutes:
         db_retrieve_plan.assert_called_once_with(plan_name="thename")
         schedule_immediate_refresh.assert_called_once_with(plan_name="name", location="location")
 
-    @pytest.mark.parametrize("params,count", [({}, 2), ({"toggles": 4}, 4)], ids=["no param", "with param"])
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
-    def test_toggle_group(self, db_retrieve_plan, toggle_devices, params, count):
+    def test_toggle_group(
+        self,
+        db_retrieve_plan,
+        toggle_devices,
+    ):
         device = Device(room="yyy", device="zzz")
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[device])
         db_retrieve_plan.return_value = schema
+        params = {
+            "toggles": 4,
+            "delay_sec": 10,
+        }
         response = CLIENT.post(url="/plan/xxx/test/group/yyy", params=params)
         assert response.status_code == 204
         assert not response.text
         schema.devices.assert_called_once_with(group_name="yyy")
-        toggle_devices.assert_called_once_with(location="bbb", devices=[device], toggles=count)
+        toggle_devices.assert_called_once_with(location="bbb", devices=[device], toggles=4, delay_sec=10)
 
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
@@ -229,25 +236,32 @@ class TestRoutes:
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[])
         db_retrieve_plan.return_value = schema
-        response = CLIENT.post(url="/plan/xxx/test/group/yyy")
+        params = {
+            "toggles": 4,
+            "delay_sec": 10,
+        }
+        response = CLIENT.post(url="/plan/xxx/test/group/yyy", params=params)
         assert response.status_code == 404
         assert not response.text
         schema.devices.assert_called_once_with(group_name="yyy")
         toggle_devices.assert_not_called()
 
-    @pytest.mark.parametrize("params,count", [({}, 2), ({"toggles": 4}, 4)], ids=["no param", "with param"])
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
-    def test_toggle_device(self, db_retrieve_plan, toggle_devices, params, count):
+    def test_toggle_device(self, db_retrieve_plan, toggle_devices):
         device = Device(room="yyy", device="zzz")
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[device])
         db_retrieve_plan.return_value = schema
+        params = {
+            "toggles": 4,
+            "delay_sec": 10,
+        }
         response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz", params=params)
         assert response.status_code == 204
         assert not response.text
-        toggle_devices.assert_called_once_with(location="bbb", devices=[device], toggles=count)
+        toggle_devices.assert_called_once_with(location="bbb", devices=[device], toggles=4, delay_sec=10)
 
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
@@ -256,7 +270,11 @@ class TestRoutes:
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[])  # our device is not in this list, by definition
         db_retrieve_plan.return_value = schema
-        response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz")
+        params = {
+            "toggles": 4,
+            "delay_sec": 10,
+        }
+        response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz", params=params)
         assert response.status_code == 404
         assert not response.text
         toggle_devices.assert_not_called()

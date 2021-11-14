@@ -216,7 +216,20 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     show_default=True,
     help="Number of times to toggle each device or group.",
 )
-def test(plan_name: str, auto: bool, toggles: int, group_name: Optional[str] = None, device_path: Optional[str] = None) -> None:
+@click.option(
+    "--delay-sec",
+    "-s",
+    "delay_sec",
+    metavar="<delay-sec>",
+    required=False,
+    default=5,
+    type=click.INT,
+    show_default=True,
+    help="Seconds to delay between each toggle",
+)
+def test(
+    plan_name: str, auto: bool, toggles: int, delay_sec: int, group_name: Optional[str] = None, device_path: Optional[str] = None
+) -> None:
     """
     Test all devices that are a part of a plan.
 
@@ -231,20 +244,29 @@ def test(plan_name: str, auto: bool, toggles: int, group_name: Optional[str] = N
     A device group or device is tested by toggling it on and off several times,
     to prove that it is wired up properly and can be controlled by the plan
     engine.  Control the number of toggles using the --toggle option.
+
+    If you try to toggle the state too quickly, even for local Zigbee devices,
+    the toggles sometimes don't work as expected.  At least a 5 second delay
+    appears to work best.
     """
     if device_path:
         room, device = device_path.split("/")
         click.secho("Testing device: %s/%s" % (room, device))
-        toggle_device(plan_name, room, device, toggles)
+        toggle_device(plan_name, room, device, toggles, delay_sec)
     elif group_name:
         click.secho("Testing group: %s" % group_name)
-        toggle_group(plan_name, group_name, toggles)
+        toggle_group(plan_name, group_name, toggles, delay_sec)
     else:
         result = retrieve_plan(plan_name)
         if not result:
             raise click.ClickException("Plan does not exist: %s" % plan_name)
+        click.secho("Testing entire plan.")
+        click.secho("Toggles per device: %d" % toggles)
+        click.secho("Delay between toggles: %d seconds" % delay_sec)
+        click.secho("")
         for group in result.plan.groups:
-            click.secho("Testing group: %s" % group.name)
-            if not auto:
-                click.prompt("Press enter to continue")
-            toggle_group(plan_name, group.name, toggles)
+            if auto:
+                click.secho("Testing group: %s" % group.name)
+            else:
+                click.confirm("Press enter to test group %s" % group.name, show_default=False, prompt_suffix="")
+            toggle_group(plan_name, group.name, toggles, delay_sec)

@@ -12,7 +12,6 @@ from typing import List, Union
 import pytz
 from sqlalchemy.exc import NoResultFound
 
-from vplan.engine.config import config
 from vplan.engine.database import db_retrieve_account, db_retrieve_plan, db_retrieve_plan_enabled
 from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
 from vplan.engine.smartthings import SmartThings, build_plan_rules, parse_time, replace_rules, set_switch
@@ -54,23 +53,17 @@ def validate_plan(schema: PlanSchema) -> None:
         build_plan_rules(schema)
 
 
-def toggle_devices(location: str, devices: List[Device], toggles: int) -> None:
-    """
-    Toggle group of devices, switching them on and off a certain number of times.
-
-    This is sensitive to timing.  I've found that if you try to toggle the state
-    too quickly, even for local Zigbee devices, that sometimes the toggles don't work
-    as expected.  So, I recommend configuring at least a 5-second delay between toggles.
-    """
+def toggle_devices(location: str, devices: List[Device], toggles: int, delay_sec: int) -> None:
+    """Toggle group of devices, switching them on and off a certain number of times."""
 
     account = db_retrieve_account()
     with SmartThings(account.pat_token, location):
         for test in range(0, toggles):
             if test > 0:
-                sleep(config().smartthings.toggle_delay_sec)
+                sleep(delay_sec)
             for device in devices:
                 set_switch(device, SwitchState.ON)
-            sleep(config().smartthings.toggle_delay_sec)
+            sleep(delay_sec)
             for device in devices:
                 set_switch(device, SwitchState.OFF)
 

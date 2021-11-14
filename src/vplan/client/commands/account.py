@@ -66,7 +66,7 @@ def set_account(token: Optional[str]) -> None:
          Control this rule (x:rules:*)
     """
     if not token:
-        token = click.prompt("Enter PAT token")
+        token = click.prompt("Enter PAT token", hide_input=True)
     result = Account(pat_token=token)
     create_or_replace_account(result)
     click.secho("Account information set")

@@ -64,10 +64,10 @@ class TestToggle:
         device1 = Device(room="r", device="d1")
         device2 = Device(room="r", device="d2")
 
-        smartthings = MagicMock(base_api_url="http://whatever", toggle_delay_sec=10)
+        smartthings = MagicMock(base_api_url="http://whatever")
         config.return_value = MagicMock(smartthings=smartthings)
 
-        toggle_devices(location="location", devices=[device1, device2], toggles=2)
+        toggle_devices(location="location", devices=[device1, device2], toggles=2, delay_sec=5)
 
         context.assert_called_once_with("token", "location")
 
@@ -85,7 +85,7 @@ class TestToggle:
             set_switch,
         ]
 
-        sleep.assert_has_calls([call(10)] * 3)
+        sleep.assert_has_calls([call(5)] * 3)  # 5 seconds of delay 3 different times
 
         set_switch.assert_has_calls(
             [

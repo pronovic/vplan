@@ -44,7 +44,6 @@ class SchedulerConfig(YamlModel):
 class SmartThingsConfig(YamlModel):
     """Scheduler configuration."""
 
-    toggle_delay_sec: float = Field(..., description="The number of seconds to delay between on/off actions when testing")
     base_api_url: str = Field(..., description="URL for the SmartThings API")
 
 

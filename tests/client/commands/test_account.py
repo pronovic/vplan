@@ -91,6 +91,7 @@ class TestSet:
         result = invoke(["set"])
         assert result.exit_code == 0
         assert result.output == "Account information set\n"
+        prompt.assert_called_once_with("Enter PAT token", hide_input=True)
         create_or_replace_account.assert_called_once_with(Account(pat_token="token"))
 
     @pytest.mark.parametrize("option", ["--token", "-t"])
