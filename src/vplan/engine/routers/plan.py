@@ -13,7 +13,6 @@ from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_204_NO_CONTENT
 from vplan.engine.database import (
     db_create_plan,
     db_delete_plan,
-    db_retrieve_account,
     db_retrieve_all_plans,
     db_retrieve_plan,
     db_retrieve_plan_enabled,
@@ -21,7 +20,13 @@ from vplan.engine.database import (
     db_update_plan_enabled,
 )
 from vplan.engine.fastapi.extensions import EmptyResponse
-from vplan.engine.manager import schedule_daily_refresh, schedule_immediate_refresh, toggle_devices, unschedule_daily_refresh
+from vplan.engine.manager import (
+    schedule_daily_refresh,
+    schedule_immediate_refresh,
+    toggle_devices,
+    unschedule_daily_refresh,
+    validate_plan,
+)
 from vplan.interface import Device, PlanSchema, Status
 
 ROUTER = APIRouter()
@@ -42,6 +47,7 @@ def retrieve_plan(plan_name: str) -> PlanSchema:
 @ROUTER.post("/plan", status_code=HTTP_201_CREATED, response_class=EmptyResponse)
 def create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
+    validate_plan(schema=schema)
     db_create_plan(schema=schema)
     schedule_immediate_refresh(plan_name=schema.plan.name, location=schema.plan.location)
     schedule_daily_refresh(
@@ -55,6 +61,7 @@ def create_plan(schema: PlanSchema) -> None:
 @ROUTER.put("/plan", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
+    validate_plan(schema=schema)
     db_update_plan(schema=schema)
     schedule_immediate_refresh(plan_name=schema.plan.name, location=schema.plan.location)
     schedule_daily_refresh(
@@ -99,23 +106,21 @@ def refresh_plan(plan_name: str) -> None:
 @ROUTER.post("/plan/{plan_name}/test/group/{group_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def toggle_group(plan_name: str, group_name: str, toggles: int = 2) -> None:
     """Test a device group that is part of a plan."""
-    account = db_retrieve_account()
     schema = db_retrieve_plan(plan_name=plan_name)
     location = schema.plan.location
     devices = schema.devices(group_name=group_name)
     if not devices:
         raise NoResultFound("Group not found or no devices in group")
-    toggle_devices(pat_token=account.pat_token, location=location, devices=devices, toggles=toggles)
+    toggle_devices(location=location, devices=devices, toggles=toggles)
 
 
 @ROUTER.post("/plan/{plan_name}/test/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def toggle_device(plan_name: str, room: str, device: str, toggles: int = 2) -> None:
     """Test a device that is part of a plan."""
     item = Device(room=room, device=device)
-    account = db_retrieve_account()
     schema = db_retrieve_plan(plan_name=plan_name)
     location = schema.plan.location
     devices = schema.devices()
     if item not in devices:
         raise NoResultFound("Device not found in plan")
-    toggle_devices(pat_token=account.pat_token, location=location, devices=[item], toggles=toggles)
+    toggle_devices(location=location, devices=[item], toggles=toggles)

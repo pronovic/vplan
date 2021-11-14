@@ -28,7 +28,7 @@ from requests import Response
 from requests.models import HTTPError
 
 from vplan.engine.config import config
-from vplan.engine.exception import SmartThingsClientError
+from vplan.engine.exception import InvalidPlanError, SmartThingsClientError
 from vplan.interface import (
     SIMPLE_TIME_REGEX,
     TRIGGER_DAY_REGEX,
@@ -218,7 +218,10 @@ def _build_actions(device_ids: List[str], state: SwitchState) -> List[Dict[str, 
 
 def device_id(device: Device) -> str:
     """Get the device id for a device from the context."""
-    return CONTEXT.get().device_by_name["%s/%s" % (device.room, device.device)]
+    key = "%s/%s" % (device.room, device.device)
+    if not key in CONTEXT.get().device_by_name:
+        raise InvalidPlanError("Invalid device: %s" % key)
+    return CONTEXT.get().device_by_name[key]
 
 
 def location_id() -> str:

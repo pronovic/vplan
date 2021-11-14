@@ -14,5 +14,9 @@ class EngineError(Exception):
         self.message = message
 
 
+class InvalidPlanError(EngineError):
+    """A plan is invalid and cannot be used to generate rules."""
+
+
 class SmartThingsClientError(EngineError):
     """An error invoking the SmartThings API."""

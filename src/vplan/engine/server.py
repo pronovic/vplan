@@ -5,12 +5,14 @@
 The RESTful API.
 """
 from importlib.metadata import version as metadata_version
+from typing import Dict
 
 from fastapi import FastAPI, Request
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from starlette.responses import Response
 
 from vplan.engine.database import setup_database
+from vplan.engine.exception import InvalidPlanError
 from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.routers import account, plan
 from vplan.engine.scheduler import shutdown_scheduler, start_scheduler
@@ -23,14 +25,28 @@ API.include_router(account.ROUTER)
 API.include_router(plan.ROUTER)
 
 
+def _status_reason(e: Exception) -> Dict[str, str]:
+    """Build status reason headers for an error handler."""
+    # Technically, this could leak private information, such as about our table structures.
+    # In a public-facing application, I would care about this.  For my use case, I'd rather
+    # have the information available for debugging purposes.
+    reason = ("%s" % e)[0:80]
+    return {"vplan-status-reason": reason}
+
+
 @API.exception_handler(NoResultFound)
-async def not_found_handler(request: Request, e: NoResultFound) -> Response:  # pylint: disable=unused-argument
-    return EmptyResponse(status_code=404)
+async def not_found_handler(_: Request, e: NoResultFound) -> Response:
+    return EmptyResponse(status_code=404, headers=_status_reason(e))
 
 
 @API.exception_handler(IntegrityError)
-async def already_exists_handler(request: Request, e: IntegrityError) -> Response:  # pylint: disable=unused-argument
-    return EmptyResponse(status_code=409)
+async def already_exists_handler(_: Request, e: IntegrityError) -> Response:
+    return EmptyResponse(status_code=409, headers=_status_reason(e))
+
+
+@API.exception_handler(InvalidPlanError)
+async def invalid_plan_handler(_: Request, e: InvalidPlanError) -> Response:
+    return EmptyResponse(status_code=422, headers=_status_reason(e))
 
 
 @API.on_event("startup")

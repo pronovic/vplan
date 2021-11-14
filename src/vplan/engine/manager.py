@@ -15,8 +15,8 @@ from sqlalchemy.exc import NoResultFound
 from vplan.engine.config import config
 from vplan.engine.database import db_retrieve_account, db_retrieve_plan, db_retrieve_plan_enabled
 from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
-from vplan.engine.smartthings import SmartThings, parse_time, replace_rules, set_switch
-from vplan.interface import Device, SimpleTime, SwitchState, TimeZone
+from vplan.engine.smartthings import SmartThings, build_plan_rules, parse_time, replace_rules, set_switch
+from vplan.interface import Device, PlanSchema, SimpleTime, SwitchState, TimeZone
 from vplan.util import now
 
 
@@ -46,7 +46,15 @@ def schedule_immediate_refresh(plan_name: str, location: str) -> None:
     schedule_immediate_job(job_id, func, kwargs)
 
 
-def toggle_devices(pat_token: str, location: str, devices: List[Device], toggles: int) -> None:
+def validate_plan(schema: PlanSchema) -> None:
+    """Validate a plan schema, throwing InvalidPlanError if there are problems."""
+
+    account = db_retrieve_account()
+    with SmartThings(account.pat_token, schema.plan.location):
+        build_plan_rules(schema)
+
+
+def toggle_devices(location: str, devices: List[Device], toggles: int) -> None:
     """
     Toggle group of devices, switching them on and off a certain number of times.
 
@@ -55,7 +63,8 @@ def toggle_devices(pat_token: str, location: str, devices: List[Device], toggles
     as expected.  So, I recommend configuring at least a 5-second delay between toggles.
     """
 
-    with SmartThings(pat_token, location):
+    account = db_retrieve_account()
+    with SmartThings(account.pat_token, location):
         for test in range(0, toggles):
             if test > 0:
                 sleep(config().smartthings.toggle_delay_sec)

@@ -7,8 +7,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
+from vplan.engine.exception import InvalidPlanError
 from vplan.engine.server import API
-from vplan.interface import Account, Device, Plan, PlanSchema, Status
+from vplan.interface import Device, Plan, PlanSchema, Status
 
 CLIENT = TestClient(API)
 
@@ -36,11 +37,13 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.schedule_daily_refresh")
     @patch("vplan.engine.routers.plan.schedule_immediate_refresh")
     @patch("vplan.engine.routers.plan.db_create_plan")
-    def test_create_plan(self, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
+    @patch("vplan.engine.routers.plan.validate_plan")
+    def test_create_plan(self, validate_plan, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         response = CLIENT.post(url="/plan", data=schema.json())
         assert response.status_code == 201
         assert not response.text
+        validate_plan.assert_called_once_with(schema=schema)
         db_create_plan.assert_called_once_with(schema=schema)
         schedule_immediate_refresh.assert_called_once_with(plan_name="name", location="location")
         schedule_daily_refresh.assert_called_once_with(plan_name="name", location="location", refresh_time="00:30", time_zone="UTC")
@@ -48,12 +51,29 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.schedule_daily_refresh")
     @patch("vplan.engine.routers.plan.schedule_immediate_refresh")
     @patch("vplan.engine.routers.plan.db_create_plan")
-    def test_create_plan_duplicate(self, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
-        db_create_plan.side_effect = IntegrityError("x", "y", "z")
+    @patch("vplan.engine.routers.plan.validate_plan")
+    def test_create_plan_invalid(self, validate_plan, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+        validate_plan.side_effect = InvalidPlanError("error")
+        response = CLIENT.post(url="/plan", data=schema.json())
+        assert response.status_code == 422
+        assert not response.text
+        validate_plan.assert_called_once_with(schema=schema)
+        db_create_plan.assert_not_called()
+        schedule_immediate_refresh.assert_not_called()
+        schedule_daily_refresh.assert_not_called()
+
+    @patch("vplan.engine.routers.plan.schedule_daily_refresh")
+    @patch("vplan.engine.routers.plan.schedule_immediate_refresh")
+    @patch("vplan.engine.routers.plan.db_create_plan")
+    @patch("vplan.engine.routers.plan.validate_plan")
+    def test_create_plan_duplicate(self, validate_plan, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+        db_create_plan.side_effect = IntegrityError("x", "y", "z")
         response = CLIENT.post(url="/plan", data=schema.json())
         assert response.status_code == 409
         assert not response.text
+        validate_plan.assert_called_once_with(schema=schema)
         db_create_plan.assert_called_once_with(schema=schema)
         schedule_immediate_refresh.assert_not_called()
         schedule_daily_refresh.assert_not_called()
@@ -61,11 +81,13 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.schedule_daily_refresh")
     @patch("vplan.engine.routers.plan.schedule_immediate_refresh")
     @patch("vplan.engine.routers.plan.db_update_plan")
-    def test_update_plan(self, db_update_plan, schedule_immediate_refresh, schedule_daily_refresh):
+    @patch("vplan.engine.routers.plan.validate_plan")
+    def test_update_plan(self, validate_plan, db_update_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         response = CLIENT.put(url="/plan", data=schema.json())
         assert response.status_code == 204
         assert not response.text
+        validate_plan.assert_called_once_with(schema=schema)
         db_update_plan.assert_called_once_with(schema=schema)
         schedule_immediate_refresh.assert_called_once_with(plan_name="name", location="location")
         schedule_daily_refresh.assert_called_once_with(plan_name="name", location="location", refresh_time="00:30", time_zone="UTC")
@@ -73,12 +95,29 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.schedule_daily_refresh")
     @patch("vplan.engine.routers.plan.schedule_immediate_refresh")
     @patch("vplan.engine.routers.plan.db_update_plan")
-    def test_update_plan_not_found(self, db_update_plan, schedule_immediate_refresh, schedule_daily_refresh):
+    @patch("vplan.engine.routers.plan.validate_plan")
+    def test_update_plan_invalid(self, validate_plan, db_update_plan, schedule_immediate_refresh, schedule_daily_refresh):
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+        validate_plan.side_effect = InvalidPlanError("error")
+        response = CLIENT.put(url="/plan", data=schema.json())
+        assert response.status_code == 422
+        assert not response.text
+        validate_plan.assert_called_once_with(schema=schema)
+        db_update_plan.assert_not_called()
+        schedule_immediate_refresh.assert_not_called()
+        schedule_daily_refresh.assert_not_called()
+
+    @patch("vplan.engine.routers.plan.schedule_daily_refresh")
+    @patch("vplan.engine.routers.plan.schedule_immediate_refresh")
+    @patch("vplan.engine.routers.plan.db_update_plan")
+    @patch("vplan.engine.routers.plan.validate_plan")
+    def test_update_plan_not_found(self, validate_plan, db_update_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         db_update_plan.side_effect = NoResultFound("hello")
         response = CLIENT.put(url="/plan", data=schema.json())
         assert response.status_code == 404
         assert not response.text
+        validate_plan.assert_called_once_with(schema=schema)
         db_update_plan.assert_called_once_with(schema=schema)
         schedule_immediate_refresh.assert_not_called()
         schedule_daily_refresh.assert_not_called()
@@ -171,30 +210,24 @@ class TestRoutes:
     @pytest.mark.parametrize("params,count", [({}, 2), ({"toggles": 4}, 4)], ids=["no param", "with param"])
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
-    @patch("vplan.engine.routers.plan.db_retrieve_account")
-    def test_toggle_group(self, db_retrieve_account, db_retrieve_plan, toggle_devices, params, count):
-        account = Account(pat_token="aaa")
+    def test_toggle_group(self, db_retrieve_plan, toggle_devices, params, count):
         device = Device(room="yyy", device="zzz")
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[device])
-        db_retrieve_account.return_value = account
         db_retrieve_plan.return_value = schema
         response = CLIENT.post(url="/plan/xxx/test/group/yyy", params=params)
         assert response.status_code == 204
         assert not response.text
         schema.devices.assert_called_once_with(group_name="yyy")
-        toggle_devices.assert_called_once_with(pat_token="aaa", location="bbb", devices=[device], toggles=count)
+        toggle_devices.assert_called_once_with(location="bbb", devices=[device], toggles=count)
 
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
-    @patch("vplan.engine.routers.plan.db_retrieve_account")
-    def test_toggle_group_not_found(self, db_retrieve_account, db_retrieve_plan, toggle_devices):
-        account = Account(pat_token="aaa")
+    def test_toggle_group_not_found(self, db_retrieve_plan, toggle_devices):
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[])
-        db_retrieve_account.return_value = account
         db_retrieve_plan.return_value = schema
         response = CLIENT.post(url="/plan/xxx/test/group/yyy")
         assert response.status_code == 404
@@ -205,29 +238,23 @@ class TestRoutes:
     @pytest.mark.parametrize("params,count", [({}, 2), ({"toggles": 4}, 4)], ids=["no param", "with param"])
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
-    @patch("vplan.engine.routers.plan.db_retrieve_account")
-    def test_toggle_device(self, db_retrieve_account, db_retrieve_plan, toggle_devices, params, count):
-        account = Account(pat_token="aaa")
+    def test_toggle_device(self, db_retrieve_plan, toggle_devices, params, count):
         device = Device(room="yyy", device="zzz")
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[device])
-        db_retrieve_account.return_value = account
         db_retrieve_plan.return_value = schema
         response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz", params=params)
         assert response.status_code == 204
         assert not response.text
-        toggle_devices.assert_called_once_with(pat_token="aaa", location="bbb", devices=[device], toggles=count)
+        toggle_devices.assert_called_once_with(location="bbb", devices=[device], toggles=count)
 
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
-    @patch("vplan.engine.routers.plan.db_retrieve_account")
-    def test_toggle_device_not_found(self, db_retrieve_account, db_retrieve_plan, toggle_devices):
-        account = Account(pat_token="aaa")
+    def test_toggle_device_not_found(self, db_retrieve_plan, toggle_devices):
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[])  # our device is not in this list, by definition
-        db_retrieve_account.return_value = account
         db_retrieve_plan.return_value = schema
         response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz")
         assert response.status_code == 404

@@ -12,7 +12,7 @@ from vplan.engine.manager import (
     toggle_devices,
     unschedule_daily_refresh,
 )
-from vplan.interface import Device, SwitchState
+from vplan.interface import Account, Device, SwitchState
 
 
 class TestScheduler:
@@ -50,12 +50,16 @@ class TestToggle:
     @patch("vplan.engine.manager.set_switch")
     @patch("vplan.engine.manager.sleep")
     @patch("vplan.engine.manager.config")
-    def test_toggle_devices(self, config, sleep, set_switch, context):
+    @patch("vplan.engine.manager.db_retrieve_account")
+    def test_toggle_devices(self, db_retrieve_account, config, sleep, set_switch, context):
 
         # See: https://stackoverflow.com/a/68578027
         call_order = []
         sleep.side_effect = lambda *a, **kw: call_order.append(sleep)
         set_switch.side_effect = lambda *a, **kw: call_order.append(set_switch)
+
+        account = Account(pat_token="token")
+        db_retrieve_account.return_value = account
 
         device1 = Device(room="r", device="d1")
         device2 = Device(room="r", device="d2")
@@ -63,7 +67,7 @@ class TestToggle:
         smartthings = MagicMock(base_api_url="http://whatever", toggle_delay_sec=10)
         config.return_value = MagicMock(smartthings=smartthings)
 
-        toggle_devices(pat_token="token", location="location", devices=[device1, device2], toggles=2)
+        toggle_devices(location="location", devices=[device1, device2], toggles=2)
 
         context.assert_called_once_with("token", "location")
 
