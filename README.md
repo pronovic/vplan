@@ -58,24 +58,44 @@ environment, etc.
 ## Installing the Platform
 
 The platform is distributed at GitHub.  To install the software, download the `.whl` 
-file for the latest release, and install it using `pip`.
+file for the [latest release](https://github.com/pronovic/vplan/releases/latest), 
+and install it using `pip`, like:
+
+```
+$ pip install vplan-0.2.0-py3-none-any.whl
+```
 
 Next, configure the platform.  Download the configuration bundle for the latest
-release.  Extract the tar file within `~/.config`, your local configuration
-directory.  This creates two directories: `vplan` and `systemd`.  The `vplan`
-directory contains configuration for the vplan daemon process and the command
-line client.  The `systemd` directory contains configuration for the systemd
-user service that you will create shortly.  The default configuration should
-work for most people, so there is probably no need to modify any of these
-files. 
-
-Before going any further, make sure permissions are correct on all of these
-directories.  It's important that only you can read the data stored here:
+release.  Extract the tar file to your user configuration directory:
 
 ```
-$ cd ~/.config/vplan && find . -type d -exec chmod 700 \{} \;
-$ cd ~/.config/systemd && find . -type d -exec chmod 700 \{} \;
+$ mkdir -p ~/.config 
+$ tar zxvf vplan-config-0.2.0.tar.gz -C ~/.config
 ```
+
+This creates two directories within `~/.config`: `vplan` and `systemd`.  The
+`systemd` directory contains configuration for the systemd user service that
+you will create shortly:
+
+```
+systemd/user/vplan.service
+systemd/user/vplan.socket
+```
+
+The `vplan` directory contains configuration for the vplan daemon process and
+the command line client.  There are also two runtime directories, to contain
+the UNIX socket and the small database that is used to maintain state.
+
+```
+vplan/client/application.yaml
+vplan/server/application.yaml
+vplan/server/logging.yaml
+vplan/server/db
+vplan/server/run
+```
+
+The default configuration should work for most people, so there is probably no
+need to modify any of these files. 
 
 Next, configure systemd:
 
@@ -86,17 +106,18 @@ $ systemctl --user start vplan               # start the vplan service
 $ systemctl --user status vplan              # show status for the vplan service
 ```
 
-At this point, the systemd service should be running, and the command
-line client should be operable.  Check connectivity:
+At this point, the systemd service should be running, and the command line
+client should be operable.  Check connectivity.  If you get any errors, check
+that you installed the software as described above.
 
 ```
 $ vplan check
-API is healthy, versions: package='0.1.0' api='1.0.0'
+API is healthy, versions: package='0.2.0' api='1.0.0'
 ```
 
-The version will always vary from what is shown above, but the result should
-look similar.  If you get any errors, check that you installed the software as
-described above.
+Finally, reboot and confirm that the service starts automatically, as expected.
+You can use the same `vplan check` test after reboot to confirm things are
+working.
 
 ## Setting Up Your Account
 
