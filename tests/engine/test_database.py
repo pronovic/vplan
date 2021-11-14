@@ -21,7 +21,7 @@ from vplan.engine.database import (
     db_update_plan_enabled,
     setup_database,
 )
-from vplan.engine.interface import Account, Plan, PlanSchema
+from vplan.interface import Account, Plan, PlanSchema
 
 
 def fixture(filename: str) -> str:

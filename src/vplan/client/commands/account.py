@@ -10,7 +10,7 @@ from typing import Optional
 import click
 
 from vplan.client.client import create_or_replace_account, delete_account, retrieve_account, retrieve_all_plans
-from vplan.engine.interface import Account
+from vplan.interface import Account
 
 
 def _mask_token(token: str) -> str:

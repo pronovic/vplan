@@ -2,7 +2,7 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 
 """
-The public API model.
+The interface shared between the client and the engine.
 """
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
 

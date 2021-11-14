@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-from vplan.engine.interface import Account
 from vplan.engine.server import API
+from vplan.interface import Account
 
 CLIENT = TestClient(API)
 

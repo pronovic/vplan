@@ -8,7 +8,7 @@ import pytest
 from click.testing import CliRunner, Result
 
 from vplan.client.cli import vplan as command
-from vplan.engine.interface import Account
+from vplan.interface import Account
 
 
 # noinspection PyTypeChecker

@@ -13,7 +13,7 @@ import requests_unixsocket
 from requests import HTTPError, Response
 
 from vplan.client.config import api_url
-from vplan.engine.interface import Account, PlanSchema, Status, Version
+from vplan.interface import Account, PlanSchema, Status, Version
 
 # Add support in requests for http+unix:// URLs to use a UNIX socket
 requests_unixsocket.monkeypatch()

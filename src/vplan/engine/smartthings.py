@@ -29,7 +29,7 @@ from requests.models import HTTPError
 
 from vplan.engine.config import config
 from vplan.engine.exception import SmartThingsClientError
-from vplan.engine.interface import (
+from vplan.interface import (
     SIMPLE_TIME_REGEX,
     TRIGGER_DAY_REGEX,
     TRIGGER_TIME_REGEX,

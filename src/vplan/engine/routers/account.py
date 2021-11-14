@@ -10,7 +10,7 @@ from starlette.status import HTTP_200_OK, HTTP_204_NO_CONTENT
 
 from vplan.engine.database import db_create_or_replace_account, db_delete_account, db_retrieve_account
 from vplan.engine.fastapi.extensions import EmptyResponse
-from vplan.engine.interface import Account
+from vplan.interface import Account
 
 ROUTER = APIRouter()
 

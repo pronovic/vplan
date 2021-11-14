@@ -22,7 +22,7 @@ from vplan.client.client import (
     update_plan,
     update_plan_status,
 )
-from vplan.engine.interface import PlanSchema, Status
+from vplan.interface import PlanSchema, Status
 
 
 def _display_plan_status(plan_name: str) -> None:

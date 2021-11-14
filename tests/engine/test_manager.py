@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, call, patch
 
 from sqlalchemy.exc import NoResultFound
 
-from vplan.engine.interface import Device, SwitchState
 from vplan.engine.manager import (
     refresh_plan,
     schedule_daily_refresh,
@@ -13,6 +12,7 @@ from vplan.engine.manager import (
     toggle_devices,
     unschedule_daily_refresh,
 )
+from vplan.interface import Device, SwitchState
 
 
 class TestScheduler:

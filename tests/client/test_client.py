@@ -26,7 +26,7 @@ from vplan.client.client import (
     update_plan,
     update_plan_status,
 )
-from vplan.engine.interface import Account, Health, Plan, PlanSchema, Status, Version
+from vplan.interface import Account, Health, Plan, PlanSchema, Status, Version
 
 
 def _response(model=None, data=None, status_code=None):

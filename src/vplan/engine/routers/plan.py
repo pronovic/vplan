@@ -21,8 +21,8 @@ from vplan.engine.database import (
     db_update_plan_enabled,
 )
 from vplan.engine.fastapi.extensions import EmptyResponse
-from vplan.engine.interface import Device, PlanSchema, Status
 from vplan.engine.manager import schedule_daily_refresh, schedule_immediate_refresh, toggle_devices, unschedule_daily_refresh
+from vplan.interface import Device, PlanSchema, Status
 
 ROUTER = APIRouter()
 

@@ -14,9 +14,9 @@ from sqlalchemy.exc import NoResultFound
 
 from vplan.engine.config import config
 from vplan.engine.database import db_retrieve_account, db_retrieve_plan, db_retrieve_plan_enabled
-from vplan.engine.interface import Device, SimpleTime, SwitchState, TimeZone
 from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
 from vplan.engine.smartthings import SmartThings, parse_time, replace_rules, set_switch
+from vplan.interface import Device, SimpleTime, SwitchState, TimeZone
 from vplan.util import now
 
 

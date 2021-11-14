@@ -4,7 +4,7 @@ import os
 
 import pytest
 
-from vplan.engine.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, Status, Trigger, Version
+from vplan.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, Status, Trigger, Version
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long

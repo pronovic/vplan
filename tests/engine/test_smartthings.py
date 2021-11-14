@@ -10,7 +10,6 @@ import pytest
 from requests.models import HTTPError
 
 from vplan.engine.exception import SmartThingsClientError
-from vplan.engine.interface import Device, DeviceGroup, SwitchState, Trigger
 from vplan.engine.smartthings import (
     CONTEXT,
     SmartThings,
@@ -34,6 +33,7 @@ from vplan.engine.smartthings import (
     replace_rules,
     set_switch,
 )
+from vplan.interface import Device, DeviceGroup, SwitchState, Trigger
 
 # This is the data we expect when loading the SmartThings location context
 PAT_TOKEN = "AAA"

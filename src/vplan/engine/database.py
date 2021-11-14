@@ -17,7 +17,7 @@ from sqlalchemy.orm.decl_api import DeclarativeMeta
 
 from vplan.engine.config import config
 from vplan.engine.exception import EngineError
-from vplan.engine.interface import ONLY_ACCOUNT, Account, PlanSchema
+from vplan.interface import ONLY_ACCOUNT, Account, PlanSchema
 
 _REGISTRY = registry()
 _ENGINE: Optional[Engine] = None
