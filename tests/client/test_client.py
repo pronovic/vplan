@@ -26,7 +26,7 @@ from vplan.client.client import (
     update_plan,
     update_plan_status,
 )
-from vplan.engine.interface import Account, Health, Plan, PlanSchema, Status, Version
+from vplan.interface import Account, Health, Plan, PlanSchema, Status, Version
 
 
 def _response(model=None, data=None, status_code=None):
@@ -242,14 +242,16 @@ class TestPlan:
     def test_toggle_group(self, requests_post, _api_url, raise_for_status):
         response = _response()
         requests_post.side_effect = [response]
-        toggle_group("xxx", "yyy", 2)
+        toggle_group("xxx", "yyy", 2, 5)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/group/yyy", params={"toggles": 2})
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/group/yyy", params={"toggles": 2, "delay_sec": 5})
 
     @patch("vplan.client.client.requests.post")
     def test_toggle_device(self, requests_post, _api_url, raise_for_status):
         response = _response()
         requests_post.side_effect = [response]
-        toggle_device("xxx", "yyy", "zzz", 2)
+        toggle_device("xxx", "yyy", "zzz", 2, 5)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggles": 2})
+        requests_post.assert_called_once_with(
+            url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggles": 2, "delay_sec": 5}
+        )

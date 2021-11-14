@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from requests.models import HTTPError
 
-from vplan.engine.interface import Device, DeviceGroup, SmartThingsClientError, SwitchState, Trigger
+from vplan.engine.exception import InvalidPlanError, SmartThingsClientError
 from vplan.engine.smartthings import (
     CONTEXT,
     SmartThings,
@@ -33,6 +33,7 @@ from vplan.engine.smartthings import (
     replace_rules,
     set_switch,
 )
+from vplan.interface import Device, DeviceGroup, SwitchState, Trigger
 
 # This is the data we expect when loading the SmartThings location context
 PAT_TOKEN = "AAA"
@@ -131,6 +132,18 @@ class TestUtil:
     def test_device_id(self, test_context):
         with test_context:
             assert device_id(Device(room="Office", device="Desk Lamp")) == "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc"
+
+    @pytest.mark.parametrize(
+        "device",
+        [
+            Device(room="Office", device="Sauna"),
+            Device(room="Patio", device="Desk Lamp"),
+        ],
+    )
+    def test_device_id_invalid(self, test_context, device):
+        with test_context:
+            with pytest.raises(InvalidPlanError):
+                assert device_id(device)
 
     def test_location_id(self, test_context):
         with test_context:

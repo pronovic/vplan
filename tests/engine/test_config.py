@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 
 from vplan.engine.config import config, reset
-from vplan.engine.interface import ServerException
+from vplan.engine.exception import EngineError
 
 
 def fixture(filename: str) -> str:
@@ -36,18 +36,19 @@ class TestConfig:
 
     @patch.dict(os.environ, {"VPLAN_DATABASE_PATH": ".runtime/db"}, clear=True)
     def test_config_env_no_var(self):
-        with pytest.raises(ServerException, match=r"Server is not properly configured, no \$VPLAN_CONFIG_PATH found"):
+        with pytest.raises(EngineError, match=r"Server is not properly configured, no \$VPLAN_CONFIG_PATH found"):
             config()
 
     @patch.dict(os.environ, {"VPLAN_CONFIG_PATH": "bogus", "VPLAN_DATABASE_PATH": ".runtime/db"}, clear=True)
     def test_config_env_not_found(self):
-        with pytest.raises(ServerException, match=r"Server configuration is not readable: bogus"):
+        with pytest.raises(EngineError, match=r"Server configuration is not readable: bogus"):
             config()
 
     @staticmethod
     def _validate_config(result):
         assert result.database_dir == ".runtime/db"
-        assert result.smartthings.toggle_delay_sec == 5.0
+        assert result.database_url == "sqlite+pysqlite:///.runtime/db/vplan.sqlite"
+        assert result.database_log_level == "DEBUG"
         assert result.smartthings.base_api_url == "https://api.smartthings.com"
         assert result.scheduler.database_url == "sqlite+pysqlite:///.runtime/db/jobs.sqlite"
         assert result.scheduler.daily_job.jitter_sec == 300

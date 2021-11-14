@@ -9,7 +9,7 @@ from click.testing import CliRunner, Result
 from vplan.client.cli import vplan as command
 
 # noinspection PyTypeChecker
-from vplan.engine.interface import Version
+from vplan.interface import Version
 
 
 def invoke(args: List[str]) -> Result:

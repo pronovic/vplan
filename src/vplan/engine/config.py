@@ -5,18 +5,26 @@
 Server configuration
 """
 import os
+import re
 from os import R_OK, access
 from os.path import isfile
 from typing import Optional
 
-from pydantic import Field, NonNegativeInt  # pylint: disable=no-name-in-module
+from pydantic import ConstrainedStr, Field, NonNegativeInt  # pylint: disable=no-name-in-module
 from pydantic_yaml import YamlModel
 
-from vplan.engine.interface import ServerException
+from vplan.engine.exception import EngineError
 from vplan.util import replace_envvars
 
 # We read this environment variable to find the server configuration YAML file on disk
 CONFIG_VAR = "VPLAN_CONFIG_PATH"
+
+
+class LogLevel(ConstrainedStr):
+    """Legal log levels."""
+
+    strip_whitespace = True
+    regex = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET)$")
 
 
 class DailyJobConfig(YamlModel):
@@ -36,7 +44,6 @@ class SchedulerConfig(YamlModel):
 class SmartThingsConfig(YamlModel):
     """Scheduler configuration."""
 
-    toggle_delay_sec: float = Field(..., description="The number of seconds to delay between on/off actions when testing")
     base_api_url: str = Field(..., description="URL for the SmartThings API")
 
 
@@ -45,6 +52,7 @@ class ServerConfig(YamlModel):
 
     database_dir: str = Field(..., description="Directory where all server databases are stored")
     database_url: str = Field(..., description="SQLAlchemy database URL to use for the application job store")
+    database_log_level: LogLevel = Field(..., description="The log level to use for database messages from SQLAlchemy")
     smartthings: SmartThingsConfig = Field(..., description="Configuration for the SmartThings interface")
     scheduler: SchedulerConfig = Field(..., description="Scheduler configuration")
 
@@ -57,9 +65,9 @@ def _load_config(config_path: Optional[str] = None) -> ServerConfig:
     if not config_path:
         config_path = os.environ[CONFIG_VAR] if CONFIG_VAR in os.environ else None
         if not config_path:
-            raise ServerException("Server is not properly configured, no $%s found" % CONFIG_VAR)
+            raise EngineError("Server is not properly configured, no $%s found" % CONFIG_VAR)
     if not (isfile(config_path) and access(config_path, R_OK)):
-        raise ServerException("Server configuration is not readable: %s" % config_path)
+        raise EngineError("Server configuration is not readable: %s" % config_path)
     with open(config_path, "r", encoding="utf8") as fp:
         yaml = replace_envvars(fp.read())
         return ServerConfig.parse_raw(yaml)

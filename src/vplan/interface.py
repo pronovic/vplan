@@ -2,7 +2,7 @@
 # vim: set ft=python ts=4 sw=4 expandtab:
 
 """
-The public API model.
+The interface shared between the client and the engine.
 """
 from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/2907667
 
@@ -25,22 +25,6 @@ SIMPLE_TIME_REGEX = re.compile(r"^((\d{2}):(\d{2}))$")
 
 ONLY_ACCOUNT = "default"
 VPLAN_RULE_PREFIX = "vplan"
-
-
-class ServerException(Exception):
-    """A server exception."""
-
-    def __init__(self, message: str):
-        super().__init__(message)
-        self.message = message
-
-
-class AlreadyExistsError(ServerException):
-    """A resource already exists."""
-
-
-class SmartThingsClientError(ServerException):
-    """An error invoking the SmartThings API."""
 
 
 class SwitchState(str, Enum):

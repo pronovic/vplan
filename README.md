@@ -143,6 +143,7 @@ plan:
   name: my-house
   location: My House
   refresh_time: "00:30"
+  refresh_zone: "America/Chicago"   # if you don't specify a zone, it runs in UTC
   groups:
     - name: first-floor-lights
       devices:

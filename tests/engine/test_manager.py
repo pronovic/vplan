@@ -5,7 +5,6 @@ from unittest.mock import MagicMock, call, patch
 
 from sqlalchemy.exc import NoResultFound
 
-from vplan.engine.interface import Device, SwitchState
 from vplan.engine.manager import (
     refresh_plan,
     schedule_daily_refresh,
@@ -13,6 +12,7 @@ from vplan.engine.manager import (
     toggle_devices,
     unschedule_daily_refresh,
 )
+from vplan.interface import Account, Device, SwitchState
 
 
 class TestScheduler:
@@ -49,21 +49,21 @@ class TestScheduler:
 class TestToggle:
     @patch("vplan.engine.manager.set_switch")
     @patch("vplan.engine.manager.sleep")
-    @patch("vplan.engine.manager.config")
-    def test_toggle_devices(self, config, sleep, set_switch, context):
+    @patch("vplan.engine.manager.db_retrieve_account")
+    def test_toggle_devices(self, db_retrieve_account, sleep, set_switch, context):
 
         # See: https://stackoverflow.com/a/68578027
         call_order = []
         sleep.side_effect = lambda *a, **kw: call_order.append(sleep)
         set_switch.side_effect = lambda *a, **kw: call_order.append(set_switch)
 
+        account = Account(pat_token="token")
+        db_retrieve_account.return_value = account
+
         device1 = Device(room="r", device="d1")
         device2 = Device(room="r", device="d2")
 
-        smartthings = MagicMock(base_api_url="http://whatever", toggle_delay_sec=10)
-        config.return_value = MagicMock(smartthings=smartthings)
-
-        toggle_devices(pat_token="token", location="location", devices=[device1, device2], toggles=2)
+        toggle_devices(location="location", devices=[device1, device2], toggles=2, delay_sec=5)
 
         context.assert_called_once_with("token", "location")
 
@@ -81,7 +81,7 @@ class TestToggle:
             set_switch,
         ]
 
-        sleep.assert_has_calls([call(10)] * 3)
+        sleep.assert_has_calls([call(5)] * 3)  # 5 seconds of delay 3 different times
 
         set_switch.assert_has_calls(
             [

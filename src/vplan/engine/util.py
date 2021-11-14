@@ -4,7 +4,7 @@ from os import makedirs, stat
 from stat import S_IMODE
 
 from vplan.engine.config import config
-from vplan.engine.interface import ServerException
+from vplan.engine.exception import EngineError
 
 
 def _create_and_check_dir(name: str, path: str) -> None:
@@ -12,7 +12,7 @@ def _create_and_check_dir(name: str, path: str) -> None:
     makedirs(path, mode=0o700, exist_ok=True)
     mode = S_IMODE(stat(path).st_mode)
     if mode != 0o700:
-        raise ServerException("%s must have permissions 700, but has %o: %s" % (name, mode, path))
+        raise EngineError("%s must have permissions 700, but has %o: %s" % (name, mode, path))
 
 
 def setup_directories() -> None:

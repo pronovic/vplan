@@ -1,10 +1,10 @@
 database_dir: {VPLAN_DATABASE_DIR}
 database_url: sqlite+pysqlite:///{VPLAN_DATABASE_DIR}/vplan.sqlite
+database_log_level: ERROR
 smartthings:
-   toggle_delay_sec: 5
    base_api_url: https://api.smartthings.com
 scheduler:
    database_url: sqlite+pysqlite:///{VPLAN_DATABASE_DIR}/jobs.sqlite
    daily_job:
-      jitter_sec: 300          # the job might run up to 300 seconds later than scheduled
+      jitter_sec: 0            # run jobs exactly when scheduled
       misfire_grace_sec: 1800  # if missed (i.e. if server is down), job will be run up to 30 minutes late

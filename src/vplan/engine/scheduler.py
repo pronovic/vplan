@@ -14,7 +14,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.triggers.cron import CronTrigger
 
 from vplan.engine.config import SchedulerConfig, config
-from vplan.engine.interface import ServerException
+from vplan.engine.exception import EngineError
 
 _SCHEDULER: Optional[BackgroundScheduler] = None
 
@@ -30,7 +30,7 @@ def _init_scheduler(scheduler_config: SchedulerConfig) -> BackgroundScheduler:
 def scheduler() -> BackgroundScheduler:
     """Retrieve the scheduler, intended mostly for unit testing purposes."""
     if not _SCHEDULER:
-        raise ServerException("Scheduler is not available")
+        raise EngineError("Scheduler is not available")
     return _SCHEDULER
 
 
@@ -66,7 +66,7 @@ def schedule_immediate_job(
         kwargs(Dict[str, Any]): Keyword arguments to pass to the job function when invoked
     """
     if not _SCHEDULER:
-        raise ServerException("Scheduler has not been started.")
+        raise EngineError("Scheduler has not been started.")
     _SCHEDULER.add_job(id=job_id, jobstore="sqlite", func=func, kwargs=kwargs)
 
 
@@ -88,7 +88,7 @@ def schedule_daily_job(
         time_zone: Time zone in which to execute the job
     """
     if not _SCHEDULER:
-        raise ServerException("Scheduler has not been started.")
+        raise EngineError("Scheduler has not been started.")
     jitter = config().scheduler.daily_job.jitter_sec
     grace = config().scheduler.daily_job.misfire_grace_sec
     hour, minute, second = trigger_time.hour, trigger_time.minute, trigger_time.second
@@ -107,7 +107,7 @@ def schedule_daily_job(
 def unschedule_daily_job(job_id: str) -> None:
     """Unschedule a daily job, which stops it from running"""
     if not _SCHEDULER:
-        raise ServerException("Scheduler has not been started.")
+        raise EngineError("Scheduler has not been started.")
     try:
         _SCHEDULER.remove_job(job_id=job_id)
     except JobLookupError:
