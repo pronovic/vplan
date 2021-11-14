@@ -119,7 +119,8 @@ class LocationContext:
                 room_by_id[item["roomId"]] = item["name"]
                 room_by_name[item["name"]] = item["roomId"]
         logging.info("Location [%s] has %d rooms", self.location, len(room_by_id))
-        logging.debug("Rooms by id: %s", json.dumps(room_by_id, indent=2))
+        if room_by_id:
+            logging.debug("Rooms by id: %s", json.dumps(room_by_id, indent=2))
         return room_by_id, room_by_name
 
     def _derive_devices(self) -> Tuple[Dict[str, Device], Dict[str, str]]:
@@ -139,7 +140,8 @@ class LocationContext:
                 device_by_id[did] = device
                 device_by_name["%s/%s" % (room_name, device.device)] = did
         logging.info("Location [%s] has %d devices", self.location, len(device_by_id))
-        logging.debug("Devices by name:\n%s", json.dumps(device_by_name, indent=2))
+        if device_by_name:
+            logging.debug("Devices by name:\n%s", json.dumps(device_by_name, indent=2))
         return device_by_id, device_by_name
 
     def _derive_rule_by_id(self) -> Dict[str, Dict[str, Any]]:
@@ -155,7 +157,8 @@ class LocationContext:
                     rule_id = item["id"]
                     rule_by_id[rule_id] = item
         logging.info("Location [%s] has %d managed rules", self.location, len(rule_by_id))
-        logging.debug("Managed rules by id:\n%s", json.dumps(rule_by_id, indent=2))
+        if rule_by_id:
+            logging.debug("Managed rules by id:\n%s", json.dumps(rule_by_id, indent=2))
         return rule_by_id
 
 
@@ -298,6 +301,8 @@ def replace_rules(plan_name: str, schema: Optional[PlanSchema]) -> None:
         logging.info("New plan has %d rules", len(rules))
         for rule in rules:
             created.append(create_rule(rule))
+    else:
+        logging.info("Plan is disabled or has been deleted; no rules will be added")
     replace_managed_rules(plan_name, created)
 
 

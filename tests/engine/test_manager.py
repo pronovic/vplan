@@ -49,9 +49,8 @@ class TestScheduler:
 class TestToggle:
     @patch("vplan.engine.manager.set_switch")
     @patch("vplan.engine.manager.sleep")
-    @patch("vplan.engine.manager.config")
     @patch("vplan.engine.manager.db_retrieve_account")
-    def test_toggle_devices(self, db_retrieve_account, config, sleep, set_switch, context):
+    def test_toggle_devices(self, db_retrieve_account, sleep, set_switch, context):
 
         # See: https://stackoverflow.com/a/68578027
         call_order = []
@@ -63,9 +62,6 @@ class TestToggle:
 
         device1 = Device(room="r", device="d1")
         device2 = Device(room="r", device="d2")
-
-        smartthings = MagicMock(base_api_url="http://whatever")
-        config.return_value = MagicMock(smartthings=smartthings)
 
         toggle_devices(location="location", devices=[device1, device2], toggles=2, delay_sec=5)
 

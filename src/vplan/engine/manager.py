@@ -55,7 +55,6 @@ def validate_plan(schema: PlanSchema) -> None:
 
 def toggle_devices(location: str, devices: List[Device], toggles: int, delay_sec: int) -> None:
     """Toggle group of devices, switching them on and off a certain number of times."""
-
     account = db_retrieve_account()
     with SmartThings(account.pat_token, location):
         for test in range(0, toggles):
