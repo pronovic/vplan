@@ -5,6 +5,8 @@
 Router for account endpoints.
 """
 
+import logging
+
 from fastapi import APIRouter
 from starlette.status import HTTP_200_OK, HTTP_204_NO_CONTENT
 
@@ -25,9 +27,11 @@ def retrieve_account() -> Account:
 def create_or_replace_account(account: Account) -> None:
     """Create or replace account information stored in the plan engine."""
     db_create_or_replace_account(account)
+    logging.info("Replaced account information")
 
 
 @ROUTER.delete("/account", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
 def delete_account() -> None:
     """Delete account information stored in the plan engine."""
     db_delete_account()
+    logging.info("Deleted account information")

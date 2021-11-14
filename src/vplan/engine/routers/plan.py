@@ -4,6 +4,7 @@
 """
 Router for plan endpoints.
 """
+import logging
 from typing import List
 
 from fastapi import APIRouter
@@ -56,6 +57,7 @@ def create_plan(schema: PlanSchema) -> None:
         refresh_time=schema.plan.refresh_time,
         time_zone=schema.plan.refresh_zone,
     )
+    logging.info("Created plan: %s running at location %s", schema.plan.name, schema.plan.location)
 
 
 @ROUTER.put("/plan", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
@@ -70,6 +72,7 @@ def update_plan(schema: PlanSchema) -> None:
         refresh_time=schema.plan.refresh_time,
         time_zone=schema.plan.refresh_zone,
     )
+    logging.info("Updated plan: %s running at location %s", schema.plan.name, schema.plan.location)
 
 
 @ROUTER.delete("/plan/{plan_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
@@ -79,6 +82,7 @@ def delete_plan(plan_name: str) -> None:
     db_delete_plan(plan_name=schema.plan.name)
     schedule_immediate_refresh(plan_name=schema.plan.name, location=schema.plan.location)
     unschedule_daily_refresh(plan_name=schema.plan.name)
+    logging.info("Updated plan: %s running at location %s", schema.plan.name, schema.plan.location)
 
 
 @ROUTER.get("/plan/{plan_name}/status", status_code=HTTP_200_OK)
@@ -94,6 +98,12 @@ def update_status(plan_name: str, status: Status) -> None:
     schema = retrieve_plan(plan_name)
     db_update_plan_enabled(plan_name=schema.plan.name, enabled=status.enabled)
     schedule_immediate_refresh(plan_name=schema.plan.name, location=schema.plan.location)
+    logging.info(
+        "Updated plan: %s running at location %s is now %s",
+        schema.plan.name,
+        schema.plan.location,
+        "enabled" if status.enabled else "disabled",
+    )
 
 
 @ROUTER.post("/plan/{plan_name}/refresh", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
@@ -101,6 +111,7 @@ def refresh_plan(plan_name: str) -> None:
     """Refresh the plan rules in the SmartThings infrastructure."""
     schema = retrieve_plan(plan_name)
     schedule_immediate_refresh(plan_name=schema.plan.name, location=schema.plan.location)
+    logging.info("Refreshed plan: %s running at location %s", schema.plan.name, schema.plan.location)
 
 
 @ROUTER.post("/plan/{plan_name}/test/group/{group_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
@@ -112,6 +123,7 @@ def toggle_group(plan_name: str, group_name: str, toggles: int = 2) -> None:
     if not devices:
         raise NoResultFound("Group not found or no devices in group")
     toggle_devices(location=location, devices=devices, toggles=toggles)
+    logging.info("Toggled group: %s in %s running at location %s", group_name, schema.plan.name, schema.plan.location)
 
 
 @ROUTER.post("/plan/{plan_name}/test/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
@@ -124,3 +136,4 @@ def toggle_device(plan_name: str, room: str, device: str, toggles: int = 2) -> N
     if item not in devices:
         raise NoResultFound("Device not found in plan")
     toggle_devices(location=location, devices=[item], toggles=toggles)
+    logging.info("Toggled device: %s/%s in %s running at location %s", room, device, schema.plan.name, schema.plan.location)

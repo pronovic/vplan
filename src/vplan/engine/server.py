@@ -4,6 +4,7 @@
 """
 The RESTful API.
 """
+import logging
 from importlib.metadata import version as metadata_version
 from typing import Dict
 
@@ -36,16 +37,28 @@ def _status_reason(e: Exception) -> Dict[str, str]:
 
 @API.exception_handler(NoResultFound)
 async def not_found_handler(_: Request, e: NoResultFound) -> Response:
+    try:
+        raise e
+    except NoResultFound:
+        logging.error("Resource not found")
     return EmptyResponse(status_code=404, headers=_status_reason(e))
 
 
 @API.exception_handler(IntegrityError)
 async def already_exists_handler(_: Request, e: IntegrityError) -> Response:
+    try:
+        raise e
+    except IntegrityError:
+        logging.error("Resource already exists")
     return EmptyResponse(status_code=409, headers=_status_reason(e))
 
 
 @API.exception_handler(InvalidPlanError)
 async def invalid_plan_handler(_: Request, e: InvalidPlanError) -> Response:
+    try:
+        raise e
+    except InvalidPlanError:
+        logging.error("Invalid plan")
     return EmptyResponse(status_code=422, headers=_status_reason(e))
 
 
@@ -55,12 +68,14 @@ async def startup_event() -> None:
     setup_directories()
     setup_database()
     start_scheduler()
+    logging.info("Server startup complete")
 
 
 @API.on_event("shutdown")
 async def shutdown_event() -> None:
     """Do cleanup at server shutdown."""
     shutdown_scheduler()
+    logging.info("Server shutdown complete")
 
 
 @API.get("/health")
