@@ -6,7 +6,6 @@ The RESTful API.
 """
 import logging
 from importlib.metadata import version as metadata_version
-from typing import Dict
 
 from fastapi import FastAPI, Request
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -26,40 +25,22 @@ API.include_router(account.ROUTER)
 API.include_router(plan.ROUTER)
 
 
-def _status_reason(e: Exception) -> Dict[str, str]:
-    """Build status reason headers for an error handler."""
-    # Technically, this could leak private information, such as about our table structures.
-    # In a public-facing application, I would care about this.  For my use case, I'd rather
-    # have the information available for debugging purposes.
-    reason = ("%s" % e)[0:80]
-    return {"vplan-status-reason": reason}
-
-
 @API.exception_handler(NoResultFound)
 async def not_found_handler(_: Request, e: NoResultFound) -> Response:
-    try:
-        raise e
-    except NoResultFound:
-        logging.error("Resource not found")
-    return EmptyResponse(status_code=404, headers=_status_reason(e))
+    logging.error("Resource not found: %s", e)
+    return EmptyResponse(status_code=404)
 
 
 @API.exception_handler(IntegrityError)
 async def already_exists_handler(_: Request, e: IntegrityError) -> Response:
-    try:
-        raise e
-    except IntegrityError:
-        logging.error("Resource already exists")
-    return EmptyResponse(status_code=409, headers=_status_reason(e))
+    logging.error("Resource already exists: %s", e)
+    return EmptyResponse(status_code=409)
 
 
 @API.exception_handler(InvalidPlanError)
 async def invalid_plan_handler(_: Request, e: InvalidPlanError) -> Response:
-    try:
-        raise e
-    except InvalidPlanError:
-        logging.error("Invalid plan")
-    return EmptyResponse(status_code=422, headers=_status_reason(e))
+    logging.error("Invalid plan: %s", e)
+    return EmptyResponse(status_code=422)
 
 
 @API.on_event("startup")

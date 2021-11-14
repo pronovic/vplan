@@ -1,6 +1,6 @@
 database_dir: {VPLAN_DATABASE_DIR}
 database_url: sqlite+pysqlite:///{VPLAN_DATABASE_DIR}/vplan.sqlite
-database_log_level: INFO
+database_log_level: ERROR
 smartthings:
    toggle_delay_sec: 5
    base_api_url: https://api.smartthings.com

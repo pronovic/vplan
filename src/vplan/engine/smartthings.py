@@ -97,8 +97,9 @@ class LocationContext:
         params = {"limit": LocationContext.LOCATION_LIMIT}
         response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
-        for item in response.json()["items"]:
-            locations[item["name"]] = item["locationId"]
+        if "items" in response.json():
+            for item in response.json()["items"]:
+                locations[item["name"]] = item["locationId"]
         if not location in locations:
             raise SmartThingsClientError("Configured location not found: %s" % location)
         lid: str = locations[location]
@@ -113,9 +114,10 @@ class LocationContext:
         params = {"limit": LocationContext.ROOM_LIMIT}
         response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
-        for item in response.json()["items"]:
-            room_by_id[item["roomId"]] = item["name"]
-            room_by_name[item["name"]] = item["roomId"]
+        if "items" in response.json():
+            for item in response.json()["items"]:
+                room_by_id[item["roomId"]] = item["name"]
+                room_by_name[item["name"]] = item["roomId"]
         logging.info("Location [%s] has %d rooms", self.location, len(room_by_id))
         logging.debug("Rooms by id: %s", json.dumps(room_by_id, indent=2))
         return room_by_id, room_by_name
@@ -128,13 +130,14 @@ class LocationContext:
         params = {"locationId": self.location_id, "capability": "switch", "limit": LocationContext.DEVICE_LIMIT}
         response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
-        for item in response.json()["items"]:
-            did = item["deviceId"]
-            device_name = item["label"] if item["label"] else item["name"]  # users see the label, if there is one
-            room_name = self.room_by_id[item["roomId"]]
-            device = Device(room=room_name, device=device_name)
-            device_by_id[did] = device
-            device_by_name["%s/%s" % (room_name, device.device)] = did
+        if "items" in response.json():
+            for item in response.json()["items"]:
+                did = item["deviceId"]
+                device_name = item["label"] if item["label"] else item["name"]  # users see the label, if there is one
+                room_name = self.room_by_id[item["roomId"]]
+                device = Device(room=room_name, device=device_name)
+                device_by_id[did] = device
+                device_by_name["%s/%s" % (room_name, device.device)] = did
         logging.info("Location [%s] has %d devices", self.location, len(device_by_id))
         logging.debug("Devices by name:\n%s", json.dumps(device_by_name, indent=2))
         return device_by_id, device_by_name
@@ -146,10 +149,11 @@ class LocationContext:
         params = {"locationId": self.location_id, "limit": LocationContext.RULES_LIMIT}
         response = requests.get(url=url, headers=self.headers, params=params)
         _raise_for_status(response)
-        for item in response.json()["items"]:
-            if item["name"].startswith("%s/" % VPLAN_RULE_PREFIX):  # we identify our rules by name
-                rule_id = item["id"]
-                rule_by_id[rule_id] = item
+        if "items" in response.json():
+            for item in response.json()["items"]:
+                if item["name"].startswith("%s/" % VPLAN_RULE_PREFIX):  # we identify our rules by name
+                    rule_id = item["id"]
+                    rule_by_id[rule_id] = item
         logging.info("Location [%s] has %d managed rules", self.location, len(rule_by_id))
         logging.debug("Managed rules by id:\n%s", json.dumps(rule_by_id, indent=2))
         return rule_by_id
@@ -290,7 +294,9 @@ def replace_rules(plan_name: str, schema: Optional[PlanSchema]) -> None:
         delete_rule(rule_id)
     created = []
     if schema:  # if there is no schema, that means it's been deleted or disabled
-        for rule in build_plan_rules(schema):
+        rules = build_plan_rules(schema)
+        logging.info("New plan has %d rules", len(rules))
+        for rule in rules:
             created.append(create_rule(rule))
     replace_managed_rules(plan_name, created)
 
