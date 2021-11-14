@@ -1,6 +1,6 @@
 # Vacation Plan Manager for SmartThings
 
-[![license](https://img.shields.io/pypi/l/vplan.svg)](https://github.com/pronovic/vplan/blob/master/LICENSE)
+[![license](https://img.shields.io/github/license/pronovic/vplan)](https://github.com/pronovic/vplan/blob/master/LICENSE)
 [![Test Suite](https://github.com/pronovic/vplan/workflows/Test%20Suite/badge.svg)](https://github.com/pronovic/vplan/actions?query=workflow%3A%22Test+Suite%22)
 [![coverage](https://coveralls.io/repos/github/pronovic/vplan/badge.svg?branch=master)](https://coveralls.io/github/pronovic/vplan?branch=master)
 [![release](https://img.shields.io/github/v/release/pronovic/vplan)](https://github.com/pronovic/vplan/releases/latest)
