@@ -14,7 +14,7 @@ Uvicorn is using a user-private UNIX socket rather than opening a port like 8080
 
 This project uses [Poetry](https://python-poetry.org/) to manage Python packaging and dependencies.  Most day-to-day tasks (such as running unit tests from the command line) are orchestrated through Poetry.  
 
-A coding standard is enforced using [Black](https://github.com/psf/black), [isort](https://pypi.org/project/isort/) and [Pylint](https://www.pylint.org/).  Python 3 type hinting is validated using [MyPy](https://pypi.org/project/mypy/).  To reduce boilerplate, classes are defined using [Attrs](https://www.attrs.org/) (see this [rationale](https://glyph.twistedmatrix.com/2016/08/attrs.html)).  Additional code security standards are enforced [Safety](https://github.com/pyupio/safety).
+A coding standard is enforced using [Black](https://github.com/psf/black), [isort](https://pypi.org/project/isort/) and [Pylint](https://www.pylint.org/).  Python 3 type hinting is validated using [MyPy](https://pypi.org/project/mypy/).  Additional code security standards are enforced [Safety](https://github.com/pyupio/safety).
 
 ## Continuous Integration (CI)
 
@@ -91,7 +91,7 @@ $ curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-po
 The [`run`](run) script provides shortcuts for common developer tasks:
 
 ```
-$ run --help
+$ run
 
 ------------------------------------
 Shortcuts for common developer tasks
@@ -108,7 +108,11 @@ Usage: run <command>
 - run test -ch: Run the unit tests with coverage and open the HTML report
 - run tox: Run the Tox test suite used by the GitHub CI action
 - run server: Run the vplan REST server at localhost:8080
+- run server -r: Run the vplan REST server, removing the database first
 - run vplan: Run the vplan client against localhost:8080
+- run rmdb: Remove the sqlite database files used for local testing
+- run release: Release a specific version and tag the code
+- run build: Build artifacts and push the released tag to GitHub
 ```
 
 ## Integration with PyCharm

@@ -199,7 +199,7 @@ plan:
           on_time: "19:30"
           off_time: "22:45"
           variation: "+/- 30 minutes"
-        - days: [ weekends ]
+        - days: [ tue, thu, sat ]
           on_time: sunset
           off_time: sunrise
           variation: none
