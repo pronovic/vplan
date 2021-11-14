@@ -84,4 +84,4 @@ class TestConfig:
         assert result.mode == ConnectionMode.SOCKET
         assert result.api_endpoint is None
         assert result.api_socket == "/home/whatever/.config/vplan/server/run/engine.sock"
-        assert result.api_url() == "http+unix://%2Fhome%2Fwhatever%2F.config%2Fvplan%2Frun%2Fengine.sock"
+        assert result.api_url() == "http+unix://%2Fhome%2Fwhatever%2F.config%2Fvplan%2Fserver%2Frun%2Fengine.sock"
