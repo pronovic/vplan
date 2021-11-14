@@ -164,8 +164,15 @@ Enter PAT token: <your token>
 Account created
 ```
 
-In the future, you can change your PAT token using the same command.
-See other account commands using `vplan account --help`.
+You can spot-check that it was set properly using the `show` command:
+
+```
+$ vplan account show
+PAT token: 0d14****************************3251
+```
+
+In the future, you can change your PAT token using the same `set` command shown
+above.  See other account commands using `vplan account --help`.
 
 ## Developing a Vacation Plan
 
@@ -263,7 +270,12 @@ Plan my-house is enabled
 ```
 
 Once a plan is enabled, rules will be written immediately into the SmartThings
-infrastructure, and your plan will be operational.
+infrastructure, and your plan will be operational.  
+
+The plan is implemented underneath by SmartThings rules, and is not dependent
+on the vplan daemon.  So, even if you stop the daemon or shut it off, the plan
+will continue to execute.  However, there won't be any daily variations in the
+trigger times, because the daemon is not around to make those changes.
 
 See other plan commands using `vplan plan --help`.  In particular, you may want
 to use the `test` command to confirm that your various device groups are
