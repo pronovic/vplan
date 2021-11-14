@@ -65,7 +65,7 @@ def engine() -> Engine:
 def setup_database() -> None:
     """Set up the database connection and create any necessary tables."""
     global _ENGINE
-    logging.getLogger("sqlalchemy").setLevel(logging.DEBUG)
+    logging.getLogger("sqlalchemy").setLevel(config().database_log_level)
     _ENGINE = create_engine(config().database_url, future=True)
     _BaseEntity.metadata.create_all(_ENGINE)
 

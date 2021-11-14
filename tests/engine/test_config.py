@@ -47,6 +47,8 @@ class TestConfig:
     @staticmethod
     def _validate_config(result):
         assert result.database_dir == ".runtime/db"
+        assert result.database_url == "sqlite+pysqlite:///.runtime/db/vplan.sqlite"
+        assert result.database_log_level == "DEBUG"
         assert result.smartthings.toggle_delay_sec == 5.0
         assert result.smartthings.base_api_url == "https://api.smartthings.com"
         assert result.scheduler.database_url == "sqlite+pysqlite:///.runtime/db/jobs.sqlite"

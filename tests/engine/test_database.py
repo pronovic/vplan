@@ -35,7 +35,8 @@ PLAN_FILE = fixture("plan.yaml")
 @patch("vplan.engine.database.config")
 def database(config, tmpdir):
     database_url = "sqlite+pysqlite:///%s" % tmpdir.join("vplan.sqlite").realpath()
-    config.return_value = MagicMock(database_url=database_url)
+    database_log_level = "DEBUG"
+    config.return_value = MagicMock(database_url=database_url, database_log_level=database_log_level)
     setup_database()
 
 
