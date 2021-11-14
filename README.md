@@ -225,14 +225,14 @@ A **device group** consists of:
 Each **device** consists of:
 
 - a **room** - the human-readable name of the room where the device lives in your SmartThings infrastructure
-- a **device** - the human-readable name of the device, which must support the `switch` capability
+- a **device** - the human-readable name of the device in SmartThings, which must support the `switch` capability
 
 Each trigger consists of:
 
 - a list of **days** - days of week like `sun`, `tue`, or `thursday` or the special days `all`, `weekends` or `weekdays`
 - an **on time** - either a time in HH24:MM format or special times `sunrise`, `sunset`, `midnight`, or `noon`
 - an **off time** - either a time in HH24:MM format or special times `sunrise`, `sunset`, `midnight`, or `noon`
-- a **variation** - either `none` or a specifier like `- 15 minutes` or `+/- 2 hours`
+- a **variation** - either `none` or a specifier like described below
 
 The **on time** and **off time** are in the timezone of your location, as
 defined in SmartThings.  In the YAML, you should always quote times, like
@@ -275,9 +275,10 @@ Once a plan is enabled, rules will be written immediately into the SmartThings
 infrastructure, and your plan will be operational.  
 
 The plan is implemented underneath by SmartThings rules, and is not dependent
-on the vplan daemon.  So, even if you stop the daemon or shut it off, the plan
-will continue to execute.  However, there won't be any daily variations in the
-trigger times, because the daemon is not around to make those changes.
+on the vplan daemon.  So, even if you stop the daemon or shut down your Linux
+system, the plan will continue to execute.  However, there won't be any daily
+variations in the trigger times, because the daemon is not around to make those
+changes.
 
 See other plan commands using `vplan plan --help`.  In particular, you may want
 to use the `test` command to confirm that your various device groups are
