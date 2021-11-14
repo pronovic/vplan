@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "vplan"
-version = "0.1.0"
+version = "0.2.0"
 description = "Vacation plan manager service for SmartThings"
 authors = ["Kenneth J. Pronovici <pronovic@ieee.org>"]
 license = "Apache-2.0"
