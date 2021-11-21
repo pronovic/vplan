@@ -120,7 +120,7 @@ API is healthy, versions: package='0.2.0' api='1.0.0'
 If necessary, you can check the logs from the service:
 
 ```
-$ journalctl --user-unit vplan
+$ journalctl --pager-end --user-unit vplan
 ```
 
 If you do need to change any of the systemd config files (unlikely), make sure
