@@ -1,3 +1,7 @@
+Version 0.3.1     21 Nov 2021
+
+	* Improvements to systemd service definition.
+
 Version 0.3.0     14 Nov 2021
 
 	* Initial public release
