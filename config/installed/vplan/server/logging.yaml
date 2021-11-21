@@ -3,8 +3,7 @@ disable_existing_loggers: false
 
 formatters:
   standard:
-    format: "%(asctime)s.%(msecs)03d [%(levelname)-7s] %(message)s"
-    datefmt: "%Y-%m-%dT%H:%M:%S"
+    format: "%(levelname): %(message)s"
 
 handlers:
   console:
