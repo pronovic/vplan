@@ -224,22 +224,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "dparse"
-version = "0.5.1"
-description = "A parser for Python dependency files"
-category = "dev"
-optional = false
-python-versions = ">=3.5"
-
-[package.dependencies]
-packaging = "*"
-pyyaml = "*"
-toml = "*"
-
-[package.extras]
-pipenv = ["pipenv"]
-
-[[package]]
 name = "fastapi"
 version = "0.70.0"
 description = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
@@ -625,20 +609,6 @@ requests = ">=1.1"
 urllib3 = ">=1.8"
 
 [[package]]
-name = "safety"
-version = "1.10.3"
-description = "Checks installed dependencies for known vulnerabilities."
-category = "dev"
-optional = false
-python-versions = ">=3.5"
-
-[package.dependencies]
-Click = ">=6.0"
-dparse = ">=0.5.1"
-packaging = "*"
-requests = "*"
-
-[[package]]
 name = "semver"
 version = "2.13.0"
 description = "Python helper for Semantic Versioning (http://semver.org/)"
@@ -864,7 +834,7 @@ python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.9,<4"
-content-hash = "3202c1128a9d6875f9662040f8496247f6770f510c383ad6d46f3d402e136ee3"
+content-hash = "8138b701dd2cebbeac4f6e4dec5ae5fce084f14e55af1d2832c16b0cf7d44a23"
 
 [metadata.files]
 anyio = [
@@ -982,10 +952,6 @@ distlib = [
 ]
 docopt = [
     {file = "docopt-0.6.2.tar.gz", hash = "sha256:49b3a825280bd66b3aa83585ef59c4a8c82f2c8a522dbe754a8bc8d08c85c491"},
-]
-dparse = [
-    {file = "dparse-0.5.1-py3-none-any.whl", hash = "sha256:e953a25e44ebb60a5c6efc2add4420c177f1d8404509da88da9729202f306994"},
-    {file = "dparse-0.5.1.tar.gz", hash = "sha256:a1b5f169102e1c894f9a7d5ccf6f9402a836a5d24be80a986c7ce9eaed78f367"},
 ]
 fastapi = [
     {file = "fastapi-0.70.0-py3-none-any.whl", hash = "sha256:a36d5f2fad931aa3575c07a3472c784e81f3e664e3bb5c8b9c88d0ec1104f59c"},
@@ -1305,10 +1271,6 @@ requests = [
 requests-unixsocket = [
     {file = "requests-unixsocket-0.2.0.tar.gz", hash = "sha256:9e5c1a20afc3cf786197ae59c79bcdb0e7565f218f27df5f891307ee8817c1ea"},
     {file = "requests_unixsocket-0.2.0-py2.py3-none-any.whl", hash = "sha256:014d07bfb66dc805a011a8b4b306cf4ec96d2eddb589f6b2b5765e626f0dc0cc"},
-]
-safety = [
-    {file = "safety-1.10.3-py2.py3-none-any.whl", hash = "sha256:5f802ad5df5614f9622d8d71fedec2757099705c2356f862847c58c6dfe13e84"},
-    {file = "safety-1.10.3.tar.gz", hash = "sha256:30e394d02a20ac49b7f65292d19d38fa927a8f9582cdfd3ad1adbbc66c641ad5"},
 ]
 semver = [
     {file = "semver-2.13.0-py2.py3-none-any.whl", hash = "sha256:ced8b23dceb22134307c1b8abfa523da14198793d9787ac838e70e29e77458d4"},
