@@ -169,28 +169,28 @@ def toggle_device(plan_name: str, room: str, device: str, toggles: int, delay_se
 
 
 def turn_on_group(plan_name: str, group_name: str) -> None:
-    """Test a device group that is part of a plan."""
+    """Turn on a device group that is part of a plan."""
     url = _plan("/%s/on/group/%s" % (plan_name, group_name))
     response = requests.post(url=url)
     _raise_for_status(response)
 
 
 def turn_on_device(plan_name: str, room: str, device: str) -> None:
-    """Test a device that is part of a plan."""
+    """Turn on a device that is part of a plan."""
     url = _plan("/%s/on/device/%s/%s" % (plan_name, room, device))
     response = requests.post(url=url)
     _raise_for_status(response)
 
 
 def turn_off_group(plan_name: str, group_name: str) -> None:
-    """Test a device group that is part of a plan."""
+    """Turn off a device group that is part of a plan."""
     url = _plan("/%s/off/group/%s" % (plan_name, group_name))
     response = requests.post(url=url)
     _raise_for_status(response)
 
 
 def turn_off_device(plan_name: str, room: str, device: str) -> None:
-    """Test a device that is part of a plan."""
+    """Turn off a device that is part of a plan."""
     url = _plan("/%s/off/device/%s/%s" % (plan_name, room, device))
     response = requests.post(url=url)
     _raise_for_status(response)
