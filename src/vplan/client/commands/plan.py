@@ -19,6 +19,10 @@ from vplan.client.client import (
     retrieve_plan_status,
     toggle_device,
     toggle_group,
+    turn_off_device,
+    turn_off_group,
+    turn_on_device,
+    turn_on_group,
     update_plan,
     update_plan_status,
 )
@@ -270,3 +274,81 @@ def test(
             else:
                 click.confirm("Press enter to test group %s" % group.name, show_default=False, prompt_suffix="")
             toggle_group(plan_name, group.name, toggles, delay_sec)
+
+
+@plan.command()
+@click.argument("plan_name", metavar="<plan-name>")
+@click.option(
+    "--group",
+    "-g",
+    "group_name",
+    metavar="<group-name>",
+    help="Turn on specific device group, by name",
+)
+@click.option(
+    "--device",
+    "-d",
+    "device_path",
+    metavar="<device-path>",
+    help="Turn on specific device, in form '<room>/<device>'",
+)
+def on(plan_name: str, group_name: Optional[str] = None, device_path: Optional[str] = None) -> None:
+    """
+    Turn on all devices that are part of a plan.
+
+    You may also turn on a single device group using --group and a single
+    device using --device.
+    """
+    if device_path:
+        room, device = device_path.split("/")
+        click.secho("Turning on device: %s/%s" % (room, device))
+        turn_on_device(plan_name, room, device)
+    elif group_name:
+        click.secho("Turning on group: %s" % group_name)
+        turn_on_group(plan_name, group_name)
+    else:
+        result = retrieve_plan(plan_name)
+        if not result:
+            raise click.ClickException("Plan does not exist: %s" % plan_name)
+        click.secho("Turning on entire plan.")
+        for group in result.plan.groups:
+            turn_on_group(plan_name, group.name)
+
+
+@plan.command()
+@click.argument("plan_name", metavar="<plan-name>")
+@click.option(
+    "--group",
+    "-g",
+    "group_name",
+    metavar="<group-name>",
+    help="Turn on specific device group, by name",
+)
+@click.option(
+    "--device",
+    "-d",
+    "device_path",
+    metavar="<device-path>",
+    help="Turn on specific device, in form '<room>/<device>'",
+)
+def off(plan_name: str, group_name: Optional[str] = None, device_path: Optional[str] = None) -> None:
+    """
+    Turn off all devices that are part of a plan.
+
+    You may also turn off a single device group using --group and a single
+    device using --device.
+    """
+    if device_path:
+        room, device = device_path.split("/")
+        click.secho("Turning off device: %s/%s" % (room, device))
+        turn_off_device(plan_name, room, device)
+    elif group_name:
+        click.secho("Turning off group: %s" % group_name)
+        turn_off_group(plan_name, group_name)
+    else:
+        result = retrieve_plan(plan_name)
+        if not result:
+            raise click.ClickException("Plan does not exist: %s" % plan_name)
+        click.secho("Turning off entire plan.")
+        for group in result.plan.groups:
+            turn_off_group(plan_name, group.name)
