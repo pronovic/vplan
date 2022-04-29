@@ -333,7 +333,6 @@ class TestTest:
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
         retrieve_plan.return_value = schema
         result = invoke(["test", "xxx"])
-        # print("RESULT:[%s]" % result.output)
         assert result.exit_code == 0
         assert (
             result.output
@@ -468,3 +467,121 @@ plan -> groups -> 0 -> name
 """
         )
         update_plan.assert_not_called()
+
+
+class TestOn:
+    def test_h(self):
+        result = invoke(["on", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["on", "--help"])
+        assert result.exit_code == 0
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--device", "-d"],
+    )
+    @patch("vplan.client.commands.plan.turn_on_device")
+    def test_specific_device(self, turn_on_device, option):
+        result = invoke(["on", "xxx", option, "room/device"])
+        assert result.exit_code == 0
+        assert result.output == "Turning on device: room/device\n"
+        turn_on_device.assert_called_once_with("xxx", "room", "device")
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--group", "-g"],
+    )
+    @patch("vplan.client.commands.plan.turn_on_group")
+    def test_specific_group(self, turn_on_group, option):
+        result = invoke(["on", "xxx", option, "group"])
+        assert result.exit_code == 0
+        assert result.output == "Turning on group: group\n"
+        turn_on_group.assert_called_once_with(
+            "xxx",
+            "group",
+        )
+
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_not_found(self, retrieve_plan):
+        retrieve_plan.return_value = None
+        result = invoke(["on", "xxx"])
+        assert result.exit_code == 1
+        assert "Plan does not exist: xxx" in result.output
+        retrieve_plan.assert_called_once_with("xxx")
+
+    @patch("vplan.client.commands.plan.turn_on_group")
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_entire_plan(self, retrieve_plan, turn_on_group):
+        groups = [DeviceGroup(name="group", devices=[], triggers=[])]
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
+        retrieve_plan.return_value = schema
+        result = invoke(["on", "xxx"])
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == """Turning on entire plan.
+"""
+        )
+        retrieve_plan.assert_called_once_with("xxx")
+        turn_on_group.assert_called_once_with("xxx", "group")
+
+
+class TestOff:
+    def test_h(self):
+        result = invoke(["off", "-h"])
+        assert result.exit_code == 0
+
+    def test_help(self):
+        result = invoke(["off", "--help"])
+        assert result.exit_code == 0
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--device", "-d"],
+    )
+    @patch("vplan.client.commands.plan.turn_off_device")
+    def test_specific_device(self, turn_off_device, option):
+        result = invoke(["off", "xxx", option, "room/device"])
+        assert result.exit_code == 0
+        assert result.output == "Turning off device: room/device\n"
+        turn_off_device.assert_called_once_with("xxx", "room", "device")
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--group", "-g"],
+    )
+    @patch("vplan.client.commands.plan.turn_off_group")
+    def test_specific_group(self, turn_off_group, option):
+        result = invoke(["off", "xxx", option, "group"])
+        assert result.exit_code == 0
+        assert result.output == "Turning off group: group\n"
+        turn_off_group.assert_called_once_with(
+            "xxx",
+            "group",
+        )
+
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_not_found(self, retrieve_plan):
+        retrieve_plan.return_value = None
+        result = invoke(["off", "xxx"])
+        assert result.exit_code == 1
+        assert "Plan does not exist: xxx" in result.output
+        retrieve_plan.assert_called_once_with("xxx")
+
+    @patch("vplan.client.commands.plan.turn_off_group")
+    @patch("vplan.client.commands.plan.retrieve_plan")
+    def test_entire_plan(self, retrieve_plan, turn_off_group):
+        groups = [DeviceGroup(name="group", devices=[], triggers=[])]
+        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30", groups=groups))
+        retrieve_plan.return_value = schema
+        result = invoke(["off", "xxx"])
+        assert result.exit_code == 0
+        assert (
+            result.output
+            == """Turning off entire plan.
+"""
+        )
+        retrieve_plan.assert_called_once_with("xxx")
+        turn_off_group.assert_called_once_with("xxx", "group")

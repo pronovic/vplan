@@ -53,6 +53,14 @@ def validate_plan(schema: PlanSchema) -> None:
         build_plan_rules(schema)
 
 
+def set_device_state(location: str, devices: List[Device], state: SwitchState) -> None:
+    """Set state for a group of devices."""
+    account = db_retrieve_account()
+    with SmartThings(account.pat_token, location):
+        for device in devices:
+            set_switch(device, state)
+
+
 def toggle_devices(location: str, devices: List[Device], toggles: int, delay_sec: int) -> None:
     """Toggle group of devices, switching them on and off a certain number of times."""
     account = db_retrieve_account()

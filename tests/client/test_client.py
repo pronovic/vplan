@@ -23,6 +23,10 @@ from vplan.client.client import (
     retrieve_version,
     toggle_device,
     toggle_group,
+    turn_off_device,
+    turn_off_group,
+    turn_on_device,
+    turn_on_group,
     update_plan,
     update_plan_status,
 )
@@ -255,3 +259,35 @@ class TestPlan:
         requests_post.assert_called_once_with(
             url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggles": 2, "delay_sec": 5}
         )
+
+    @patch("vplan.client.client.requests.post")
+    def test_turn_on_group(self, requests_post, _api_url, raise_for_status):
+        response = _response()
+        requests_post.side_effect = [response]
+        turn_on_group("xxx", "yyy")
+        raise_for_status.assert_called_once_with(response)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/group/yyy")
+
+    @patch("vplan.client.client.requests.post")
+    def test_turn_on_device(self, requests_post, _api_url, raise_for_status):
+        response = _response()
+        requests_post.side_effect = [response]
+        turn_on_device("xxx", "yyy", "zzz")
+        raise_for_status.assert_called_once_with(response)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/device/yyy/zzz")
+
+    @patch("vplan.client.client.requests.post")
+    def test_turn_off_group(self, requests_post, _api_url, raise_for_status):
+        response = _response()
+        requests_post.side_effect = [response]
+        turn_off_group("xxx", "yyy")
+        raise_for_status.assert_called_once_with(response)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/group/yyy")
+
+    @patch("vplan.client.client.requests.post")
+    def test_turn_off_device(self, requests_post, _api_url, raise_for_status):
+        response = _response()
+        requests_post.side_effect = [response]
+        turn_off_device("xxx", "yyy", "zzz")
+        raise_for_status.assert_called_once_with(response)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/device/yyy/zzz")

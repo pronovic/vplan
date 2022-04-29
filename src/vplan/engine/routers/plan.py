@@ -24,11 +24,12 @@ from vplan.engine.fastapi.extensions import EmptyResponse
 from vplan.engine.manager import (
     schedule_daily_refresh,
     schedule_immediate_refresh,
+    set_device_state,
     toggle_devices,
     unschedule_daily_refresh,
     validate_plan,
 )
-from vplan.interface import Device, PlanSchema, Status
+from vplan.interface import Device, PlanSchema, Status, SwitchState
 
 ROUTER = APIRouter()
 
@@ -137,3 +138,30 @@ def toggle_device(plan_name: str, room: str, device: str, toggles: int, delay_se
         raise NoResultFound("Device not found in plan")
     toggle_devices(location=location, devices=[item], toggles=toggles, delay_sec=delay_sec)
     logging.info("Toggled device: %s/%s in %s running at location %s", room, device, schema.plan.name, schema.plan.location)
+
+
+@ROUTER.post("/plan/{plan_name}/{state}/group/{group_name}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
+def switch_group(plan_name: str, state: str, group_name: str) -> None:
+    """Turn on or off a device group that is part of a plan."""
+    schema = db_retrieve_plan(plan_name=plan_name)
+    location = schema.plan.location
+    devices = schema.devices(group_name=group_name)
+    if not devices:
+        raise NoResultFound("Group not found or no devices in group")
+    set_device_state(location=location, devices=devices, state=SwitchState(state))
+    logging.info("Turned %s group: %s in %s running at location %s", state, group_name, schema.plan.name, schema.plan.location)
+
+
+@ROUTER.post("/plan/{plan_name}/{state}/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
+def switch_device(plan_name: str, state: str, room: str, device: str) -> None:
+    """Turn on or off a device that is part of a plan."""
+    item = Device(room=room, device=device)
+    schema = db_retrieve_plan(plan_name=plan_name)
+    location = schema.plan.location
+    devices = schema.devices()
+    if item not in devices:
+        raise NoResultFound("Device not found in plan")
+    set_device_state(location=location, devices=[item], state=SwitchState(state))
+    logging.info(
+        "Turned %s device: %s/%s in %s running at location %s", state, room, device, schema.plan.name, schema.plan.location
+    )

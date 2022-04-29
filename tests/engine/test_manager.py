@@ -3,12 +3,14 @@
 import datetime
 from unittest.mock import MagicMock, call, patch
 
+import pytest
 from sqlalchemy.exc import NoResultFound
 
 from vplan.engine.manager import (
     refresh_plan,
     schedule_daily_refresh,
     schedule_immediate_refresh,
+    set_device_state,
     toggle_devices,
     unschedule_daily_refresh,
 )
@@ -46,7 +48,19 @@ class TestScheduler:
 
 
 @patch("vplan.engine.manager.SmartThings")
-class TestToggle:
+class TestDeviceState:
+    @pytest.mark.parametrize("state", [SwitchState.OFF, SwitchState.ON])
+    @patch("vplan.engine.manager.set_switch")
+    @patch("vplan.engine.manager.db_retrieve_account")
+    def test_set_device_state(self, db_retrieve_account, set_switch, context, state):
+        account = Account(pat_token="token")
+        db_retrieve_account.return_value = account
+        device1 = Device(room="r", device="d1")
+        device2 = Device(room="r", device="d2")
+        set_device_state(location="location", devices=[device1, device2], state=state)
+        context.assert_called_once_with("token", "location")
+        set_switch.assert_has_calls([call(device1, state), call(device2, state)])
+
     @patch("vplan.engine.manager.set_switch")
     @patch("vplan.engine.manager.sleep")
     @patch("vplan.engine.manager.db_retrieve_account")
