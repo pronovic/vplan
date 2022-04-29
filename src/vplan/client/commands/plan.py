@@ -322,14 +322,14 @@ def on(plan_name: str, group_name: Optional[str] = None, device_path: Optional[s
     "-g",
     "group_name",
     metavar="<group-name>",
-    help="Turn on specific device group, by name",
+    help="Turn off specific device group, by name",
 )
 @click.option(
     "--device",
     "-d",
     "device_path",
     metavar="<device-path>",
-    help="Turn on specific device, in form '<room>/<device>'",
+    help="Turn off specific device, in form '<room>/<device>'",
 )
 def off(plan_name: str, group_name: Optional[str] = None, device_path: Optional[str] = None) -> None:
     """
