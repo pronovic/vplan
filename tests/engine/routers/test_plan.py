@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+# pylint: disable=too-many-public-methods:
 
 from unittest.mock import MagicMock, patch
 
@@ -9,7 +10,7 @@ from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from vplan.engine.exception import InvalidPlanError
 from vplan.engine.server import API
-from vplan.interface import Device, Plan, PlanSchema, Status
+from vplan.interface import Device, Plan, PlanSchema, Status, SwitchState
 
 CLIENT = TestClient(API)
 
@@ -278,3 +279,88 @@ class TestRoutes:
         assert response.status_code == 404
         assert not response.text
         toggle_devices.assert_not_called()
+
+    @pytest.mark.parametrize("state", ["on", "off"])
+    @patch("vplan.engine.routers.plan.set_device_state")
+    @patch("vplan.engine.routers.plan.db_retrieve_plan")
+    def test_switch_group(self, db_retrieve_plan, set_device_state, state):
+        device = Device(room="yyy", device="zzz")
+        plan = MagicMock(location="bbb")
+        schema = MagicMock(plan=plan)
+        schema.devices = MagicMock(return_value=[device])
+        db_retrieve_plan.return_value = schema
+        response = CLIENT.post(url="/plan/xxx/%s/group/yyy" % state)
+        assert response.status_code == 204
+        assert not response.text
+        schema.devices.assert_called_once_with(group_name="yyy")
+        set_device_state.assert_called_once_with(location="bbb", devices=[device], state=SwitchState(state))
+
+    @pytest.mark.parametrize("state", ["on", "off"])
+    @patch("vplan.engine.routers.plan.set_device_state")
+    @patch("vplan.engine.routers.plan.db_retrieve_plan")
+    def test_switch_group_not_found(self, db_retrieve_plan, set_device_state, state):
+        plan = MagicMock(location="bbb")
+        schema = MagicMock(plan=plan)
+        schema.devices = MagicMock(return_value=[])
+        db_retrieve_plan.return_value = schema
+        response = CLIENT.post(url="/plan/xxx/%s/group/yyy" % state)
+        assert response.status_code == 404
+        assert not response.text
+        schema.devices.assert_called_once_with(group_name="yyy")
+        set_device_state.assert_not_called()
+
+    @pytest.mark.parametrize("state", ["ON", "OFF", "bad"])
+    @patch("vplan.engine.routers.plan.set_device_state")
+    @patch("vplan.engine.routers.plan.db_retrieve_plan")
+    def test_switch_group_bad_state(self, db_retrieve_plan, set_device_state, state):
+        device = Device(room="yyy", device="zzz")
+        plan = MagicMock(location="bbb")
+        schema = MagicMock(plan=plan)
+        schema.devices = MagicMock(return_value=[device])
+        db_retrieve_plan.return_value = schema
+        response = CLIENT.post(url="/plan/xxx/%s/group/yyy" % state)
+        assert response.status_code == 400
+        assert not response.text
+        schema.devices.assert_called_once_with(group_name="yyy")
+        set_device_state.assert_not_called()
+
+    @pytest.mark.parametrize("state", ["on", "off"])
+    @patch("vplan.engine.routers.plan.set_device_state")
+    @patch("vplan.engine.routers.plan.db_retrieve_plan")
+    def test_switch_device(self, db_retrieve_plan, set_device_state, state):
+        device = Device(room="yyy", device="zzz")
+        plan = MagicMock(location="bbb")
+        schema = MagicMock(plan=plan)
+        schema.devices = MagicMock(return_value=[device])
+        db_retrieve_plan.return_value = schema
+        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz" % state)
+        assert response.status_code == 204
+        assert not response.text
+        set_device_state.assert_called_once_with(location="bbb", devices=[device], state=SwitchState(state))
+
+    @pytest.mark.parametrize("state", ["on", "off"])
+    @patch("vplan.engine.routers.plan.set_device_state")
+    @patch("vplan.engine.routers.plan.db_retrieve_plan")
+    def test_switch_device_not_found(self, db_retrieve_plan, set_device_state, state):
+        plan = MagicMock(location="bbb")
+        schema = MagicMock(plan=plan)
+        schema.devices = MagicMock(return_value=[])  # our device is not in this list, by definition
+        db_retrieve_plan.return_value = schema
+        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz" % state)
+        assert response.status_code == 404
+        assert not response.text
+        set_device_state.assert_not_called()
+
+    @pytest.mark.parametrize("state", ["ON", "OFF", "bad"])
+    @patch("vplan.engine.routers.plan.set_device_state")
+    @patch("vplan.engine.routers.plan.db_retrieve_plan")
+    def test_switch_device_bad_state(self, db_retrieve_plan, set_device_state, state):
+        device = Device(room="yyy", device="zzz")
+        plan = MagicMock(location="bbb")
+        schema = MagicMock(plan=plan)
+        schema.devices = MagicMock(return_value=[device])
+        db_retrieve_plan.return_value = schema
+        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz" % state)
+        assert response.status_code == 400
+        assert not response.text
+        set_device_state.assert_not_called()

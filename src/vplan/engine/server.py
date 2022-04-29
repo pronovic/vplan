@@ -31,6 +31,12 @@ async def not_found_handler(_: Request, e: NoResultFound) -> Response:
     return EmptyResponse(status_code=404)
 
 
+@API.exception_handler(ValueError)  # this happens for things like a bad enumeration value
+async def value_error_handler(_: Request, e: ValueError) -> Response:
+    logging.error("Bad request: %s", e)
+    return EmptyResponse(status_code=400)
+
+
 @API.exception_handler(IntegrityError)
 async def already_exists_handler(_: Request, e: IntegrityError) -> Response:
     logging.error("Resource already exists: %s", e)
