@@ -1,3 +1,7 @@
+Version 0.4.1     unreleased
+
+	* Adjust the pyproject.toml include directive to limit what goes into wheel.
+
 Version 0.4.0     29 Apr 2022
 
 	* Add 'vplan plan on' and 'vplan plan off' commands.
