@@ -112,7 +112,7 @@ Usage: run <command>
 - run vplan: Run the vplan client against localhost:8080
 - run rmdb: Remove the sqlite database files used for local testing
 - run release: Release a specific version and tag the code
-- run build: Build artifacts and push the released tag to GitHub
+- run build: Build artifacts in the dist/ directory
 ```
 
 ## Integration with PyCharm

@@ -366,7 +366,7 @@ case $1 in
       echo "- run vplan: Run the vplan client against localhost:8080"
       echo "- run rmdb: Remove the sqlite database files used for local testing"
       echo "- run release: Release a specific version and tag the code"
-      echo "- run build: Build artifacts and push the released tag to GitHub"
+      echo "- run build: Build artifacts in the dist/ directory"
       echo ""
       exit 1
 esac
