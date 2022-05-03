@@ -30,7 +30,7 @@ vplan = "vplan.client.cli:vplan"
 
 [tool.poetry.dependencies]
 python = ">=3.9,<4"
-fastapi = "^0.70.0"
+fastapi = "^0.75.2"
 uvicorn = "^0.17.6"
 pydantic-yaml = "^0.4.2"
 click = "^8.1.3"
