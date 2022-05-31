@@ -23,7 +23,6 @@ from datetime import datetime
 from random import randint
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import opnieuw
 import requests
 
 from vplan.engine.config import config
@@ -45,18 +44,6 @@ from vplan.interface import (
     TriggerVariation,
 )
 
-# Implements exponential backoff with jitter for up to 5 calls in 45 seconds of max elapsed time
-# For more information see: https://pypi.org/project/opnieuw/
-RETRY = opnieuw.retry(
-    max_calls_total=5,
-    retry_window_after_first_call_in_seconds=45,
-    retry_on_exceptions=(
-        SmartThingsClientError,
-        opnieuw.RetryException,
-        requests.models.ConnectionError,
-        requests.models.HTTPError,
-    ),
-)
 
 # noinspection PyMethodMayBeStatic
 class LocationContext:
@@ -157,7 +144,6 @@ class LocationContext:
             logging.debug("Managed rules by id:\n%s", json.dumps(rule_by_id, indent=2))
         return rule_by_id
 
-    @RETRY
     def _retrieve_locations(self) -> List[Dict[str, Any]]:
         """Retrieve all locations associated with a token."""
         url = _url("/locations")
@@ -167,7 +153,6 @@ class LocationContext:
         result = response.json()
         return result["items"] if "items" in result else []  # type: ignore
 
-    @RETRY
     def _retrieve_rooms(self) -> List[Dict[str, Any]]:
         """Retrieve all rooms associated with a token."""
         url = _url("/locations/%s/rooms" % self.location_id)
@@ -177,7 +162,6 @@ class LocationContext:
         result = response.json()
         return result["items"] if "items" in result else []  # type: ignore
 
-    @RETRY
     def _retrieve_devices(self) -> List[Dict[str, Any]]:
         """Retrieve all devices associated with a token."""
         url = _url("/devices")
@@ -187,7 +171,6 @@ class LocationContext:
         result = response.json()
         return result["items"] if "items" in result else []  # type: ignore
 
-    @RETRY
     def _retrieve_rules(self) -> List[Dict[str, Any]]:
         """Retrieve all rules associated with a token."""
         url = _url("/rules")
@@ -342,7 +325,6 @@ def replace_rules(plan_name: str, schema: Optional[PlanSchema]) -> None:
     replace_managed_rules(plan_name, created)
 
 
-@RETRY
 def delete_rule(rule_id: str) -> None:
     """Delete an existing rule."""
     url = _url("/rules/%s" % rule_id)
@@ -351,7 +333,6 @@ def delete_rule(rule_id: str) -> None:
     _raise_for_status(response)
 
 
-@RETRY
 def create_rule(rule: Dict[str, Any]) -> Dict[str, Any]:
     """Create a rule, returning the result from SmartThings."""
     url = _url("/rules")
@@ -361,7 +342,6 @@ def create_rule(rule: Dict[str, Any]) -> Dict[str, Any]:
     return response.json()  # type: ignore[no-any-return]
 
 
-@RETRY
 def set_switch(device: Device, state: SwitchState) -> None:
     """Switch a device on or off."""
     command = "on" if state == SwitchState.ON else "off"
@@ -371,7 +351,6 @@ def set_switch(device: Device, state: SwitchState) -> None:
     _raise_for_status(response)
 
 
-@RETRY
 def check_switch(device: Device) -> SwitchState:
     """Check the state of a switch."""
     url = _url("/devices/%s/components/main/capabilities/switch/status" % device_id(device))
