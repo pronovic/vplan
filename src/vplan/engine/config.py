@@ -37,7 +37,7 @@ class DailyJobConfig(YamlModel):
 class RetryConfig(YamlModel):
     """Retry configuration."""
 
-    max_attempts: NonNegativeInt = Field(..., description="Maximum number of retry attempts for the daily job")
+    max_attempts: NonNegativeInt = Field(..., description="Maximum number of attempts for the daily job, including initial attempt")
     min_sec: NonNegativeInt = Field(..., description="Minimum delay for the retry exponential backoff, in seconds")
     max_sec: NonNegativeInt = Field(..., description="Maximum delay for the retry exponential backoff, in seconds")
 
