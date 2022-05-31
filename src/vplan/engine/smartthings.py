@@ -24,8 +24,6 @@ from random import randint
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import requests
-from requests import Response
-from requests.models import HTTPError
 
 from vplan.engine.config import config
 from vplan.engine.exception import InvalidPlanError, SmartThingsClientError
@@ -47,6 +45,7 @@ from vplan.interface import (
 )
 
 
+# noinspection PyMethodMayBeStatic
 class LocationContext:
 
     """
@@ -59,7 +58,7 @@ class LocationContext:
     rooms, and devices and create our mappings before we do API calls that need
     to do lookups.  Rather than putting this burden on individual API calls,
     it's simpler to do all of the work up front and make everything available
-    via a Python context manager.  At least it's only 3 API calls.
+    via a Python context manager.  At least it's only a few API calls.
 
     Most of these APIs allow for pagination. Instead of dealing with that,
     I'm just using really big pages, so I can make a single request.  Most
@@ -93,13 +92,9 @@ class LocationContext:
     def _derive_location_id(self, location: str) -> str:
         """Derive the location id for a location name."""
         locations = {}
-        url = _url("/locations")
-        params = {"limit": LocationContext.LOCATION_LIMIT}
-        response = requests.get(url=url, headers=self.headers, params=params)
-        _raise_for_status(response)
-        if "items" in response.json():
-            for item in response.json()["items"]:
-                locations[item["name"]] = item["locationId"]
+        result = self._retrieve_locations()
+        for item in result:
+            locations[item["name"]] = item["locationId"]
         if not location in locations:
             raise SmartThingsClientError("Configured location not found: %s" % location)
         lid: str = locations[location]
@@ -110,14 +105,10 @@ class LocationContext:
         """Derive the mapping from room id->name and name->id for the location."""
         room_by_id = {}
         room_by_name = {}
-        url = _url("/locations/%s/rooms" % self.location_id)
-        params = {"limit": LocationContext.ROOM_LIMIT}
-        response = requests.get(url=url, headers=self.headers, params=params)
-        _raise_for_status(response)
-        if "items" in response.json():
-            for item in response.json()["items"]:
-                room_by_id[item["roomId"]] = item["name"]
-                room_by_name[item["name"]] = item["roomId"]
+        result = self._retrieve_rooms()
+        for item in result:
+            room_by_id[item["roomId"]] = item["name"]
+            room_by_name[item["name"]] = item["roomId"]
         logging.info("Location [%s] has %d rooms", self.location, len(room_by_id))
         if room_by_id:
             logging.debug("Rooms by id: %s", json.dumps(room_by_id, indent=2))
@@ -127,18 +118,14 @@ class LocationContext:
         """Derive the mapping from device id->Device and name->id for the location."""
         device_by_id = {}
         device_by_name = {}
-        url = _url("/devices")
-        params = {"locationId": self.location_id, "capability": "switch", "limit": LocationContext.DEVICE_LIMIT}
-        response = requests.get(url=url, headers=self.headers, params=params)
-        _raise_for_status(response)
-        if "items" in response.json():
-            for item in response.json()["items"]:
-                did = item["deviceId"]
-                device_name = item["label"] if item["label"] else item["name"]  # users see the label, if there is one
-                room_name = self.room_by_id[item["roomId"]]
-                device = Device(room=room_name, device=device_name)
-                device_by_id[did] = device
-                device_by_name["%s/%s" % (room_name, device.device)] = did
+        result = self._retrieve_devices()
+        for item in result:
+            did = item["deviceId"]
+            device_name = item["label"] if item["label"] else item["name"]  # users see the label, if there is one
+            room_name = self.room_by_id[item["roomId"]]
+            device = Device(room=room_name, device=device_name)
+            device_by_id[did] = device
+            device_by_name["%s/%s" % (room_name, device.device)] = did
         logging.info("Location [%s] has %d devices", self.location, len(device_by_id))
         if device_by_name:
             logging.debug("Devices by name:\n%s", json.dumps(device_by_name, indent=2))
@@ -147,19 +134,51 @@ class LocationContext:
     def _derive_rule_by_id(self) -> Dict[str, Dict[str, Any]]:
         """Derive the mapping from rule id->name, including only rules managed by us."""
         rule_by_id = {}
-        url = _url("/rules")
-        params = {"locationId": self.location_id, "limit": LocationContext.RULES_LIMIT}
-        response = requests.get(url=url, headers=self.headers, params=params)
-        _raise_for_status(response)
-        if "items" in response.json():
-            for item in response.json()["items"]:
-                if item["name"].startswith("%s/" % VPLAN_RULE_PREFIX):  # we identify our rules by name
-                    rule_id = item["id"]
-                    rule_by_id[rule_id] = item
+        result = self._retrieve_rules()
+        for item in result:
+            if item["name"].startswith("%s/" % VPLAN_RULE_PREFIX):  # we identify our rules by name
+                rule_id = item["id"]
+                rule_by_id[rule_id] = item
         logging.info("Location [%s] has %d managed rules", self.location, len(rule_by_id))
         if rule_by_id:
             logging.debug("Managed rules by id:\n%s", json.dumps(rule_by_id, indent=2))
         return rule_by_id
+
+    def _retrieve_locations(self) -> List[Dict[str, Any]]:
+        """Retrieve all locations associated with a token."""
+        url = _url("/locations")
+        params = {"limit": LocationContext.LOCATION_LIMIT}
+        response = requests.get(url=url, headers=self.headers, params=params)
+        _raise_for_status(response)
+        result = response.json()
+        return result["items"] if "items" in result else []  # type: ignore
+
+    def _retrieve_rooms(self) -> List[Dict[str, Any]]:
+        """Retrieve all rooms associated with a token."""
+        url = _url("/locations/%s/rooms" % self.location_id)
+        params = {"limit": LocationContext.ROOM_LIMIT}
+        response = requests.get(url=url, headers=self.headers, params=params)
+        _raise_for_status(response)
+        result = response.json()
+        return result["items"] if "items" in result else []  # type: ignore
+
+    def _retrieve_devices(self) -> List[Dict[str, Any]]:
+        """Retrieve all devices associated with a token."""
+        url = _url("/devices")
+        params = {"locationId": self.location_id, "capability": "switch", "limit": LocationContext.DEVICE_LIMIT}
+        response = requests.get(url=url, headers=self.headers, params=params)
+        _raise_for_status(response)
+        result = response.json()
+        return result["items"] if "items" in result else []  # type: ignore
+
+    def _retrieve_rules(self) -> List[Dict[str, Any]]:
+        """Retrieve all rules associated with a token."""
+        url = _url("/rules")
+        params = {"locationId": self.location_id, "limit": LocationContext.RULES_LIMIT}
+        response = requests.get(url=url, headers=self.headers, params=params)
+        _raise_for_status(response)
+        result = response.json()
+        return result["items"] if "items" in result else []  # type: ignore
 
 
 # Context managed by the SmartThings context manager
@@ -194,11 +213,11 @@ def _headers() -> Dict[str, str]:
     return CONTEXT.get().headers
 
 
-def _raise_for_status(response: Response) -> None:
-    """Check response status, raising ClickException for errors"""
+def _raise_for_status(response: requests.Response) -> None:
+    """Check response status, raising SmartThingsClientError for errors"""
     try:
         response.raise_for_status()
-    except HTTPError as e:
+    except requests.models.HTTPError as e:
         raise SmartThingsClientError("%s" % e) from e
 
 

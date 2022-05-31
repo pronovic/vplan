@@ -39,6 +39,7 @@ requests-unixsocket = "^0.3.0"
 SQLAlchemy = "^1.4.36"
 APScheduler = "^3.9.1"
 python-dotenv = "^0.20.0"
+tenacity = "^8.0.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
