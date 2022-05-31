@@ -26,7 +26,7 @@ def schedule_daily_refresh(
     job_id = "daily/%s" % plan_name
     hour, minute = parse_time(refresh_time)
     trigger_time = datetime.time(hour=hour, minute=minute, second=0)
-    func = refresh_plan
+    func = refresh_plan_job
     kwargs = {"plan_name": plan_name, "location": location}
     schedule_daily_job(job_id, trigger_time, func, kwargs, time_zone)
 
@@ -40,7 +40,7 @@ def unschedule_daily_refresh(plan_name: str) -> None:
 def schedule_immediate_refresh(plan_name: str, location: str) -> None:
     """Schedule a job to immediately refresh the plan definition at SmartThings."""
     job_id = "immediate/%s/%s" % (plan_name, now(pytz.UTC).isoformat())
-    func = refresh_plan
+    func = refresh_plan_job
     kwargs = {"plan_name": plan_name, "location": location}
     schedule_immediate_job(job_id, func, kwargs)
 
@@ -79,9 +79,6 @@ def refresh_plan(plan_name: str, location: str) -> None:
     """
     Refresh the plan definition at SmartThings, either replacing or removing rules.
 
-    This is not intended to be run directly by other code.  Instead, it's a target
-    for the refresh jobs, scheduled via the functions above.
-
     We need both the plan name and the location so that we can still interact
     with SmartThings to clear out the rules, even if the plan has been deleted
     when the job runs.  If the location of the retrieved plan does not match
@@ -96,32 +93,39 @@ def refresh_plan(plan_name: str, location: str) -> None:
     logging.info("Refreshing plan %s at location %s", plan_name, location)
 
     try:
+        account = db_retrieve_account()
+    except NoResultFound:
+        logging.error("Account not found; refresh cannot proceed")
+        return
 
-        try:
-            account = db_retrieve_account()
-        except NoResultFound:
-            logging.error("Account not found; refresh cannot proceed")
-            return
-
-        try:
-            enabled = db_retrieve_plan_enabled(plan_name)
-            if not enabled:
-                schema = None
-            else:
-                schema = db_retrieve_plan(plan_name)
-                if location != schema.plan.location:
-                    logging.error("Plan location does not match job location; treating this as a disabled plan")
-                    schema = None
-        except NoResultFound:
-            logging.error("Plan not found; treating this as a disabled plan")
+    try:
+        enabled = db_retrieve_plan_enabled(plan_name)
+        if not enabled:
             schema = None
+        else:
+            schema = db_retrieve_plan(plan_name)
+            if location != schema.plan.location:
+                logging.error("Plan location does not match job location; treating this as a disabled plan")
+                schema = None
+    except NoResultFound:
+        logging.error("Plan not found; treating this as a disabled plan")
+        schema = None
 
-        with SmartThings(account.pat_token, location):
-            replace_rules(plan_name, schema)
+    with SmartThings(account.pat_token, location):
+        replace_rules(plan_name, schema)
 
-        logging.info("Completed refreshing plan %s at location %s", plan_name, location)
+    logging.info("Completed refreshing plan %s at location %s", plan_name, location)
 
+
+def refresh_plan_job(plan_name: str, location: str) -> None:
+    """
+    Job target for the refresh plan functionality.
+
+    This is not intended to be run directly by other code.  Instead, it's a target
+    for the refresh jobs, scheduled via the functions above.  It's implemented in
+    terms of refresh_plan() and has responsibility for error-handling behavior.
+    """
+    try:
+        refresh_plan(plan_name, location)
     except Exception:  # pylint: disable=broad-except
-
-        # We want the job to always succeed, and just log information on failure
-        logging.exception("Refresh failed")
+        logging.exception("Refresh failed")  # We want the job to always succeed, and just log information on failure
