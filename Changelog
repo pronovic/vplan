@@ -1,4 +1,4 @@
-Version 0.5.0     unreleased
+Version 0.5.0     31 May 2022
 
 	* Improve failure logging and add retry behavior for the daily refresh job.
 
