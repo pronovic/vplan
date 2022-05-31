@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+# pylint: disable=unused-argument:
 import datetime
 from unittest.mock import MagicMock, call, patch
 
@@ -112,9 +113,10 @@ class TestDeviceState:
 @patch("vplan.engine.manager.db_retrieve_plan")
 @patch("vplan.engine.manager.db_retrieve_plan_enabled")
 @patch("vplan.engine.manager.db_retrieve_account")
+@patch("vplan.engine.manager.config")
 class TestRefresh:
     def test_refresh_plan_job_no_account(
-        self, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
+        self, config, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
     ):
         db_retrieve_account.side_effect = NoResultFound("not found")
 
@@ -127,7 +129,7 @@ class TestRefresh:
         replace_rules.assert_not_called()
 
     def test_refresh_plan_job_no_plan(
-        self, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
+        self, config, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
     ):
         account = MagicMock(pat_token="token")
         db_retrieve_account.return_value = account
@@ -142,7 +144,7 @@ class TestRefresh:
         replace_rules.assert_called_once_with("plan", None)
 
     def test_refresh_plan_job_disabled(
-        self, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
+        self, config, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
     ):
         account = MagicMock(pat_token="token")
         db_retrieve_account.return_value = account
@@ -157,7 +159,7 @@ class TestRefresh:
         replace_rules.assert_called_once_with("plan", None)
 
     def test_refresh_plan_job_mismatch(
-        self, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
+        self, config, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
     ):
         account = MagicMock(pat_token="token")
         schema = MagicMock(plan=MagicMock(location="different"))  # because this does not match passed-in "loc", we delete
@@ -174,7 +176,7 @@ class TestRefresh:
         replace_rules.assert_called_once_with("plan", None)
 
     def test_refresh_plan_job_enabled(
-        self, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
+        self, config, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
     ):
         account = MagicMock(pat_token="token")
         schema = MagicMock(plan=MagicMock(location="loc"))  # because matches the passed-in "loc", it's safe to refresh

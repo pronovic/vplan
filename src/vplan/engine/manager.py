@@ -10,9 +10,13 @@ from time import sleep
 from typing import List, Union
 
 import pytz
+from requests import models
 from sqlalchemy.exc import NoResultFound
+from tenacity import Retrying, retry_if_exception_type, stop_after_attempt, wait_exponential
 
+from vplan.engine.config import config
 from vplan.engine.database import db_retrieve_account, db_retrieve_plan, db_retrieve_plan_enabled
+from vplan.engine.exception import SmartThingsClientError
 from vplan.engine.scheduler import schedule_daily_job, schedule_immediate_job, unschedule_daily_job
 from vplan.engine.smartthings import SmartThings, build_plan_rules, parse_time, replace_rules, set_switch
 from vplan.interface import Device, PlanSchema, SimpleTime, SwitchState, TimeZone
@@ -75,7 +79,7 @@ def toggle_devices(location: str, devices: List[Device], toggles: int, delay_sec
                 set_switch(device, SwitchState.OFF)
 
 
-def refresh_plan(plan_name: str, location: str) -> None:
+def _refresh_plan(plan_name: str, location: str) -> None:
     """
     Refresh the plan definition at SmartThings, either replacing or removing rules.
 
@@ -117,15 +121,31 @@ def refresh_plan(plan_name: str, location: str) -> None:
     logging.info("Completed refreshing plan %s at location %s", plan_name, location)
 
 
+def _build_retries() -> Retrying:
+    """Build a retry context based on configuration."""
+    # See: https://tenacity.readthedocs.io/en/latest/
+    return Retrying(
+        reraise=True,
+        stop=stop_after_attempt(config().retry.max_attempts),
+        wait=wait_exponential(multiplier=1, min=config().retry.min_sec, max=config().retry.max_sec),
+        retry=retry_if_exception_type((SmartThingsClientError, models.ConnectionError, models.HTTPError)),
+    )
+
+
 def refresh_plan_job(plan_name: str, location: str) -> None:
     """
     Job target for the refresh plan functionality.
 
-    This is not intended to be run directly by other code.  Instead, it's a target
-    for the refresh jobs, scheduled via the functions above.  It's implemented in
-    terms of refresh_plan() and has responsibility for error-handling behavior.
+    This is not intended to be run directly by other code.  Instead, it's a target for the
+    refresh jobs, scheduled via the functions above.  It's implemented in terms of
+    _refresh_plan() and has responsibility for error-handling and retry behavior.
     """
+    retries = _build_retries()
     try:
-        refresh_plan(plan_name, location)
+        for attempt in retries:
+            with attempt:
+                _refresh_plan(plan_name, location)
     except Exception:  # pylint: disable=broad-except
-        logging.exception("Refresh failed")  # We want the job to always succeed, and just log information on failure
+        # We want the job to always succeed, and just log information on failure
+        logging.exception("Refresh failed")
+        logging.error("Retry info: %s", retries.statistics)
