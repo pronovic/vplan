@@ -7,6 +7,7 @@ from unittest.mock import MagicMock, call, patch
 import pytest
 from sqlalchemy.exc import NoResultFound
 
+from vplan.engine.exception import SmartThingsClientError
 from vplan.engine.manager import (
     refresh_plan_job,
     schedule_daily_refresh,
@@ -191,3 +192,58 @@ class TestRefresh:
         db_retrieve_plan.assert_called_once_with("plan")
         context.assert_called_once_with("token", "loc")
         replace_rules.assert_called_once_with("plan", schema)
+
+    @pytest.mark.parametrize(
+        "max_attempts",
+        [-20, -1, 0, 1],  # any of these values count as only a single attempt (no retries)
+    )
+    def test_refresh_plan_job_fail_no_retry(
+        self,
+        config,
+        db_retrieve_account,
+        db_retrieve_plan_enabled,
+        db_retrieve_plan,
+        replace_rules,
+        context,
+        max_attempts,
+    ):
+        config.return_value = MagicMock(retry=MagicMock(max_attempts=max_attempts, min_sec=0.25, max_sec=1))
+
+        account = MagicMock(pat_token="token")
+        schema = MagicMock(plan=MagicMock(location="loc"))  # because matches the passed-in "loc", it's safe to refresh
+        db_retrieve_account.return_value = account
+        db_retrieve_plan_enabled.return_value = True
+        db_retrieve_plan.return_value = schema
+
+        replace_rules.side_effect = SmartThingsClientError("hello")
+
+        refresh_plan_job("plan", "loc")  # note: exception is swallowed
+
+        db_retrieve_account.assert_called_once()
+        db_retrieve_plan_enabled.assert_called_once_with("plan")
+        db_retrieve_plan.assert_called_once_with("plan")
+        context.assert_called_once_with("token", "loc")
+        replace_rules.assert_called_once_with("plan", schema)
+
+    def test_refresh_plan_job_fail_with_single_retry(
+        self, config, db_retrieve_account, db_retrieve_plan_enabled, db_retrieve_plan, replace_rules, context
+    ):
+        # max_attempts=2 means a single retry (2 total attempts)
+        config.return_value = MagicMock(retry=MagicMock(max_attempts=2, min_sec=0.25, max_sec=1))
+
+        account = MagicMock(pat_token="token")
+        schema = MagicMock(plan=MagicMock(location="loc"))  # because matches the passed-in "loc", it's safe to refresh
+        db_retrieve_account.return_value = account
+        db_retrieve_plan_enabled.return_value = True
+        db_retrieve_plan.return_value = schema
+
+        replace_rules.side_effect = SmartThingsClientError("hello")
+
+        refresh_plan_job("plan", "loc")  # note: exception is swallowed
+
+        # every call is duplicated because we configured retry.max_attempts=2
+        db_retrieve_account.assert_has_calls([call(), call()])
+        db_retrieve_plan_enabled.assert_has_calls([call("plan"), call("plan")])
+        db_retrieve_plan.assert_has_calls([call("plan"), call("plan")])
+        context.assert_called_with("token", "loc")  # the __enter__ and __exit__ calls make it hard to verify this exactly
+        replace_rules.assert_has_calls([call("plan", schema), call("plan", schema)])
