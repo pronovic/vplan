@@ -53,3 +53,6 @@ class TestConfig:
         assert result.scheduler.database_url == "sqlite+pysqlite:///.runtime/db/jobs.sqlite"
         assert result.scheduler.daily_job.jitter_sec == 300
         assert result.scheduler.daily_job.misfire_grace_sec == 1800
+        assert result.retry.max_attempts == 4
+        assert result.retry.min_sec == 1
+        assert result.retry.max_sec == 5

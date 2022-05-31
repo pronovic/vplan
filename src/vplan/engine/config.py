@@ -34,6 +34,14 @@ class DailyJobConfig(YamlModel):
     misfire_grace_sec: NonNegativeInt = Field(..., description="Misfire grace period in seconds, if job can't be run on time")
 
 
+class RetryConfig(YamlModel):
+    """Retry configuration."""
+
+    max_attempts: NonNegativeInt = Field(..., description="Maximum number of retry attempts for the daily job")
+    min_sec: NonNegativeInt = Field(..., description="Minimum delay for the retry exponential backoff, in seconds")
+    max_sec: NonNegativeInt = Field(..., description="Maximum delay for the retry exponential backoff, in seconds")
+
+
 class SchedulerConfig(YamlModel):
     """Scheduler configuration."""
 
@@ -42,7 +50,7 @@ class SchedulerConfig(YamlModel):
 
 
 class SmartThingsConfig(YamlModel):
-    """Scheduler configuration."""
+    """SmartThings API configuration."""
 
     base_api_url: str = Field(..., description="URL for the SmartThings API")
 
@@ -55,6 +63,7 @@ class ServerConfig(YamlModel):
     database_log_level: LogLevel = Field(..., description="The log level to use for database messages from SQLAlchemy")
     smartthings: SmartThingsConfig = Field(..., description="Configuration for the SmartThings interface")
     scheduler: SchedulerConfig = Field(..., description="Scheduler configuration")
+    retry: RetryConfig = Field(..., description="Retry configuration")
 
 
 _CONFIG: Optional[ServerConfig] = None

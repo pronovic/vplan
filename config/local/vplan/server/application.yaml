@@ -8,3 +8,7 @@ scheduler:
    daily_job:
       jitter_sec: 0            # run jobs exactly when scheduled
       misfire_grace_sec: 1800  # if missed (i.e. if server is down), job will be run up to 30 minutes late
+retry:
+   max_attempts: 4  # retry the daily job up to 4 times with exponential backoff
+   min_sec: 1       # wait 1 second for first retry
+   max_sec: 5       # limit the retry wait to 5 seconds (i.e. 1, 2, 4, 5, 5, etc.)
