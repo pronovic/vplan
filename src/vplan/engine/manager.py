@@ -124,4 +124,4 @@ def refresh_plan(plan_name: str, location: str) -> None:
     except Exception:  # pylint: disable=broad-except
 
         # We want the job to always succeed, and just log information on failure
-        logging.error("Refresh failed")
+        logging.exception("Refresh failed")
