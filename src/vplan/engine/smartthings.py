@@ -434,4 +434,4 @@ def parse_days(days: Union[List[str], List[TriggerDay]]) -> List[str]:
     for day in days:
         for normalized in parse_day(day):
             result.add(normalized)
-    return sorted(list(result), key=lambda day: sort[day])
+    return sorted(list(result), key=lambda d: sort[d])

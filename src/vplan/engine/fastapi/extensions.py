@@ -19,6 +19,7 @@ class EmptyResponse(Response):
     # See also: https://github.com/tiangolo/fastapi/issues/2832
     # I removed the original constructor, because it caused problems when using a status code in the route (?!??)
 
+    # noinspection PyAttributeOutsideInit
     def init_headers(self, headers: Mapping[str, str] = None) -> None:  # type: ignore
         byte_headers: Dict[bytes, bytes] = (
             {k.lower().encode("latin-1"): v.encode("latin-1") for k, v in headers.items()} if headers else {}

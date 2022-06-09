@@ -30,12 +30,14 @@ class ClientConfig(YamlModel):
     api_endpoint: Optional[str] = Field(title="HTTP endpoint, used in port mode")
     api_socket: Optional[str] = Field(title="Path to a UNIX socket, used in socket mode")
 
+    # noinspection PyMethodParameters
     @validator("api_endpoint")
     def _validate_api_endpoint(cls, api_endpoint: str, values: Dict[str, Any]) -> str:  # pylint: disable=no-self-argument
         if values["mode"] == ConnectionMode.PORT.value and not api_endpoint:
             raise ValueError("api_endpoint required in PORT mode")
         return api_endpoint
 
+    # noinspection PyMethodParameters
     @validator("api_socket")
     def _validate_api_socket(cls, api_socket: str, values: Dict[str, Any]) -> str:  # pylint: disable=no-self-argument
         if values["mode"] == ConnectionMode.SOCKET.value and not api_socket:
