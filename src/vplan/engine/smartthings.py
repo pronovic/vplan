@@ -46,6 +46,7 @@ from vplan.interface import (
 
 
 # noinspection PyMethodMayBeStatic
+# pylint: disable=invalid-name:
 class LocationContext:
 
     """
