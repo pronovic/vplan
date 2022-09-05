@@ -1,4 +1,4 @@
-Version 0.5.2     unreleased
+Version 0.5.2     05 Sep 2022
 
 	* Fall back addition of timeout for local client calls (unnecessary).
 
