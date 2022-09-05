@@ -380,21 +380,25 @@ class TestContext:
                     url="http://whatever/locations",
                     headers=HEADERS,
                     params={"limit": "100"},
+                    timeout=5.0,
                 ),
                 call(
                     url="http://whatever/locations/%s/rooms" % LOCATION_ID,
                     headers=HEADERS,
                     params={"limit": "250"},
+                    timeout=5.0,
                 ),
                 call(
                     url="http://whatever/devices",
                     headers=HEADERS,
                     params={"locationId": LOCATION_ID, "capability": "switch", "limit": "1000"},
+                    timeout=5.0,
                 ),
                 call(
                     url="http://whatever/rules",
                     headers=HEADERS,
                     params={"locationId": LOCATION_ID, "limit": "100"},
+                    timeout=5.0,
                 ),
             ]
         )
@@ -608,7 +612,7 @@ class TestClient:
             delete_rule("id")
             raise_for_status.assert_called_once_with(response)
             requests_delete.assert_called_once_with(
-                url="http://whatever/rules/id", headers=HEADERS, params={"locationId": LOCATION_ID}
+                url="http://whatever/rules/id", headers=HEADERS, params={"locationId": LOCATION_ID}, timeout=5.0
             )
 
     @patch("vplan.engine.smartthings.requests.post")
@@ -625,6 +629,7 @@ class TestClient:
                 headers=HEADERS,
                 params={"locationId": LOCATION_ID},
                 json=input_rule,
+                timeout=5.0,
             )
 
     @pytest.mark.parametrize(
@@ -642,6 +647,7 @@ class TestClient:
                 url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/commands",
                 headers=HEADERS,
                 json={"commands": [{"component": "main", "capability": "switch", "command": command}]},
+                timeout=5.0,
             )
 
     @pytest.mark.parametrize("file,expected", [("switch_on.json", SwitchState.ON), ("switch_off.json", SwitchState.OFF)])
@@ -656,4 +662,5 @@ class TestClient:
             requests_get.assert_called_once_with(
                 url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/components/main/capabilities/switch/status",
                 headers=HEADERS,
+                timeout=5.0,
             )

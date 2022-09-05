@@ -44,6 +44,7 @@ from vplan.interface import (
     TriggerVariation,
 )
 
+_CLIENT_TIMEOUT_SEC = 5.0  # we want some fairly large timeout so that requests can't hang forever
 
 # noinspection PyMethodMayBeStatic
 # pylint: disable=invalid-name:
@@ -149,7 +150,7 @@ class LocationContext:
         """Retrieve all locations associated with a token."""
         url = _url("/locations")
         params = {"limit": LocationContext.LOCATION_LIMIT}
-        response = requests.get(url=url, headers=self.headers, params=params)
+        response = requests.get(url=url, headers=self.headers, params=params, timeout=_CLIENT_TIMEOUT_SEC)
         _raise_for_status(response)
         result = response.json()
         return result["items"] if "items" in result else []  # type: ignore
@@ -158,7 +159,7 @@ class LocationContext:
         """Retrieve all rooms associated with a token."""
         url = _url("/locations/%s/rooms" % self.location_id)
         params = {"limit": LocationContext.ROOM_LIMIT}
-        response = requests.get(url=url, headers=self.headers, params=params)
+        response = requests.get(url=url, headers=self.headers, params=params, timeout=_CLIENT_TIMEOUT_SEC)
         _raise_for_status(response)
         result = response.json()
         return result["items"] if "items" in result else []  # type: ignore
@@ -167,7 +168,7 @@ class LocationContext:
         """Retrieve all devices associated with a token."""
         url = _url("/devices")
         params = {"locationId": self.location_id, "capability": "switch", "limit": LocationContext.DEVICE_LIMIT}
-        response = requests.get(url=url, headers=self.headers, params=params)
+        response = requests.get(url=url, headers=self.headers, params=params, timeout=_CLIENT_TIMEOUT_SEC)
         _raise_for_status(response)
         result = response.json()
         return result["items"] if "items" in result else []  # type: ignore
@@ -176,7 +177,7 @@ class LocationContext:
         """Retrieve all rules associated with a token."""
         url = _url("/rules")
         params = {"locationId": self.location_id, "limit": LocationContext.RULES_LIMIT}
-        response = requests.get(url=url, headers=self.headers, params=params)
+        response = requests.get(url=url, headers=self.headers, params=params, timeout=_CLIENT_TIMEOUT_SEC)
         _raise_for_status(response)
         result = response.json()
         return result["items"] if "items" in result else []  # type: ignore
@@ -330,7 +331,7 @@ def delete_rule(rule_id: str) -> None:
     """Delete an existing rule."""
     url = _url("/rules/%s" % rule_id)
     params = {"locationId": location_id()}
-    response = requests.delete(url=url, headers=_headers(), params=params)
+    response = requests.delete(url=url, headers=_headers(), params=params, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
@@ -338,7 +339,7 @@ def create_rule(rule: Dict[str, Any]) -> Dict[str, Any]:
     """Create a rule, returning the result from SmartThings."""
     url = _url("/rules")
     params = {"locationId": CONTEXT.get().location_id}
-    response = requests.post(url=url, headers=_headers(), params=params, json=rule)
+    response = requests.post(url=url, headers=_headers(), params=params, json=rule, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
     return response.json()  # type: ignore[no-any-return]
 
@@ -348,14 +349,14 @@ def set_switch(device: Device, state: SwitchState) -> None:
     command = "on" if state == SwitchState.ON else "off"
     request = {"commands": [{"component": "main", "capability": "switch", "command": command}]}
     url = _url("/devices/%s/commands" % device_id(device))
-    response = requests.post(url=url, headers=_headers(), json=request)
+    response = requests.post(url=url, headers=_headers(), json=request, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def check_switch(device: Device) -> SwitchState:
     """Check the state of a switch."""
     url = _url("/devices/%s/components/main/capabilities/switch/status" % device_id(device))
-    response = requests.get(url=url, headers=_headers())
+    response = requests.get(url=url, headers=_headers(), timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
     return SwitchState.ON if response.json()["switch"]["value"] == "on" else SwitchState.OFF
 
