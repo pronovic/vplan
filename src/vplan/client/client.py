@@ -15,6 +15,8 @@ from requests import HTTPError, Response
 from vplan.client.config import api_url
 from vplan.interface import Account, PlanSchema, Status, Version
 
+_CLIENT_TIMEOUT_SEC = 5.0  # we want some fairly large timeout so that requests can't hang forever
+
 # Add support in requests for http+unix:// URLs to use a UNIX socket
 requests_unixsocket.monkeypatch()
 
@@ -67,7 +69,7 @@ def retrieve_version() -> Optional[Version]:
 def retrieve_account() -> Optional[Account]:
     """Retrieve account information stored in the plan engine."""
     url = _account()
-    response = requests.get(url=url)
+    response = requests.get(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     if response.status_code == 404:
         return None
     _raise_for_status(response)
@@ -77,21 +79,21 @@ def retrieve_account() -> Optional[Account]:
 def create_or_replace_account(account: Account) -> None:
     """Create or replace account information stored in the plan engine."""
     url = _account()
-    response = requests.post(url=url, data=account.json())
+    response = requests.post(url=url, data=account.json(), timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def delete_account() -> None:
     """Delete account information stored in the plan engine."""
     url = _account()
-    response = requests.delete(url=url)
+    response = requests.delete(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def retrieve_all_plans() -> List[str]:
     """Return the names of all plans stored in the plan engine."""
     url = _plan()
-    response = requests.get(url=url)
+    response = requests.get(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
     plans: List[str] = json.loads(response.text)
     return plans
@@ -100,7 +102,7 @@ def retrieve_all_plans() -> List[str]:
 def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
     """Return the plan definition stored in the plan engine."""
     url = _plan("/%s" % plan_name)
-    response = requests.get(url=url)
+    response = requests.get(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     if response.status_code == 404:
         return None
     _raise_for_status(response)
@@ -110,28 +112,28 @@ def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
 def create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
     url = _plan()
-    response = requests.post(url=url, data=schema.json())
+    response = requests.post(url=url, data=schema.json(), timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     url = _plan()
-    response = requests.put(url=url, data=schema.json())
+    response = requests.put(url=url, data=schema.json(), timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def delete_plan(plan_name: str) -> None:
     """Delete a plan stored in the plan engine."""
     url = _plan("/%s" % plan_name)
-    response = requests.delete(url=url)
+    response = requests.delete(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def retrieve_plan_status(plan_name: str) -> Optional[Status]:
     """Return the enabled/disabled status of a plan in the plan engine."""
     url = _plan("/%s/status" % plan_name)
-    response = requests.get(url=url)
+    response = requests.get(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     if response.status_code == 404:
         return None
     _raise_for_status(response)
@@ -141,14 +143,14 @@ def retrieve_plan_status(plan_name: str) -> Optional[Status]:
 def update_plan_status(plan_name: str, status: Status) -> None:
     """Set the enabled/disabled status of a plan in the plan engine."""
     url = _plan("/%s/status" % plan_name)
-    response = requests.put(url=url, data=status.json())
+    response = requests.put(url=url, data=status.json(), timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def refresh_plan(plan_name: str) -> None:
     """Refresh the plan rules in the SmartThings infrastructure."""
     url = _plan("/%s/refresh" % plan_name)
-    response = requests.post(url=url)
+    response = requests.post(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
@@ -156,7 +158,7 @@ def toggle_group(plan_name: str, group_name: str, toggles: int, delay_sec: int) 
     """Test a device group that is part of a plan."""
     url = _plan("/%s/test/group/%s" % (plan_name, group_name))
     params = {"toggles": toggles, "delay_sec": delay_sec}
-    response = requests.post(url=url, params=params)
+    response = requests.post(url=url, params=params, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
@@ -164,33 +166,33 @@ def toggle_device(plan_name: str, room: str, device: str, toggles: int, delay_se
     """Test a device that is part of a plan."""
     url = _plan("/%s/test/device/%s/%s" % (plan_name, room, device))
     params = {"toggles": toggles, "delay_sec": delay_sec}
-    response = requests.post(url=url, params=params)
+    response = requests.post(url=url, params=params, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def turn_on_group(plan_name: str, group_name: str) -> None:
     """Turn on a device group that is part of a plan."""
     url = _plan("/%s/on/group/%s" % (plan_name, group_name))
-    response = requests.post(url=url)
+    response = requests.post(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def turn_on_device(plan_name: str, room: str, device: str) -> None:
     """Turn on a device that is part of a plan."""
     url = _plan("/%s/on/device/%s/%s" % (plan_name, room, device))
-    response = requests.post(url=url)
+    response = requests.post(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def turn_off_group(plan_name: str, group_name: str) -> None:
     """Turn off a device group that is part of a plan."""
     url = _plan("/%s/off/group/%s" % (plan_name, group_name))
-    response = requests.post(url=url)
+    response = requests.post(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
 
 
 def turn_off_device(plan_name: str, room: str, device: str) -> None:
     """Turn off a device that is part of a plan."""
     url = _plan("/%s/off/device/%s/%s" % (plan_name, room, device))
-    response = requests.post(url=url)
+    response = requests.post(url=url, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
