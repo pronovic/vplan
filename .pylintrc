@@ -74,11 +74,11 @@ disable=fixme,
         too-few-public-methods,
         no-else-return,
         no-else-raise,
+        no-self-use,
         duplicate-code,
         consider-using-f-string,
         no-member, # not reliable for Pydantic; and not really needed because we use MyPy anyway
-        unsubscriptable-object, # bug in Pylint & Python 3.9 gives "Value 'Optional' is unsubscriptable",
-        missing-timeout, # will fix this later
+        unsubscriptable-object # bug in Pylint & Python 3.9 gives "Value 'Optional' is unsubscriptable"
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option
