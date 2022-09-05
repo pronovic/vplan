@@ -118,7 +118,7 @@ class TestAccount:
         result = retrieve_account()
         assert result is None
         raise_for_status.assert_not_called()
-        requests_get.assert_called_once_with(url="http://whatever/account", timeout=5.0)
+        requests_get.assert_called_once_with(url="http://whatever/account")
 
     @patch("vplan.client.client.requests.get")
     def test_retrieve_account_found(self, requests_get, _api_url, raise_for_status):
@@ -128,7 +128,7 @@ class TestAccount:
         result = retrieve_account()
         assert result == account
         raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/account", timeout=5.0)
+        requests_get.assert_called_once_with(url="http://whatever/account")
 
     @patch("vplan.client.client.requests.post")
     def test_create_or_replace_account(self, requests_post, _api_url, raise_for_status):
@@ -137,7 +137,7 @@ class TestAccount:
         requests_post.side_effect = [response]
         create_or_replace_account(account)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/account", data=account.json(), timeout=5.0)
+        requests_post.assert_called_once_with(url="http://whatever/account", data=account.json())
 
     @patch("vplan.client.client.requests.delete")
     def test_delete_account(self, requests_delete, _api_url, raise_for_status):
@@ -145,7 +145,7 @@ class TestAccount:
         requests_delete.side_effect = [response]
         delete_account()
         raise_for_status.assert_called_once_with(response)
-        requests_delete.assert_called_once_with(url="http://whatever/account", timeout=5.0)
+        requests_delete.assert_called_once_with(url="http://whatever/account")
 
 
 @patch("vplan.client.client._raise_for_status")
@@ -159,7 +159,7 @@ class TestPlan:
         result = retrieve_all_plans()
         assert result == plans
         raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/plan", timeout=5.0)
+        requests_get.assert_called_once_with(url="http://whatever/plan")
 
     @patch("vplan.client.client.requests.get")
     def test_retrieve_plan_not_found(self, requests_get, _api_url, raise_for_status):
@@ -168,7 +168,7 @@ class TestPlan:
         result = retrieve_plan("xxx")
         assert result is None
         raise_for_status.assert_not_called()
-        requests_get.assert_called_once_with(url="http://whatever/plan/xxx", timeout=5.0)
+        requests_get.assert_called_once_with(url="http://whatever/plan/xxx")
 
     @patch("vplan.client.client.requests.get")
     def test_retrieve_plan_found(self, requests_get, _api_url, raise_for_status):
@@ -178,7 +178,7 @@ class TestPlan:
         result = retrieve_plan("xxx")
         assert result == schema
         raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/plan/xxx", timeout=5.0)
+        requests_get.assert_called_once_with(url="http://whatever/plan/xxx")
 
     @patch("vplan.client.client.requests.post")
     def test_create_plan(self, requests_post, _api_url, raise_for_status):
@@ -187,7 +187,7 @@ class TestPlan:
         requests_post.side_effect = [response]
         create_plan(schema)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan", data=schema.json(), timeout=5.0)
+        requests_post.assert_called_once_with(url="http://whatever/plan", data=schema.json())
 
     @patch("vplan.client.client.requests.put")
     def test_update_plan(self, requests_put, _api_url, raise_for_status):
@@ -196,7 +196,7 @@ class TestPlan:
         requests_put.side_effect = [response]
         update_plan(schema)
         raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/plan", data=schema.json(), timeout=5.0)
+        requests_put.assert_called_once_with(url="http://whatever/plan", data=schema.json())
 
     @patch("vplan.client.client.requests.delete")
     def test_delete_plan(self, requests_delete, _api_url, raise_for_status):
@@ -204,7 +204,7 @@ class TestPlan:
         requests_delete.side_effect = [response]
         delete_plan("xxx")
         raise_for_status.assert_called_once_with(response)
-        requests_delete.assert_called_once_with(url="http://whatever/plan/xxx", timeout=5.0)
+        requests_delete.assert_called_once_with(url="http://whatever/plan/xxx")
 
     @patch("vplan.client.client.requests.get")
     def test_retrieve_plan_status_not_found(self, requests_get, _api_url, raise_for_status):
@@ -213,7 +213,7 @@ class TestPlan:
         result = retrieve_plan_status("xxx")
         assert result is None
         raise_for_status.assert_not_called()
-        requests_get.assert_called_once_with(url="http://whatever/plan/xxx/status", timeout=5.0)
+        requests_get.assert_called_once_with(url="http://whatever/plan/xxx/status")
 
     @patch("vplan.client.client.requests.get")
     def test_retrieve_plan_status_found(self, requests_get, _api_url, raise_for_status):
@@ -223,7 +223,7 @@ class TestPlan:
         result = retrieve_plan_status("xxx")
         assert result == status
         raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/plan/xxx/status", timeout=5.0)
+        requests_get.assert_called_once_with(url="http://whatever/plan/xxx/status")
 
     @patch("vplan.client.client.requests.put")
     def test_update_plan_status(self, requests_put, _api_url, raise_for_status):
@@ -232,7 +232,7 @@ class TestPlan:
         requests_put.side_effect = [response]
         update_plan_status("xxx", status)
         raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/plan/xxx/status", data=status.json(), timeout=5.0)
+        requests_put.assert_called_once_with(url="http://whatever/plan/xxx/status", data=status.json())
 
     @patch("vplan.client.client.requests.post")
     def test_refresh_plan(self, requests_post, _api_url, raise_for_status):
@@ -240,7 +240,7 @@ class TestPlan:
         requests_post.side_effect = [response]
         refresh_plan("xxx")
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/refresh", timeout=5.0)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/refresh")
 
     @patch("vplan.client.client.requests.post")
     def test_toggle_group(self, requests_post, _api_url, raise_for_status):
@@ -248,9 +248,7 @@ class TestPlan:
         requests_post.side_effect = [response]
         toggle_group("xxx", "yyy", 2, 5)
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(
-            url="http://whatever/plan/xxx/test/group/yyy", params={"toggles": 2, "delay_sec": 5}, timeout=5.0
-        )
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/group/yyy", params={"toggles": 2, "delay_sec": 5})
 
     @patch("vplan.client.client.requests.post")
     def test_toggle_device(self, requests_post, _api_url, raise_for_status):
@@ -259,7 +257,7 @@ class TestPlan:
         toggle_device("xxx", "yyy", "zzz", 2, 5)
         raise_for_status.assert_called_once_with(response)
         requests_post.assert_called_once_with(
-            url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggles": 2, "delay_sec": 5}, timeout=5.0
+            url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggles": 2, "delay_sec": 5}
         )
 
     @patch("vplan.client.client.requests.post")
@@ -268,7 +266,7 @@ class TestPlan:
         requests_post.side_effect = [response]
         turn_on_group("xxx", "yyy")
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/group/yyy", timeout=5.0)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/group/yyy")
 
     @patch("vplan.client.client.requests.post")
     def test_turn_on_device(self, requests_post, _api_url, raise_for_status):
@@ -276,7 +274,7 @@ class TestPlan:
         requests_post.side_effect = [response]
         turn_on_device("xxx", "yyy", "zzz")
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/device/yyy/zzz", timeout=5.0)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/device/yyy/zzz")
 
     @patch("vplan.client.client.requests.post")
     def test_turn_off_group(self, requests_post, _api_url, raise_for_status):
@@ -284,7 +282,7 @@ class TestPlan:
         requests_post.side_effect = [response]
         turn_off_group("xxx", "yyy")
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/group/yyy", timeout=5.0)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/group/yyy")
 
     @patch("vplan.client.client.requests.post")
     def test_turn_off_device(self, requests_post, _api_url, raise_for_status):
@@ -292,4 +290,4 @@ class TestPlan:
         requests_post.side_effect = [response]
         turn_off_device("xxx", "yyy", "zzz")
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/device/yyy/zzz", timeout=5.0)
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/device/yyy/zzz")
