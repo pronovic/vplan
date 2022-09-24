@@ -50,7 +50,7 @@ PLAN_EXPECTED = PlanSchema(
             DeviceGroup(
                 name="basement",
                 devices=[
-                    Device(room="Basement", device="Lamp Under Window"),
+                    Device(room="Basement", device="Lamp Under Window", component="rightOutlet"),
                 ],
                 triggers=[
                     Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 minutes"),
@@ -65,7 +65,7 @@ DEVICES_EXPECTED = [
     Device(room="Living Room", device="China Cabinet"),
     Device(room="Ken's Office", device="Desk Lamp"),
     Device(room="Julie's Office", device="Dresser Lamp"),
-    Device(room="Basement", device="Lamp Under Window"),
+    Device(room="Basement", device="Lamp Under Window", component="rightOutlet"),
 ]
 
 

@@ -39,6 +39,7 @@ plan:
       devices:
         - room: Basement
           device: Lamp Under Window
+          component: rightOutlet
       triggers:
         - days: [ friday, weekend ]
           on_time: "19:45"

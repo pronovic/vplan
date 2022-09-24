@@ -135,6 +135,7 @@ class Device(YamlModel):
 
     room: SmartThingsId = Field(..., description="SmartThings room name where the device lives")
     device: SmartThingsId = Field(..., description="SmartThings device name")
+    component: SmartThingsId = Field("main", description="The component to trigger the command for (default=main)")
 
 
 class DeviceGroup(YamlModel):
