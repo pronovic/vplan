@@ -99,6 +99,7 @@ def _response(data=None, status_code=None):
     return response
 
 
+# TODO: need another version of this test with new-style edge devices like for ZEN25; probably different devices.json?
 @pytest.fixture
 @patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
 @patch("vplan.engine.smartthings.requests.get")
@@ -417,13 +418,13 @@ class TestRules:
         _parse_days.return_value = ["Sun", "Mon"]
 
         name = "Turn on Lamp"
-        device_ids = ["6498f80e-2c39-4f06-bf5c-d1b1916d48f2"]
+        devices = {"6498f80e-2c39-4f06-bf5c-d1b1916d48f2": Device(room="yyy", device="zzz", component="ccc")}
         days = ["xxx"]
         trigger_time = "03:00"
         variation = "none"
         state = SwitchState.OFF
 
-        rule = build_rule(name, device_ids, days, trigger_time, variation, state)
+        rule = build_rule(name, devices, days, trigger_time, variation, state)
 
         _parse_variation.assert_called_once_with(variation)
         _parse_trigger_time.assert_called_once_with(trigger_time, 999)
@@ -439,7 +440,7 @@ class TestRules:
                             {
                                 "command": {
                                     "devices": ["6498f80e-2c39-4f06-bf5c-d1b1916d48f2"],
-                                    "commands": [{"component": "main", "capability": "switch", "command": "off"}],
+                                    "commands": [{"component": "ccc", "capability": "switch", "command": "off"}],
                                 }
                             }
                         ],
@@ -460,13 +461,13 @@ class TestRules:
         _parse_days.return_value = ["Sun", "Mon"]
 
         name = "Turn on Lamp"
-        device_ids = ["6498f80e-2c39-4f06-bf5c-d1b1916d48f2"]
+        devices = {"6498f80e-2c39-4f06-bf5c-d1b1916d48f2": Device(room="yyy", device="zzz", component="ccc")}
         days = ["xxx"]
         trigger_time = "03:00"
         variation = "none"
         state = SwitchState.ON
 
-        rule = build_rule(name, device_ids, days, trigger_time, variation, state)
+        rule = build_rule(name, devices, days, trigger_time, variation, state)
 
         _parse_variation.assert_called_once_with(variation)
         _parse_trigger_time.assert_called_once_with(trigger_time, 999)
@@ -486,7 +487,7 @@ class TestRules:
                             {
                                 "command": {
                                     "devices": ["6498f80e-2c39-4f06-bf5c-d1b1916d48f2"],
-                                    "commands": [{"component": "main", "capability": "switch", "command": "on"}],
+                                    "commands": [{"component": "ccc", "capability": "switch", "command": "on"}],
                                 }
                             }
                         ],
@@ -525,10 +526,11 @@ class TestRules:
         trigger2 = Trigger(days=["tue"], on_time="09:00", off_time="12:30", variation="+ 5 minutes")
         triggers = [trigger1, trigger2]
         group = DeviceGroup(name="group", devices=devices, triggers=triggers)
+        devices = {"id1": device1, "id2": device2}
 
         rules1 = [{"fake": "trigger1-1"}, {"fake": "trigger1-2"}]
         rules2 = [{"fake": "trigger2"}]
-        _device_id.side_effect = ["id1", "id2"]
+        _device_id.side_effect = ["id1", "id2"]  # maps to device1, device2
         _build_trigger_rules.side_effect = [rules1, rules2]
 
         assert build_group_rules(name, group) == rules1 + rules2
@@ -536,8 +538,8 @@ class TestRules:
         _device_id.assert_has_calls([call(device1), call(device2)])
         _build_trigger_rules.assert_has_calls(
             [
-                call("whatever/group/trigger[0]", ["id1", "id2"], trigger1),
-                call("whatever/group/trigger[1]", ["id1", "id2"], trigger2),
+                call("whatever/group/trigger[0]", devices, trigger1),
+                call("whatever/group/trigger[1]", devices, trigger2),
             ]
         )
 
@@ -641,12 +643,12 @@ class TestClient:
         with test_context:
             response = _response()
             requests_post.side_effect = [response]
-            set_switch(Device(room="Office", device="Desk Lamp"), state)
+            set_switch(Device(room="Office", device="Desk Lamp", component="ccc"), state)
             raise_for_status.assert_called_once_with(response)
             requests_post.assert_called_once_with(
                 url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/commands",
                 headers=HEADERS,
-                json={"commands": [{"component": "main", "capability": "switch", "command": command}]},
+                json={"commands": [{"component": "ccc", "capability": "switch", "command": command}]},
                 timeout=5.0,
             )
 
@@ -656,11 +658,11 @@ class TestClient:
         with test_context:
             response = _response(data=fixture(file))
             requests_get.side_effect = [response]
-            status = check_switch(Device(room="Office", device="Desk Lamp"))
+            status = check_switch(Device(room="Office", device="Desk Lamp", component="ccc"))
             assert status == expected
             raise_for_status.assert_called_once_with(response)
             requests_get.assert_called_once_with(
-                url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/components/main/capabilities/switch/status",
+                url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/components/ccc/capabilities/switch/status",
                 headers=HEADERS,
                 timeout=5.0,
             )

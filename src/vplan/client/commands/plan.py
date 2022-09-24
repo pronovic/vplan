@@ -254,9 +254,9 @@ def test(
     appears to work best.
     """
     if device_path:
-        room, device = device_path.split("/")
+        room, device = device_path.split("/")  # TODO: this needs to support component
         click.secho("Testing device: %s/%s" % (room, device))
-        toggle_device(plan_name, room, device, toggles, delay_sec)
+        toggle_device(plan_name, room, device, "main", toggles, delay_sec)  # TODO: replace "main" with component
     elif group_name:
         click.secho("Testing group: %s" % group_name)
         toggle_group(plan_name, group_name, toggles, delay_sec)
@@ -300,9 +300,9 @@ def on(plan_name: str, group_name: Optional[str] = None, device_path: Optional[s
     device using --device.
     """
     if device_path:
-        room, device = device_path.split("/")
+        room, device = device_path.split("/")  # TODO: this needs to support component
         click.secho("Turning on device: %s/%s" % (room, device))
-        turn_on_device(plan_name, room, device)
+        turn_on_device(plan_name, room, device, "main")  # TODO: replace "main" with component
     elif group_name:
         click.secho("Turning on group: %s" % group_name)
         turn_on_group(plan_name, group_name)
@@ -339,9 +339,9 @@ def off(plan_name: str, group_name: Optional[str] = None, device_path: Optional[
     device using --device.
     """
     if device_path:
-        room, device = device_path.split("/")
+        room, device = device_path.split("/")  # TODO: this needs to support component
         click.secho("Turning off device: %s/%s" % (room, device))
-        turn_off_device(plan_name, room, device)
+        turn_off_device(plan_name, room, device, "main")  # TODO: replace "main" with component
     elif group_name:
         click.secho("Turning off group: %s" % group_name)
         turn_off_group(plan_name, group_name)

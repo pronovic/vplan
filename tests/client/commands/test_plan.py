@@ -295,6 +295,7 @@ class TestTest:
         result = invoke(["test", "--help"])
         assert result.exit_code == 0
 
+    # TODO: need another version of this with the component on the command line
     @pytest.mark.parametrize(
         "option",
         ["--device", "-d"],
@@ -304,7 +305,7 @@ class TestTest:
         result = invoke(["test", "xxx", option, "room/device"])
         assert result.exit_code == 0
         assert result.output == "Testing device: room/device\n"
-        toggle_device.assert_called_once_with("xxx", "room", "device", 2, 5)
+        toggle_device.assert_called_once_with("xxx", "room", "device", "main", 2, 5)
 
     @pytest.mark.parametrize(
         "option",
@@ -478,6 +479,7 @@ class TestOn:
         result = invoke(["on", "--help"])
         assert result.exit_code == 0
 
+    # TODO: need another version of this with the component on the command line
     @pytest.mark.parametrize(
         "option",
         ["--device", "-d"],
@@ -487,7 +489,7 @@ class TestOn:
         result = invoke(["on", "xxx", option, "room/device"])
         assert result.exit_code == 0
         assert result.output == "Turning on device: room/device\n"
-        turn_on_device.assert_called_once_with("xxx", "room", "device")
+        turn_on_device.assert_called_once_with("xxx", "room", "device", "main")
 
     @pytest.mark.parametrize(
         "option",
@@ -537,6 +539,7 @@ class TestOff:
         result = invoke(["off", "--help"])
         assert result.exit_code == 0
 
+    # TODO: need another version of this with the component on the command line
     @pytest.mark.parametrize(
         "option",
         ["--device", "-d"],
@@ -546,7 +549,7 @@ class TestOff:
         result = invoke(["off", "xxx", option, "room/device"])
         assert result.exit_code == 0
         assert result.output == "Turning off device: room/device\n"
-        turn_off_device.assert_called_once_with("xxx", "room", "device")
+        turn_off_device.assert_called_once_with("xxx", "room", "device", "main")
 
     @pytest.mark.parametrize(
         "option",

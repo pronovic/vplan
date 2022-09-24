@@ -127,10 +127,14 @@ def toggle_group(plan_name: str, group_name: str, toggles: int, delay_sec: int) 
     logging.info("Toggled group: %s in %s running at location %s", group_name, schema.plan.name, schema.plan.location)
 
 
-@ROUTER.post("/plan/{plan_name}/test/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def toggle_device(plan_name: str, room: str, device: str, toggles: int, delay_sec: int) -> None:
+@ROUTER.post(
+    "/plan/{plan_name}/test/device/{room}/{device}/{component}",
+    status_code=HTTP_204_NO_CONTENT,
+    response_class=EmptyResponse,
+)
+def toggle_device(plan_name: str, room: str, device: str, component: str, toggles: int, delay_sec: int) -> None:
     """Test a device that is part of a plan."""
-    item = Device(room=room, device=device)
+    item = Device(room=room, device=device, component=component)
     schema = db_retrieve_plan(plan_name=plan_name)
     location = schema.plan.location
     devices = schema.devices()
@@ -152,10 +156,14 @@ def switch_group(plan_name: str, state: str, group_name: str) -> None:
     logging.info("Turned %s group: %s in %s running at location %s", state, group_name, schema.plan.name, schema.plan.location)
 
 
-@ROUTER.post("/plan/{plan_name}/{state}/device/{room}/{device}", status_code=HTTP_204_NO_CONTENT, response_class=EmptyResponse)
-def switch_device(plan_name: str, state: str, room: str, device: str) -> None:
+@ROUTER.post(
+    "/plan/{plan_name}/{state}/device/{room}/{device}/{component}",
+    status_code=HTTP_204_NO_CONTENT,
+    response_class=EmptyResponse,
+)
+def switch_device(plan_name: str, state: str, room: str, device: str, component: str) -> None:
     """Turn on or off a device that is part of a plan."""
-    item = Device(room=room, device=device)
+    item = Device(room=room, device=device, component=component)
     schema = db_retrieve_plan(plan_name=plan_name)
     location = schema.plan.location
     devices = schema.devices()
