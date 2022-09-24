@@ -25,7 +25,7 @@ from vplan.interface import Account, Plan, PlanSchema
 
 
 def fixture(filename: str) -> str:
-    return os.path.join(os.path.dirname(__file__), "fixtures", "interface", filename)
+    return os.path.join(os.path.dirname(__file__), "..", "fixtures", "interface", filename)
 
 
 PLAN_FILE = fixture("plan.yaml")
