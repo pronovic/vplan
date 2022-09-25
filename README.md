@@ -64,7 +64,7 @@ file for the [latest release](https://github.com/pronovic/vplan/releases/latest)
 and install it using `pip`, like:
 
 ```
-$ pip install vplan-0.2.0-py3-none-any.whl
+$ pip install vplan-0.5.3-py3-none-any.whl
 ```
 
 Next, configure the platform.  Download the configuration bundle for the latest
@@ -72,7 +72,7 @@ release.  Extract the tar file to your user configuration directory:
 
 ```
 $ mkdir -p ~/.config 
-$ tar zxvf vplan-config-0.2.0.tar.gz -C ~/.config
+$ tar zxvf vplan-config-0.5.3.tar.gz -C ~/.config
 ```
 
 This creates two directories within `~/.config`: `vplan` and `systemd`.  The
@@ -114,7 +114,7 @@ that you installed the software as described above.
 
 ```
 $ vplan check
-API is healthy, versions: package='0.2.0' api='1.0.0'
+API is healthy, versions: package='0.5.3' api='1.0.0'
 ```
 
 If necessary, you can check the logs from the service:
@@ -133,6 +133,30 @@ $ systemctl --user daemon-reload
 Finally, reboot and confirm that the service starts automatically.  After
 reboot, use the same `vplan check` command shown above to confirm things are
 working.
+
+## Upgrading the Platform
+
+The process is similar to installing.  Download the `.whl` file for 
+the [latest release](https://github.com/pronovic/vplan/releases/latest), and install it 
+using `pip`, like:
+
+```
+$ pip install --force-reinstall vplan-0.5.3-py3-none-any.whl
+```
+
+Reload configuration and restart the systemd service::
+
+```
+$ systemctl --user daemon-reload
+$ systemctl --user restart vplan
+```
+
+Finally, run the check and confirm what version you are running on:
+
+```
+$ vplan check
+API is healthy, versions: package='0.5.3' api='1.0.0'
+```
 
 ## Setting Up Your Account
 
