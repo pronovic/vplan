@@ -1,4 +1,4 @@
-Version 0.6.0     unreleased
+Version 0.6.0     25 Sep 2022
 
 	* Preserve ordering in exported YAML rather than sorting keys.
 	* Support addressing by component for multi-component devices like ZEN25.
