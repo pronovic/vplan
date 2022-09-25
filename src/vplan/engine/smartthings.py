@@ -79,7 +79,7 @@ class LocationContext:
         self.headers = self._derive_headers()
         self.location_id = self._derive_location_id(location)
         self.room_by_id, self.room_by_name = self._derive_rooms()
-        self.device_by_id, self.device_by_name = self._derive_devices()
+        self.device_by_name = self._derive_devices()
         self.rule_by_id = self._derive_rule_by_id()
 
     def _derive_headers(self) -> Dict[str, str]:
@@ -116,22 +116,19 @@ class LocationContext:
             logging.debug("Rooms by id: %s", json.dumps(room_by_id, indent=2))
         return room_by_id, room_by_name
 
-    def _derive_devices(self) -> Tuple[Dict[str, Device], Dict[str, str]]:
+    def _derive_devices(self) -> Dict[str, str]:
         """Derive the mapping from device id->Device and name->id for the location."""
-        device_by_id = {}
         device_by_name = {}
         result = self._retrieve_devices()
         for item in result:
             did = item["deviceId"]
             device_name = item["label"] if item["label"] else item["name"]  # users see the label, if there is one
             room_name = self.room_by_id[item["roomId"]]
-            device = Device(room=room_name, device=device_name)  # note that we are not tracking components here
-            device_by_id[did] = device
-            device_by_name["%s/%s" % (room_name, device.device)] = did
-        logging.info("Location [%s] has %d devices", self.location, len(device_by_id))
+            device_by_name["%s/%s" % (room_name, device_name)] = did
+        logging.info("Location [%s] has %d devices", self.location, len(device_by_name))
         if device_by_name:
             logging.debug("Devices by name:\n%s", json.dumps(device_by_name, indent=2))
-        return device_by_id, device_by_name
+        return device_by_name
 
     def _derive_rule_by_id(self) -> Dict[str, Dict[str, Any]]:
         """Derive the mapping from rule id->name, including only rules managed by us."""

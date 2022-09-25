@@ -57,17 +57,6 @@ ROOM_BY_NAME = {
     "Living Room": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
     "Basement": "6ab1824d-xxxx-xxxx-xxxx-eafb1596336d",
 }
-DEVICE_BY_ID = {
-    "5b012baf-xxxx-xxxx-xxxx-097f8b847cd2": Device(room="Basement", device="Lamp Under Window"),
-    "f079ee62-xxxx-xxxx-xxxx-59dce7db1d0d": Device(room="Living Room", device="Zooz Outlet #2 - Right"),
-    "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc": Device(room="Office", device="Desk Lamp"),
-    "e25f022a-xxxx-xxxx-xxxx-3385cb2ef6c0": Device(room="Living Room", device="China Cabinet"),
-    "6498f80e-xxxx-xxxx-xxxx-d1b1916d48f2": Device(room="Living Room", device="Sofa Table Lamp"),
-    "a5967b9a-xxxx-xxxx-xxxx-864989ecba8d": Device(room="Living Room", device="Loveseat Lamp"),
-    "ff237cb5-xxxx-xxxx-xxxx-591d5c2e71c1": Device(room="Basement", device="Corner Lamp"),
-    "4461fbe1-xxxx-xxxx-xxxx-081ed04a3e01": Device(room="Living Room", device="Front Window Lamp"),
-    "99ca768e-xxxx-xxxx-xxxx-cf2f7e27c09d": Device(room="Living Room", device="Zooz Outlet #1 - Left"),
-}
 DEVICE_BY_NAME = {
     "Basement/Lamp Under Window": "5b012baf-xxxx-xxxx-xxxx-097f8b847cd2",
     "Living Room/Zooz Outlet #2 - Right": "f079ee62-xxxx-xxxx-xxxx-59dce7db1d0d",
@@ -360,7 +349,6 @@ class TestContext:
             assert context.headers == HEADERS
             assert context.room_by_id == ROOM_BY_ID
             assert context.room_by_name == ROOM_BY_NAME
-            assert context.device_by_id == DEVICE_BY_ID
             assert context.device_by_name == DEVICE_BY_NAME
             assert len(context.rule_by_id) == 1  # only our managed rules, identified by name, will be included
             assert context.rule_by_id[RULE_ID]["name"] == RULE_NAME
