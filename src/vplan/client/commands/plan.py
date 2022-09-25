@@ -5,7 +5,7 @@
 The plan subcommand in the command line interface.
 """
 import sys
-from typing import Optional
+from typing import Optional, Tuple
 
 import click
 from pydantic import ValidationError
@@ -50,6 +50,16 @@ def _read_plan_yaml(yaml_path: str) -> PlanSchema:
         return result
     except ValidationError as e:
         raise click.ClickException("%s" % e) from e
+
+
+def _parse_device_path(device_path: str) -> Tuple[str, str, str]:
+    """Parse a device path into a tuple of (room, device, component)"""
+    values = device_path.split("/", 2)
+    if len(values) == 2:
+        return values[0], values[1], "main"
+    elif len(values) == 3:
+        return values[0], values[1], values[2]
+    raise click.UsageError("Device path must be either <room>/<device> or <room>/<device>/<component>")
 
 
 @click.group()
@@ -197,7 +207,7 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     "-d",
     "device_path",
     metavar="<device-path>",
-    help="Test specific device, in form '<room>/<device>'",
+    help="Test specific device, in form '<room>/<device>' or '<room>/<device>/<component>'",
 )
 @click.option(
     "--auto",
@@ -253,10 +263,10 @@ def test(
     the toggles sometimes don't work as expected.  At least a 5 second delay
     appears to work best.
     """
-    if device_path:
-        room, device = device_path.split("/")  # TODO: this needs to support component
-        click.secho("Testing device: %s/%s" % (room, device))
-        toggle_device(plan_name, room, device, "main", toggles, delay_sec)  # TODO: replace "main" with component
+    if device_path is not None:
+        room, device, component = _parse_device_path(device_path)
+        click.secho("Testing device: %s/%s/%s" % (room, device, component))
+        toggle_device(plan_name, room, device, component, toggles, delay_sec)
     elif group_name:
         click.secho("Testing group: %s" % group_name)
         toggle_group(plan_name, group_name, toggles, delay_sec)
@@ -290,7 +300,7 @@ def test(
     "-d",
     "device_path",
     metavar="<device-path>",
-    help="Turn on specific device, in form '<room>/<device>'",
+    help="Test specific device, in form '<room>/<device>' or '<room>/<device>/<component>'",
 )
 def on(plan_name: str, group_name: Optional[str] = None, device_path: Optional[str] = None) -> None:
     """
@@ -299,10 +309,10 @@ def on(plan_name: str, group_name: Optional[str] = None, device_path: Optional[s
     You may also turn on a single device group using --group and a single
     device using --device.
     """
-    if device_path:
-        room, device = device_path.split("/")  # TODO: this needs to support component
-        click.secho("Turning on device: %s/%s" % (room, device))
-        turn_on_device(plan_name, room, device, "main")  # TODO: replace "main" with component
+    if device_path is not None:
+        room, device, component = _parse_device_path(device_path)
+        click.secho("Turning on device: %s/%s/%s" % (room, device, component))
+        turn_on_device(plan_name, room, device, component)
     elif group_name:
         click.secho("Turning on group: %s" % group_name)
         turn_on_group(plan_name, group_name)
@@ -329,7 +339,7 @@ def on(plan_name: str, group_name: Optional[str] = None, device_path: Optional[s
     "-d",
     "device_path",
     metavar="<device-path>",
-    help="Turn off specific device, in form '<room>/<device>'",
+    help="Test specific device, in form '<room>/<device>' or '<room>/<device>/<component>'",
 )
 def off(plan_name: str, group_name: Optional[str] = None, device_path: Optional[str] = None) -> None:
     """
@@ -338,10 +348,10 @@ def off(plan_name: str, group_name: Optional[str] = None, device_path: Optional[
     You may also turn off a single device group using --group and a single
     device using --device.
     """
-    if device_path:
-        room, device = device_path.split("/")  # TODO: this needs to support component
-        click.secho("Turning off device: %s/%s" % (room, device))
-        turn_off_device(plan_name, room, device, "main")  # TODO: replace "main" with component
+    if device_path is not None:
+        room, device, component = _parse_device_path(device_path)
+        click.secho("Turning off device: %s/%s/%s" % (room, device, component))
+        turn_off_device(plan_name, room, device, component)
     elif group_name:
         click.secho("Turning off group: %s" % group_name)
         turn_off_group(plan_name, group_name)

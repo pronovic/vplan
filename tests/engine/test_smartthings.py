@@ -57,7 +57,7 @@ ROOM_BY_NAME = {
     "Living Room": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
     "Basement": "6ab1824d-xxxx-xxxx-xxxx-eafb1596336d",
 }
-DEVICE_BY_NAME = {
+DTH_DEVICE_BY_NAME = {
     "Basement/Lamp Under Window": "5b012baf-xxxx-xxxx-xxxx-097f8b847cd2",
     "Living Room/Zooz Outlet #2 - Right": "f079ee62-xxxx-xxxx-xxxx-59dce7db1d0d",
     "Office/Desk Lamp": "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc",
@@ -67,6 +67,11 @@ DEVICE_BY_NAME = {
     "Basement/Corner Lamp": "ff237cb5-xxxx-xxxx-xxxx-591d5c2e71c1",
     "Living Room/Front Window Lamp": "4461fbe1-xxxx-xxxx-xxxx-081ed04a3e01",
     "Living Room/Zooz Outlet #1 - Left": "99ca768e-xxxx-xxxx-xxxx-cf2f7e27c09d",
+}
+EDGE_DEVICE_BY_NAME = {
+    "Living Room/Sofa Table Lamp": "6498f80e-xxxx-xxxx-xxxx-d1b1916d48f2",
+    "Living Room/Tree Outlet": "343345ca-xxxx-xxxx-xxxx-bd52e260583b",
+    "Office/Desk Lamp": "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc",
 }
 
 
@@ -88,14 +93,29 @@ def _response(data=None, status_code=None):
     return response
 
 
-# TODO: need another version of this test with new-style edge devices like for ZEN25; probably different devices.json?
 @pytest.fixture
 @patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
 @patch("vplan.engine.smartthings.requests.get")
-def test_context(requests_get, _):
+def test_context_dth(requests_get, _):
     locations = fixture("locations.json")
     rooms = fixture("rooms.json")
-    devices = fixture("devices.json")
+    devices = fixture("dth-devices.json")
+    rules = fixture("rules.json")
+    locations_response = _response(locations)
+    rooms_response = _response(rooms)
+    devices_response = _response(devices)
+    rules_response = _response(rules)
+    requests_get.side_effect = [locations_response, rooms_response, devices_response, rules_response]
+    return SmartThings(PAT_TOKEN, LOCATION)
+
+
+@pytest.fixture
+@patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
+@patch("vplan.engine.smartthings.requests.get")
+def test_context_edge(requests_get, _):
+    locations = fixture("locations.json")
+    rooms = fixture("rooms.json")
+    devices = fixture("edge-devices.json")
     rules = fixture("rules.json")
     locations_response = _response(locations)
     rooms_response = _response(rooms)
@@ -119,9 +139,13 @@ class TestUtil:
         with pytest.raises(SmartThingsClientError, match="^hello"):
             _raise_for_status(response)
 
-    def test_device_id(self, test_context):
-        with test_context:
+    def test_device_id_dth(self, test_context_dth):
+        with test_context_dth:
             assert device_id(Device(room="Office", device="Desk Lamp")) == "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc"
+
+    def test_device_id_edge(self, test_context_edge):
+        with test_context_edge:
+            assert device_id(Device(room="Living Room", device="Tree Outlet")) == "343345ca-xxxx-xxxx-xxxx-bd52e260583b"
 
     @pytest.mark.parametrize(
         "device",
@@ -130,26 +154,38 @@ class TestUtil:
             Device(room="Patio", device="Desk Lamp"),
         ],
     )
-    def test_device_id_invalid(self, test_context, device):
-        with test_context:
+    def test_device_id_invalid_dth(self, test_context_dth, device):
+        with test_context_dth:
             with pytest.raises(InvalidPlanError):
                 assert device_id(device)
 
-    def test_location_id(self, test_context):
-        with test_context:
+    @pytest.mark.parametrize(
+        "device",
+        [
+            Device(room="Office", device="Sauna"),
+            Device(room="Patio", device="Desk Lamp"),
+        ],
+    )
+    def test_device_id_invalid_edge(self, test_context_edge, device):
+        with test_context_edge:
+            with pytest.raises(InvalidPlanError):
+                assert device_id(device)
+
+    def test_location_id(self, test_context_dth):
+        with test_context_dth:
             assert location_id() == LOCATION_ID
 
-    def test_managed_rule_ids(self, test_context):
-        with test_context:
+    def test_managed_rule_ids(self, test_context_dth):
+        with test_context_dth:
             assert managed_rule_ids("winter") == [RULE_ID]
             assert managed_rule_ids("unknown") == []
 
-    def test_replace_managed_rules(self, test_context):
+    def test_replace_managed_rules(self, test_context_dth):
         rules = [
             {"id": "aaa", "name": "vplan/winter/A"},
             {"id": "bbb", "name": "vplan/winter/B"},
         ]
-        with test_context:
+        with test_context_dth:
             assert managed_rule_ids("winter") == [RULE_ID]
             replace_managed_rules("winter", rules)
             assert managed_rule_ids("winter") == ["aaa", "bbb"]
@@ -329,10 +365,17 @@ class TestContext:
         with pytest.raises(SmartThingsClientError, match="^Configured location not found"):
             SmartThings(pat_token=PAT_TOKEN, location="bogus")
 
-    def test_load_context(self, requests_get, _api_url, raise_for_status):
+    @pytest.mark.parametrize(
+        "devices_file,devices_expected",
+        [
+            ("dth-devices.json", DTH_DEVICE_BY_NAME),
+            ("edge-devices.json", EDGE_DEVICE_BY_NAME),
+        ],
+    )
+    def test_load_context(self, requests_get, _api_url, raise_for_status, devices_file, devices_expected):
         locations = fixture("locations.json")
         rooms = fixture("rooms.json")
-        devices = fixture("devices.json")
+        devices = fixture(devices_file)
         rules = fixture("rules.json")
 
         locations_response = _response(locations)
@@ -349,7 +392,7 @@ class TestContext:
             assert context.headers == HEADERS
             assert context.room_by_id == ROOM_BY_ID
             assert context.room_by_name == ROOM_BY_NAME
-            assert context.device_by_name == DEVICE_BY_NAME
+            assert context.device_by_name == devices_expected
             assert len(context.rule_by_id) == 1  # only our managed rules, identified by name, will be included
             assert context.rule_by_id[RULE_ID]["name"] == RULE_NAME
 
@@ -595,8 +638,8 @@ class TestRules:
 @patch("vplan.engine.smartthings._base_api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
 class TestClient:
     @patch("vplan.engine.smartthings.requests.delete")
-    def test_delete_rule(self, requests_delete, _, raise_for_status, test_context):
-        with test_context:
+    def test_delete_rule(self, requests_delete, _, raise_for_status, test_context_dth):
+        with test_context_dth:
             response = _response()
             requests_delete.side_effect = [response]
             delete_rule("id")
@@ -606,8 +649,8 @@ class TestClient:
             )
 
     @patch("vplan.engine.smartthings.requests.post")
-    def test_create_rule(self, requests_post, _, raise_for_status, test_context):
-        with test_context:
+    def test_create_rule(self, requests_post, _, raise_for_status, test_context_dth):
+        with test_context_dth:
             input_rule = {"input": "value"}
             output_rule = {"output": "value"}
             response = _response(data=json.dumps(output_rule))
@@ -627,30 +670,63 @@ class TestClient:
         [(SwitchState.ON, "on"), (SwitchState.OFF, "off")],
     )
     @patch("vplan.engine.smartthings.requests.post")
-    def test_set_switch(self, requests_post, _, raise_for_status, test_context, state, command):
-        with test_context:
+    def test_set_switch_dth(self, requests_post, _, raise_for_status, test_context_dth, state, command):
+        with test_context_dth:
             response = _response()
             requests_post.side_effect = [response]
-            set_switch(Device(room="Office", device="Desk Lamp", component="ccc"), state)
+            set_switch(Device(room="Office", device="Desk Lamp"), state)
             raise_for_status.assert_called_once_with(response)
             requests_post.assert_called_once_with(
                 url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/commands",
                 headers=HEADERS,
-                json={"commands": [{"component": "ccc", "capability": "switch", "command": command}]},
+                json={"commands": [{"component": "main", "capability": "switch", "command": command}]},
+                timeout=5.0,
+            )
+
+    @pytest.mark.parametrize(
+        "state,command",
+        [(SwitchState.ON, "on"), (SwitchState.OFF, "off")],
+    )
+    @patch("vplan.engine.smartthings.requests.post")
+    def test_set_switch_edge(self, requests_post, _, raise_for_status, test_context_edge, state, command):
+        with test_context_edge:
+            response = _response()
+            requests_post.side_effect = [response]
+            set_switch(Device(room="Living Room", device="Tree Outlet", component="leftOutlet"), state)
+            raise_for_status.assert_called_once_with(response)
+            requests_post.assert_called_once_with(
+                url="http://whatever/devices/343345ca-xxxx-xxxx-xxxx-bd52e260583b/commands",
+                headers=HEADERS,
+                json={"commands": [{"component": "leftOutlet", "capability": "switch", "command": command}]},
                 timeout=5.0,
             )
 
     @pytest.mark.parametrize("file,expected", [("switch_on.json", SwitchState.ON), ("switch_off.json", SwitchState.OFF)])
     @patch("vplan.engine.smartthings.requests.get")
-    def test_check_switch(self, requests_get, _, raise_for_status, test_context, file, expected):
-        with test_context:
+    def test_check_switch_dth(self, requests_get, _, raise_for_status, test_context_dth, file, expected):
+        with test_context_dth:
             response = _response(data=fixture(file))
             requests_get.side_effect = [response]
-            status = check_switch(Device(room="Office", device="Desk Lamp", component="ccc"))
+            status = check_switch(Device(room="Office", device="Desk Lamp"))
             assert status == expected
             raise_for_status.assert_called_once_with(response)
             requests_get.assert_called_once_with(
-                url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/components/ccc/capabilities/switch/status",
+                url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/components/main/capabilities/switch/status",
+                headers=HEADERS,
+                timeout=5.0,
+            )
+
+    @pytest.mark.parametrize("file,expected", [("switch_on.json", SwitchState.ON), ("switch_off.json", SwitchState.OFF)])
+    @patch("vplan.engine.smartthings.requests.get")
+    def test_check_switch_edge(self, requests_get, _, raise_for_status, test_context_edge, file, expected):
+        with test_context_edge:
+            response = _response(data=fixture(file))
+            requests_get.side_effect = [response]
+            status = check_switch(Device(room="Living Room", device="Tree Outlet", component="leftOutlet"))
+            assert status == expected
+            raise_for_status.assert_called_once_with(response)
+            requests_get.assert_called_once_with(
+                url="http://whatever/devices/343345ca-xxxx-xxxx-xxxx-bd52e260583b/components/leftOutlet/capabilities/switch/status",
                 headers=HEADERS,
                 timeout=5.0,
             )
