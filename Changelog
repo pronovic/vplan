@@ -1,3 +1,7 @@
+Version 0.5.3     unreleased
+
+	* Support addressing by component for multi-component devices like ZEN25.
+
 Version 0.5.2     05 Sep 2022
 
 	* Fall back addition of timeout for local client calls (unnecessary).
