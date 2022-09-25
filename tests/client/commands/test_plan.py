@@ -167,7 +167,7 @@ class TestExport:
         retrieve_plan.return_value = schema
         result = invoke(["export", "plan-name"])
         assert result.exit_code == 0
-        assert result.output == "%s\n" % schema.yaml()
+        assert result.output == "%s\n" % schema.yaml(sort_keys=False)
         retrieve_plan.assert_called_once_with("plan-name")
 
     @pytest.mark.parametrize(
@@ -182,7 +182,7 @@ class TestExport:
         result = invoke(["export", "plan-name", option, p])
         assert result.exit_code == 0
         assert result.output == "Plan written to: %s\n" % p
-        assert p.read() == schema.yaml()
+        assert p.read() == schema.yaml(sort_keys=False)
         retrieve_plan.assert_called_once_with("plan-name")
 
 

@@ -184,7 +184,7 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     result = retrieve_plan(plan_name)
     if not result:
         raise click.ClickException("Plan does not exist: %s" % plan_name)
-    yaml = result.yaml()
+    yaml = result.yaml(sort_keys=False)
     if not yaml_path:
         click.echo(yaml)
     else:
