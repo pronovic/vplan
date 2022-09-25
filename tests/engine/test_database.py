@@ -28,7 +28,7 @@ def fixture(filename: str) -> str:
     return os.path.join(os.path.dirname(__file__), "..", "fixtures", "interface", filename)
 
 
-PLAN_FILE = fixture("plan.yaml")
+PLAN_FILE = fixture("plan-v1.1.0.yaml")
 
 
 @pytest.fixture

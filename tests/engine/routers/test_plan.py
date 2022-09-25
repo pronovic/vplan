@@ -250,7 +250,7 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.toggle_devices")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
     def test_toggle_device(self, db_retrieve_plan, toggle_devices):
-        device = Device(room="yyy", device="zzz")
+        device = Device(room="yyy", device="zzz", component="ccc")
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[device])
@@ -259,7 +259,7 @@ class TestRoutes:
             "toggles": 4,
             "delay_sec": 10,
         }
-        response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz", params=params)
+        response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz/ccc", params=params)
         assert response.status_code == 204
         assert not response.text
         toggle_devices.assert_called_once_with(location="bbb", devices=[device], toggles=4, delay_sec=10)
@@ -275,7 +275,7 @@ class TestRoutes:
             "toggles": 4,
             "delay_sec": 10,
         }
-        response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz", params=params)
+        response = CLIENT.post(url="/plan/xxx/test/device/yyy/zzz/ccc", params=params)
         assert response.status_code == 404
         assert not response.text
         toggle_devices.assert_not_called()
@@ -328,12 +328,12 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.set_device_state")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
     def test_switch_device(self, db_retrieve_plan, set_device_state, state):
-        device = Device(room="yyy", device="zzz")
+        device = Device(room="yyy", device="zzz", component="ccc")
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[device])
         db_retrieve_plan.return_value = schema
-        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz" % state)
+        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz/ccc" % state)
         assert response.status_code == 204
         assert not response.text
         set_device_state.assert_called_once_with(location="bbb", devices=[device], state=SwitchState(state))
@@ -346,7 +346,7 @@ class TestRoutes:
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[])  # our device is not in this list, by definition
         db_retrieve_plan.return_value = schema
-        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz" % state)
+        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz/ccc" % state)
         assert response.status_code == 404
         assert not response.text
         set_device_state.assert_not_called()
@@ -355,12 +355,12 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.set_device_state")
     @patch("vplan.engine.routers.plan.db_retrieve_plan")
     def test_switch_device_bad_state(self, db_retrieve_plan, set_device_state, state):
-        device = Device(room="yyy", device="zzz")
+        device = Device(room="yyy", device="zzz", component="ccc")
         plan = MagicMock(location="bbb")
         schema = MagicMock(plan=plan)
         schema.devices = MagicMock(return_value=[device])
         db_retrieve_plan.return_value = schema
-        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz" % state)
+        response = CLIENT.post(url="/plan/xxx/%s/device/yyy/zzz/ccc" % state)
         assert response.status_code == 400
         assert not response.text
         set_device_state.assert_not_called()

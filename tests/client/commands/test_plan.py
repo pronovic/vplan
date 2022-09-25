@@ -167,7 +167,7 @@ class TestExport:
         retrieve_plan.return_value = schema
         result = invoke(["export", "plan-name"])
         assert result.exit_code == 0
-        assert result.output == "%s\n" % schema.yaml()
+        assert result.output == "%s\n" % schema.yaml(sort_keys=False)
         retrieve_plan.assert_called_once_with("plan-name")
 
     @pytest.mark.parametrize(
@@ -182,7 +182,7 @@ class TestExport:
         result = invoke(["export", "plan-name", option, p])
         assert result.exit_code == 0
         assert result.output == "Plan written to: %s\n" % p
-        assert p.read() == schema.yaml()
+        assert p.read() == schema.yaml(sort_keys=False)
         retrieve_plan.assert_called_once_with("plan-name")
 
 
@@ -303,8 +303,28 @@ class TestTest:
     def test_specific_device(self, toggle_device, option):
         result = invoke(["test", "xxx", option, "room/device"])
         assert result.exit_code == 0
-        assert result.output == "Testing device: room/device\n"
-        toggle_device.assert_called_once_with("xxx", "room", "device", 2, 5)
+        assert result.output == "Testing device: room/device/main\n"
+        toggle_device.assert_called_once_with("xxx", "room", "device", "main", 2, 5)
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--device", "-d"],
+    )
+    @patch("vplan.client.commands.plan.toggle_device")
+    def test_specific_device_with_component(self, toggle_device, option):
+        result = invoke(["test", "xxx", option, "room/device/component"])
+        assert result.exit_code == 0
+        assert result.output == "Testing device: room/device/component\n"
+        toggle_device.assert_called_once_with("xxx", "room", "device", "component", 2, 5)
+
+    @pytest.mark.parametrize(
+        "value",
+        ["", "room"],
+    )
+    def test_specific_device_invalid(self, value):
+        result = invoke(["test", "xxx", "-d", value])
+        assert result.exit_code == 2
+        assert "Device path must be either <room>/<device> or <room>/<device>/<component>" in result.output
 
     @pytest.mark.parametrize(
         "option",
@@ -486,8 +506,28 @@ class TestOn:
     def test_specific_device(self, turn_on_device, option):
         result = invoke(["on", "xxx", option, "room/device"])
         assert result.exit_code == 0
-        assert result.output == "Turning on device: room/device\n"
-        turn_on_device.assert_called_once_with("xxx", "room", "device")
+        assert result.output == "Turning on device: room/device/main\n"
+        turn_on_device.assert_called_once_with("xxx", "room", "device", "main")
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--device", "-d"],
+    )
+    @patch("vplan.client.commands.plan.turn_on_device")
+    def test_specific_device_with_component(self, turn_on_device, option):
+        result = invoke(["on", "xxx", option, "room/device/component"])
+        assert result.exit_code == 0
+        assert result.output == "Turning on device: room/device/component\n"
+        turn_on_device.assert_called_once_with("xxx", "room", "device", "component")
+
+    @pytest.mark.parametrize(
+        "value",
+        ["", "room"],
+    )
+    def test_specific_device_invalid(self, value):
+        result = invoke(["on", "xxx", "-d", value])
+        assert result.exit_code == 2
+        assert "Device path must be either <room>/<device> or <room>/<device>/<component>" in result.output
 
     @pytest.mark.parametrize(
         "option",
@@ -545,8 +585,28 @@ class TestOff:
     def test_specific_device(self, turn_off_device, option):
         result = invoke(["off", "xxx", option, "room/device"])
         assert result.exit_code == 0
-        assert result.output == "Turning off device: room/device\n"
-        turn_off_device.assert_called_once_with("xxx", "room", "device")
+        assert result.output == "Turning off device: room/device/main\n"
+        turn_off_device.assert_called_once_with("xxx", "room", "device", "main")
+
+    @pytest.mark.parametrize(
+        "option",
+        ["--device", "-d"],
+    )
+    @patch("vplan.client.commands.plan.turn_off_device")
+    def test_specific_device_with_component(self, turn_off_device, option):
+        result = invoke(["off", "xxx", option, "room/device/component"])
+        assert result.exit_code == 0
+        assert result.output == "Turning off device: room/device/component\n"
+        turn_off_device.assert_called_once_with("xxx", "room", "device", "component")
+
+    @pytest.mark.parametrize(
+        "value",
+        ["", "room"],
+    )
+    def test_specific_device_invalid(self, value):
+        result = invoke(["off", "xxx", "-d", value])
+        assert result.exit_code == 2
+        assert "Device path must be either <room>/<device> or <room>/<device>/<component>" in result.output
 
     @pytest.mark.parametrize(
         "option",

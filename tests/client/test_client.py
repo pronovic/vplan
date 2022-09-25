@@ -254,10 +254,10 @@ class TestPlan:
     def test_toggle_device(self, requests_post, _api_url, raise_for_status):
         response = _response()
         requests_post.side_effect = [response]
-        toggle_device("xxx", "yyy", "zzz", 2, 5)
+        toggle_device("xxx", "yyy", "zzz", "ccc", 2, 5)
         raise_for_status.assert_called_once_with(response)
         requests_post.assert_called_once_with(
-            url="http://whatever/plan/xxx/test/device/yyy/zzz", params={"toggles": 2, "delay_sec": 5}
+            url="http://whatever/plan/xxx/test/device/yyy/zzz/ccc", params={"toggles": 2, "delay_sec": 5}
         )
 
     @patch("vplan.client.client.requests.post")
@@ -272,9 +272,9 @@ class TestPlan:
     def test_turn_on_device(self, requests_post, _api_url, raise_for_status):
         response = _response()
         requests_post.side_effect = [response]
-        turn_on_device("xxx", "yyy", "zzz")
+        turn_on_device("xxx", "yyy", "zzz", "ccc")
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/device/yyy/zzz")
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/device/yyy/zzz/ccc")
 
     @patch("vplan.client.client.requests.post")
     def test_turn_off_group(self, requests_post, _api_url, raise_for_status):
@@ -288,6 +288,6 @@ class TestPlan:
     def test_turn_off_device(self, requests_post, _api_url, raise_for_status):
         response = _response()
         requests_post.side_effect = [response]
-        turn_off_device("xxx", "yyy", "zzz")
+        turn_off_device("xxx", "yyy", "zzz", "ccc")
         raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/device/yyy/zzz")
+        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/device/yyy/zzz/ccc")

@@ -79,7 +79,7 @@ class LocationContext:
         self.headers = self._derive_headers()
         self.location_id = self._derive_location_id(location)
         self.room_by_id, self.room_by_name = self._derive_rooms()
-        self.device_by_id, self.device_by_name = self._derive_devices()
+        self.device_by_name = self._derive_devices()
         self.rule_by_id = self._derive_rule_by_id()
 
     def _derive_headers(self) -> Dict[str, str]:
@@ -116,22 +116,19 @@ class LocationContext:
             logging.debug("Rooms by id: %s", json.dumps(room_by_id, indent=2))
         return room_by_id, room_by_name
 
-    def _derive_devices(self) -> Tuple[Dict[str, Device], Dict[str, str]]:
+    def _derive_devices(self) -> Dict[str, str]:
         """Derive the mapping from device id->Device and name->id for the location."""
-        device_by_id = {}
         device_by_name = {}
         result = self._retrieve_devices()
         for item in result:
             did = item["deviceId"]
             device_name = item["label"] if item["label"] else item["name"]  # users see the label, if there is one
             room_name = self.room_by_id[item["roomId"]]
-            device = Device(room=room_name, device=device_name)
-            device_by_id[did] = device
-            device_by_name["%s/%s" % (room_name, device.device)] = did
-        logging.info("Location [%s] has %d devices", self.location, len(device_by_id))
+            device_by_name["%s/%s" % (room_name, device_name)] = did
+        logging.info("Location [%s] has %d devices", self.location, len(device_by_name))
         if device_by_name:
             logging.debug("Devices by name:\n%s", json.dumps(device_by_name, indent=2))
-        return device_by_id, device_by_name
+        return device_by_name
 
     def _derive_rule_by_id(self) -> Dict[str, Dict[str, Any]]:
         """Derive the mapping from rule id->name, including only rules managed by us."""
@@ -238,10 +235,14 @@ def _build_specific(
     return specific
 
 
-def _build_actions(device_ids: List[str], state: SwitchState) -> List[Dict[str, Any]]:
+def _build_actions(devices: Dict[str, Device], state: SwitchState) -> List[Dict[str, Any]]:
     """Build a list of actions (commands) to execute with in a rule."""
-    command = {"component": "main", "capability": "switch", "command": "on" if state == SwitchState.ON else "off"}
-    return [{"command": {"devices": device_ids, "commands": [command]}}]
+    actions: List[Dict[str, Any]] = []
+    for did, device in devices.items():
+        command = {"component": device.component, "capability": "switch", "command": "on" if state == SwitchState.ON else "off"}
+        action = {"command": {"devices": [did], "commands": [command]}}
+        actions.append(action)
+    return actions
 
 
 def device_id(device: Device) -> str:
@@ -276,7 +277,7 @@ def replace_managed_rules(plan_name: str, managed_rules: List[Dict[str, Any]]) -
 
 def build_rule(
     name: str,
-    device_ids: List[str],
+    devices: Dict[str, Device],
     days: Union[List[str], List[TriggerDay]],
     trigger_time: Union[str, TriggerTime],
     variation: Union[str, TriggerVariation],
@@ -284,23 +285,23 @@ def build_rule(
 ) -> Dict[str, Any]:
     """Build a rule for a trigger state change, either on or off."""
     specific = _build_specific(days, trigger_time, variation)
-    actions = _build_actions(device_ids, state)
+    actions = _build_actions(devices, state)
     return {"name": name, "actions": [{"every": {"specific": specific, "actions": actions}}]}
 
 
-def build_trigger_rules(name: str, device_ids: List[str], trigger: Trigger) -> List[Dict[str, Any]]:
+def build_trigger_rules(name: str, devices: Dict[str, Device], trigger: Trigger) -> List[Dict[str, Any]]:
     """Build all rules for a trigger."""
-    on = build_rule("%s/on" % name, device_ids, trigger.days, trigger.on_time, trigger.variation, SwitchState.ON)
-    off = build_rule("%s/off" % name, device_ids, trigger.days, trigger.off_time, trigger.variation, SwitchState.OFF)
+    on = build_rule("%s/on" % name, devices, trigger.days, trigger.on_time, trigger.variation, SwitchState.ON)
+    off = build_rule("%s/off" % name, devices, trigger.days, trigger.off_time, trigger.variation, SwitchState.OFF)
     return [on, off]
 
 
 def build_group_rules(name: str, group: DeviceGroup) -> List[Dict[str, Any]]:
     """Build all rules for a device group."""
     rules = []
-    device_ids = [device_id(device) for device in group.devices]
+    devices = {device_id(device): device for device in group.devices}
     for index, trigger in enumerate(group.triggers):
-        rules += build_trigger_rules("%s/%s/trigger[%d]" % (name, group.name, index), device_ids, trigger)
+        rules += build_trigger_rules("%s/%s/trigger[%d]" % (name, group.name, index), devices, trigger)
     return rules
 
 
@@ -347,7 +348,7 @@ def create_rule(rule: Dict[str, Any]) -> Dict[str, Any]:
 def set_switch(device: Device, state: SwitchState) -> None:
     """Switch a device on or off."""
     command = "on" if state == SwitchState.ON else "off"
-    request = {"commands": [{"component": "main", "capability": "switch", "command": command}]}
+    request = {"commands": [{"component": device.component, "capability": "switch", "command": command}]}
     url = _url("/devices/%s/commands" % device_id(device))
     response = requests.post(url=url, headers=_headers(), json=request, timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
@@ -355,7 +356,7 @@ def set_switch(device: Device, state: SwitchState) -> None:
 
 def check_switch(device: Device) -> SwitchState:
     """Check the state of a switch."""
-    url = _url("/devices/%s/components/main/capabilities/switch/status" % device_id(device))
+    url = _url("/devices/%s/components/%s/capabilities/switch/status" % (device_id(device), device.component))
     response = requests.get(url=url, headers=_headers(), timeout=_CLIENT_TIMEOUT_SEC)
     _raise_for_status(response)
     return SwitchState.ON if response.json()["switch"]["value"] == "on" else SwitchState.OFF

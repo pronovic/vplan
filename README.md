@@ -25,7 +25,7 @@ devices in a specific pattern when you are away from home.  The plan can be
 varied by day of week (weekday, weekend, or particular day) and it also allows
 for random variation in the timing, so your lights do not turn on or off at
 exactly the same time every day.  It works for any device with the `switch`
-capability.  
+capability.
 
 Underneath, the vacation lighting plan is implemented in your SmartThings
 account as a set of rules.  To operate within the SmartThings platform
@@ -64,7 +64,7 @@ file for the [latest release](https://github.com/pronovic/vplan/releases/latest)
 and install it using `pip`, like:
 
 ```
-$ pip install vplan-0.2.0-py3-none-any.whl
+$ pip install vplan-0.6.0-py3-none-any.whl
 ```
 
 Next, configure the platform.  Download the configuration bundle for the latest
@@ -72,7 +72,7 @@ release.  Extract the tar file to your user configuration directory:
 
 ```
 $ mkdir -p ~/.config 
-$ tar zxvf vplan-config-0.2.0.tar.gz -C ~/.config
+$ tar zxvf vplan-config-0.6.0.tar.gz -C ~/.config
 ```
 
 This creates two directories within `~/.config`: `vplan` and `systemd`.  The
@@ -114,7 +114,7 @@ that you installed the software as described above.
 
 ```
 $ vplan check
-API is healthy, versions: package='0.2.0' api='1.0.0'
+API is healthy, versions: package='0.6.0' api='2.0.0'
 ```
 
 If necessary, you can check the logs from the service:
@@ -133,6 +133,30 @@ $ systemctl --user daemon-reload
 Finally, reboot and confirm that the service starts automatically.  After
 reboot, use the same `vplan check` command shown above to confirm things are
 working.
+
+## Upgrading the Platform
+
+The process is similar to installing.  Download the `.whl` file for 
+the [latest release](https://github.com/pronovic/vplan/releases/latest), and install it 
+using `pip`, like:
+
+```
+$ pip install --force-reinstall vplan-0.6.0-py3-none-any.whl
+```
+
+Reload configuration and restart the systemd service::
+
+```
+$ systemctl --user daemon-reload
+$ systemctl --user restart vplan
+```
+
+Finally, run the check and confirm what version you are running on:
+
+```
+$ vplan check
+API is healthy, versions: package='0.6.0' api='2.0.0'
+```
 
 ## Setting Up Your Account
 
@@ -181,7 +205,7 @@ above.  See other account commands using `vplan account --help`.
 A vacation plan is defined in a YAML file.  Here is a very simple example:
 
 ```yaml
-version: 1.0.0
+version: 1.1.0
 plan:
   name: my-house
   location: My House
@@ -194,6 +218,7 @@ plan:
           device: Sofa Table Lamp
         - room: Dining Room
           device: China Cabinet
+          component: leftOutlet
       triggers:
         - days: [ weekdays ]
           on_time: "19:30"
@@ -206,7 +231,7 @@ plan:
 ```
 
 All plans require:
-   
+
 - a **name** - an identifier matching the regex `[a-z0-9-]+`, unique among all of your plans
 - a **location** - whatever it's called in your SmartThings infrastructure
 - a **refresh time** - the HH24:MM time of day when rules will be refreshed at SmartThings
@@ -226,6 +251,7 @@ Each **device** consists of:
 
 - a **room** - the human-readable name of the room where the device lives in your SmartThings infrastructure
 - a **device** - the human-readable name of the device in SmartThings, which must support the `switch` capability
+- a optional **component** - used for multi-component devices (see **Multi-Component Devices**, below)
 
 Each trigger consists of:
 
@@ -247,10 +273,70 @@ or later.  You can create specifiers using `minutes` or `hours`.
 In the YAML, you should always quote these specifiers with double quotes, like
 `"+/- 15 minutes"`.
 
+## Multi-Component Devices
+
+Historically, in the old DTH driver environment, devices that had multiple
+components (i.e. smart outlets with two receptacles) would result in multiple
+SmartThings devices that could be named and addressed independently. With the
+move toward Edge drivers, that is no longer the case.
+
+For instance, the custom DTH for the Zooz ZEN25 outlet used to generate one
+device for each receptacle, plus one for the main power control, plus another
+one for the USB port.  We could name each device individually and address those
+devices in the vacation plan simply as `Living Room/Lamp Under Window`.
+
+With the new Edge driver, we now get a single device for the ZEN25, but that
+device has multiple components (`main`, `leftOutlet`, `rightOutlet`, `usb`)
+that can be controlled indivdually.  Since there is only one device, the
+vacation plan needs to address devices like `Living Room/Tree Outlet/leftOutlet`.
+
+The best way to figure out what components you have available is by using
+the [SmartThings CLI](https://github.com/SmartThingsCommunity/smartthings-cli)
+in conjunction with [jq](https://stedolan.github.io/jq/).
+
+In this example, I have a device called **Tree Outlet**, a ZEN25 that is behind
+a fake tree in the living room.  Assuming the name of the device is unique in
+your location, you can just do this:
+
+```
+$ smartthings devices --json | jq -r '.[] | select(.label=="Tree Outlet") | .components[].id'
+leftOutlet
+rightOutlet
+usb
+main
+```
+
+If the name of the device isn't unique, run `smartthings devices` to get a list
+of your devices and pick the right one:
+
+```
+$ smartthings devices 
+┌────┬────────────────────────┬───────────────────────────┬────────┬──────────────────────────────────────┐
+│ #  │ Label                  │ Name                      │ Type   │ Device Id                            │
+├────┼────────────────────────┼───────────────────────────┼────────┼──────────────────────────────────────┤
+│ 1  │ Tree Outlet            │ zooz-zen25-double-plug    │ ZWAVE  │ c98330b5-xxxx-xxxx-xxxx-972b4372fcde │
+└────┴────────────────────────┴───────────────────────────┴────────┴──────────────────────────────────────┘
+```
+
+Grab the device id out of the **Device Id** column and run a command like this
+to pull out the components:
+
+```
+$ smartthings devices c98330b5-xxxx-xxxx-xxxx-972b4372fcde --json | jq -r '.components[].id'
+leftOutlet
+rightOutlet
+usb
+main
+```
+
+If you don't have `jq` installed, you can just save off the JSON and look
+through it by hand.  Each device has a list of `components`, and you are
+looking for the `id` of the component.
+
 ## Enabling Your Vacation Plan
 
 Once you have created your YAML file, you will use it to create a plan in the
-vacation plan manager.  
+vacation plan manager.
 
 ```
 $ vplan plan create file.yaml

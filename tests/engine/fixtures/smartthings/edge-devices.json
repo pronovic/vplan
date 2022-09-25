@@ -1,0 +1,273 @@
+{
+  "items": [
+    {
+      "deviceId": "6498f80e-xxxx-xxxx-xxxx-d1b1916d48f2",
+      "name": "Sengled Light",
+      "label": "Sofa Table Lamp",
+      "manufacturerName": "SmartThingsCommunity",
+      "presentationId": "b716a2d3-xxxx-xxxx-xxxx-7e93e046726b",
+      "deviceManufacturerCode": "sengled",
+      "locationId": "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "components": [
+        {
+          "id": "main",
+          "label": "Sofa Table Lamp",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "switchLevel",
+              "version": 1
+            },
+            {
+              "id": "firmwareUpdate",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "Light",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-10-28T00:23:29.482Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "profile": {
+        "id": "258277fc-xxxx-xxxx-xxxx-811adea7c38c"
+      },
+      "zigbee": {
+        "eui": "B0CE1XXXXXXX880D",
+        "networkId": "YYYY",
+        "driverId": "f2e891c6-xxxx-xxxx-xxxx-8ebda63d9898",
+        "executingLocally": true,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "provisioningState": "PROVISIONED"
+      },
+      "type": "ZIGBEE",
+      "restrictionTier": 0,
+      "allowed": []
+    },
+    {
+      "deviceId": "343345ca-xxxx-xxxx-xxxx-bd52e260583b",
+      "name": "zooz-zen25-double-plug",
+      "label": "Tree Outlet",
+      "manufacturerName": "SmartThingsCommunity",
+      "presentationId": "02604774-xxxx-xxxx-xxxx-bdc056d305bb",
+      "deviceManufacturerCode": "027A-A000-A003",
+      "locationId": "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "3a10416c-xxxx-xxxx-xxxx-a69e78a82ae4",
+      "components": [
+        {
+          "id": "leftOutlet",
+          "label": "Left Outlet",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "platemusic11009.amperageMeasurement",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "Switch",
+              "categoryType": "manufacturer"
+            }
+          ]
+        },
+        {
+          "id": "rightOutlet",
+          "label": "Right Outlet",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "platemusic11009.amperageMeasurement",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "Switch",
+              "categoryType": "manufacturer"
+            }
+          ]
+        },
+        {
+          "id": "usb",
+          "label": "USB",
+          "capabilities": [
+            {
+              "id": "platemusic11009.usbPort",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "Switch",
+              "categoryType": "manufacturer"
+            }
+          ]
+        },
+        {
+          "id": "main",
+          "label": "Main",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "energyMeter",
+              "version": 1
+            },
+            {
+              "id": "voltageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "platemusic11009.amperageMeasurement",
+              "version": 1
+            },
+            {
+              "id": "platemusic11009.firmware",
+              "version": 1
+            },
+            {
+              "id": "platemusic11009.deviceNetworkId",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "Switch",
+              "categoryType": "manufacturer"
+            },
+            {
+              "name": "Light",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2022-09-24T00:08:32.748Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "profile": {
+        "id": "c3e9604a-xxxx-xxxx-xxxx-1996d63ba448"
+      },
+      "zwave": {
+        "networkId": "00",
+        "driverId": "7333473f-xxxx-xxxx-xxxx-f3a6ca760489",
+        "executingLocally": true,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "networkSecurityLevel": "ZWAVE_S2_FAILED",
+        "provisioningState": "PROVISIONED"
+      },
+      "type": "ZWAVE",
+      "restrictionTier": 0,
+      "allowed": []
+    },
+    {
+      "deviceId": "54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc",
+      "name": "SmartThings Outlet",
+      "label": "Desk Lamp",
+      "manufacturerName": "SmartThingsCommunity",
+      "presentationId": "41ebda29-xxxx-xxxx-xxxx-5f88171bf74e",
+      "deviceManufacturerCode": "SmartThings",
+      "locationId": "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2",
+      "roomId": "d948d523-xxxx-xxxx-xxxx-eb9a3a7bca62",
+      "components": [
+        {
+          "id": "main",
+          "label": "Desk Lamp",
+          "capabilities": [
+            {
+              "id": "switch",
+              "version": 1
+            },
+            {
+              "id": "powerMeter",
+              "version": 1
+            },
+            {
+              "id": "firmwareUpdate",
+              "version": 1
+            },
+            {
+              "id": "refresh",
+              "version": 1
+            }
+          ],
+          "categories": [
+            {
+              "name": "SmartPlug",
+              "categoryType": "manufacturer"
+            }
+          ]
+        }
+      ],
+      "createTime": "2021-10-28T00:31:32.941Z",
+      "parentDeviceId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+      "profile": {
+        "id": "02e7e59a-xxxx-xxxx-xxxx-b374e04eb5d3"
+      },
+      "zigbee": {
+        "eui": "24FD5XXXXXXX5609",
+        "networkId": "YYYY",
+        "driverId": "f2e891c6-xxxx-xxxx-xxxx-8ebda63d9898",
+        "executingLocally": true,
+        "hubId": "21724188-xxxx-xxxx-xxxx-8223da45a793",
+        "provisioningState": "PROVISIONED"
+      },
+      "type": "ZIGBEE",
+      "restrictionTier": 0,
+      "allowed": []
+    }
+  ],
+  "_links": {}
+}

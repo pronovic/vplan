@@ -135,6 +135,7 @@ class Device(YamlModel):
 
     room: SmartThingsId = Field(..., description="SmartThings room name where the device lives")
     device: SmartThingsId = Field(..., description="SmartThings device name")
+    component: SmartThingsId = Field("main", description="The component to trigger the command for (default=main)")
 
 
 class DeviceGroup(YamlModel):
@@ -170,7 +171,7 @@ class PlanSchema(VersionedYamlModel):
 
     class Config:
         min_version = "1.0.0"
-        max_version = "1.0.0"
+        max_version = "1.1.0"
 
     version: SemVer = Field(..., description="Plan schema version")
     plan: Plan = Field(..., description="Vacation plan")
