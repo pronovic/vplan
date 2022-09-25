@@ -14,10 +14,11 @@ def fixture(filename: str) -> str:
     return os.path.join(os.path.dirname(__file__), "fixtures", "interface", filename)
 
 
-VALID_PLAN_FILE = fixture("plan.yaml")
+VALID_PLAN_FILE_V100 = fixture("plan-v1.0.0.yaml")
+VALID_PLAN_FILE_V110 = fixture("plan-v1.1.0.yaml")
 INVALID_PLAN_FILE = fixture("bad.yaml")
 
-PLAN_EXPECTED = PlanSchema(
+PLAN_EXPECTED_V100 = PlanSchema(
     version="1.0.0",
     plan=Plan(
         name="my-house",
@@ -28,8 +29,8 @@ PLAN_EXPECTED = PlanSchema(
             DeviceGroup(
                 name="first-floor-lights",
                 devices=[
-                    Device(room="Living Room", device="Sofa Table Lamp"),
-                    Device(room="Living Room", device="China Cabinet"),
+                    Device(room="Living Room", device="Sofa Table Lamp", component="main"),
+                    Device(room="Living Room", device="China Cabinet", component="main"),
                 ],
                 triggers=[
                     Trigger(days=["weekdays"], on_time="19:30", off_time="22:45", variation="+/- 30 minutes"),
@@ -39,8 +40,51 @@ PLAN_EXPECTED = PlanSchema(
             DeviceGroup(
                 name="offices",
                 devices=[
-                    Device(room="Ken's Office", device="Desk Lamp"),
-                    Device(room="Julie's Office", device="Dresser Lamp"),
+                    Device(room="Ken's Office", device="Desk Lamp", component="main"),
+                    Device(room="Julie's Office", device="Dresser Lamp", component="main"),
+                ],
+                triggers=[
+                    Trigger(days=["mon", "tue", "fri"], on_time="07:30", off_time="17:30", variation="- 1 hour"),
+                    Trigger(days=["thu"], on_time="09:30", off_time="12:30", variation="+ 1 hour"),
+                ],
+            ),
+            DeviceGroup(
+                name="basement",
+                devices=[
+                    Device(room="Basement", device="Lamp Under Window", component="main"),
+                ],
+                triggers=[
+                    Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 minutes"),
+                ],
+            ),
+        ],
+    ),
+)
+
+PLAN_EXPECTED_V110 = PlanSchema(
+    version="1.1.0",
+    plan=Plan(
+        name="my-house",
+        location="My House",
+        refresh_time="00:30",
+        refresh_zone="America/Chicago",
+        groups=[
+            DeviceGroup(
+                name="first-floor-lights",
+                devices=[
+                    Device(room="Living Room", device="Sofa Table Lamp", component="main"),
+                    Device(room="Living Room", device="China Cabinet", component="main"),
+                ],
+                triggers=[
+                    Trigger(days=["weekdays"], on_time="19:30", off_time="22:45", variation="+/- 30 minutes"),
+                    Trigger(days=["weekends"], on_time="sunset", off_time="sunrise", variation="none"),
+                ],
+            ),
+            DeviceGroup(
+                name="offices",
+                devices=[
+                    Device(room="Ken's Office", device="Desk Lamp", component="main"),
+                    Device(room="Julie's Office", device="Dresser Lamp", component="main"),
                 ],
                 triggers=[
                     Trigger(days=["mon", "tue", "fri"], on_time="07:30", off_time="17:30", variation="- 1 hour"),
@@ -60,11 +104,19 @@ PLAN_EXPECTED = PlanSchema(
     ),
 )
 
-DEVICES_EXPECTED = [
-    Device(room="Living Room", device="Sofa Table Lamp"),
-    Device(room="Living Room", device="China Cabinet"),
-    Device(room="Ken's Office", device="Desk Lamp"),
-    Device(room="Julie's Office", device="Dresser Lamp"),
+DEVICES_EXPECTED_V100 = [
+    Device(room="Living Room", device="Sofa Table Lamp", component="main"),
+    Device(room="Living Room", device="China Cabinet", component="main"),
+    Device(room="Ken's Office", device="Desk Lamp", component="main"),
+    Device(room="Julie's Office", device="Dresser Lamp", component="main"),
+    Device(room="Basement", device="Lamp Under Window", component="main"),
+]
+
+DEVICES_EXPECTED_V110 = [
+    Device(room="Living Room", device="Sofa Table Lamp", component="main"),
+    Device(room="Living Room", device="China Cabinet", component="main"),
+    Device(room="Ken's Office", device="Desk Lamp", component="main"),
+    Device(room="Julie's Office", device="Dresser Lamp", component="main"),
     Device(room="Basement", device="Lamp Under Window", component="rightOutlet"),
 ]
 
@@ -254,10 +306,16 @@ class TestModelsAndValidation:
 
 
 class TestYamlParsing:
-    def test_parsing_valid(self):
-        schema = PlanSchema.parse_file(VALID_PLAN_FILE)
-        assert schema == PLAN_EXPECTED
-        assert schema.devices() == DEVICES_EXPECTED
+    def test_parsing_valid_v100(self):
+        schema = PlanSchema.parse_file(VALID_PLAN_FILE_V100)
+        assert schema == PLAN_EXPECTED_V100
+        assert schema.devices() == DEVICES_EXPECTED_V100
+        assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
+
+    def test_parsing_valid_v110(self):
+        schema = PlanSchema.parse_file(VALID_PLAN_FILE_V110)
+        assert schema == PLAN_EXPECTED_V110
+        assert schema.devices() == DEVICES_EXPECTED_V110
         assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
 
     def test_parsing_invalid(self):

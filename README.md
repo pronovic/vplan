@@ -114,7 +114,7 @@ that you installed the software as described above.
 
 ```
 $ vplan check
-API is healthy, versions: package='0.5.3' api='1.0.0'
+API is healthy, versions: package='0.5.3' api='2.0.0'
 ```
 
 If necessary, you can check the logs from the service:
@@ -155,7 +155,7 @@ Finally, run the check and confirm what version you are running on:
 
 ```
 $ vplan check
-API is healthy, versions: package='0.5.3' api='1.0.0'
+API is healthy, versions: package='0.5.3' api='2.0.0'
 ```
 
 ## Setting Up Your Account
@@ -205,7 +205,7 @@ above.  See other account commands using `vplan account --help`.
 A vacation plan is defined in a YAML file.  Here is a very simple example:
 
 ```yaml
-version: 1.0.0
+version: 1.1.0
 plan:
   name: my-house
   location: My House

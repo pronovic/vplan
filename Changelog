@@ -2,6 +2,7 @@ Version 0.5.3     unreleased
 
 	* Preserve ordering in exported YAML rather than sorting keys.
 	* Support addressing by component for multi-component devices like ZEN25.
+	* Bump version internal REST API to 2.0.0 and config YAML to 1.1.0.
 
 Version 0.5.2     05 Sep 2022
 

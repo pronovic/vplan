@@ -171,7 +171,7 @@ class PlanSchema(VersionedYamlModel):
 
     class Config:
         min_version = "1.0.0"
-        max_version = "1.0.0"
+        max_version = "1.1.0"
 
     version: SemVer = Field(..., description="Plan schema version")
     plan: Plan = Field(..., description="Vacation plan")
