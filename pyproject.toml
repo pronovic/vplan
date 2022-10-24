@@ -46,7 +46,6 @@ pytest = "^7.1.2"
 pytest-testdox = "^3.0.1"
 pytest-asyncio = "^0.16.0"
 coverage = "^6.3.2"
-tox = "^3.25.0"
 pylint = "^2.13.8"
 toml = "^0.10.2"
 pre-commit = "^2.18.1"
@@ -59,6 +58,7 @@ sqlalchemy2-stubs = "^0.0.2-alpha.22"
 types-requests = "^2.27.25"
 types-pytz = "^2021.3.7"
 coveralls = "^3.3.1"
+colorama = "^0.4.5"
 
 [tool.black]
 line-length = 132

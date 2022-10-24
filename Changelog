@@ -1,3 +1,8 @@
+Version 0.6.1     unreleased
+
+	* Refactor the run script and pre-commit hooks to reduce duplication.
+	* Rework the GitHub Actions build process to pull out shared code.
+
 Version 0.6.0     25 Sep 2022
 
 	* Preserve ordering in exported YAML rather than sorting keys.
