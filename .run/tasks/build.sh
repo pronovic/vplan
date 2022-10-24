@@ -1,4 +1,5 @@
 # vim: set ft=bash sw=3 ts=3 expandtab:
+# runscript: customized=true
 
 help_build() {
    echo "- run build: Build artifacts in the dist/ directory"
