@@ -11,7 +11,7 @@ task_release() {
    run_command tagrelease "$@"
    run_task build
 
-   version=$(poetry version | sed 's/^.* //g')
+   version=$(poetry version --short)
    echo ""
    echo "*** Version v$version has been released and committed"
    echo ""

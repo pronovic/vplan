@@ -10,7 +10,7 @@ task_build() {
 
    run_command poetrybuild
 
-   version=$(poetry version | sed 's/^.* //g')
+   version=$(poetry version --short)
    tar zcf dist/vplan-config-$version.tar.gz -C config/installed --mode="go-rwx" --owner=github --group=github .
    if [ $? != 0 ]; then
       echo "*** Config bundle step failed."
