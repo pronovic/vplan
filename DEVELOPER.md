@@ -2,7 +2,7 @@
 
 ## Supported Platforms
 
-This code runs as a daemon and is intended for use Linux and UNIX-like platforms.
+This code runs as a daemon and is intended for use on Linux and UNIX-like platforms.
 
 ## Systemd and Daemon Notes
 
