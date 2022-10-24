@@ -6,7 +6,7 @@ This code runs as a daemon and is intended for use Linux and UNIX-like platforms
 
 ## Systemd and Daemon Notes
 
-The systemd design is heavily based on the excellent [python-systemd-tutorial](https://github.com/torfsen/python-systemd-tutorial).  See also the [specifiers](https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Specifiers) documentation (for constructs like `%h`).  
+The systemd design is heavily based on the excellent [python-systemd-tutorial](https://github.com/torfsen/python-systemd-tutorial).  See also the [specifiers](https://www.freedesktop.org/software/systemd/man/systemd.unit.html#Specifiers) documentation (for constructs like `%h`).
 
 Uvicorn is using a user-private UNIX socket rather than opening a port like 8080.  For the socket setup, I followed notes [here](https://gist.github.com/kylemanna/d193aaa6b33a89f649524ad27ce47c4b) and [here](https://stackoverflow.com/questions/52507089/running-uvicorn-with-unix-socket).  I'm using [requests-unixsocket](https://pypi.org/project/requests-unixsocket/) to make requests to the UNIX socket.
 
@@ -15,10 +15,6 @@ Uvicorn is using a user-private UNIX socket rather than opening a port like 8080
 This project uses [Poetry](https://python-poetry.org/) to manage Python packaging and dependencies.  Most day-to-day tasks (such as running unit tests from the command line) are orchestrated through Poetry.
 
 A coding standard is enforced using [Black](https://github.com/psf/black), [isort](https://pypi.org/project/isort/) and [Pylint](https://www.pylint.org/).  Python 3 type hinting is validated using [MyPy](https://pypi.org/project/mypy/).
-
-## Continuous Integration (CI)
-
-We use [GitHub Actions](https://docs.github.com/en/actions/quickstart) for CI.  See [.github/workflows/tox.yml](.github/workflows/tox.yml) for the definition of the workflow, and go to the [Actions tab](https://github.com/pronovic/vplan/actions) to see what actions have been executed.  
 
 ## Pre-Commit Hooks
 
@@ -35,12 +31,12 @@ checks, so the build will fail.
 
 The [`.gitattributes`](.gitattributes) file controls line endings for the files
 in this repository.  Instead of relying on automatic behavior, the
-`.gitattributes` file forces most files to have UNIX line endings.  
+`.gitattributes` file forces most files to have UNIX line endings.
 
 ## Prerequisites
 
 Nearly all prerequisites are managed by Poetry.  All you need to do is make
-sure that you have a working Python 3 enviroment and install Poetry itself.  
+sure that you have a working Python 3 enviroment and install Poetry itself.
 
 ### Poetry Version
 
@@ -115,13 +111,13 @@ curl -sSL https://install.python-poetry.org | python3 -
 The [`run`](run) script provides shortcuts for common developer tasks:
 
 ```
-$ run
+$ run --help
 
 ------------------------------------
 Shortcuts for common developer tasks
 ------------------------------------
 
-Usage: run <command>
+Basic tasks:
 
 - run install: Setup the virtualenv via Poetry and install pre-commit hooks
 - run format: Run the code formatters
@@ -129,13 +125,16 @@ Usage: run <command>
 - run test: Run the unit tests
 - run test -c: Run the unit tests with coverage
 - run test -ch: Run the unit tests with coverage and open the HTML report
-- run tox: Run the Tox test suite used by the GitHub CI action
+- run suite: Run the complete test suite, as for the GitHub Actions CI build
+
+Additional tasks:
+
+- run build: Build artifacts in the dist/ directory
+- run release: Release a specific version and tag the code
+- run rmdb: Remove the sqlite database files used for local testing
 - run server: Run the vplan REST server at localhost:8080
 - run server -r: Run the vplan REST server, removing the database first
 - run vplan: Run the vplan client against localhost:8080
-- run rmdb: Remove the sqlite database files used for local testing
-- run release: Release a specific version and tag the code
-- run build: Build artifacts in the dist/ directory
 ```
 
 ## Integration with PyCharm
@@ -159,7 +158,7 @@ order.  In particular, if you do not run the install step, there will be no
 virtualenv for PyCharm to use:
 
 ```
-run install && run checks && run test
+run install && run suite
 ```
 
 ### Open the Project
@@ -185,7 +184,7 @@ Structure**, mark both `src` and `tests` as source folders.  In the **Exclude
 Files** box, enter the following:
 
 ```
-LICENSE;NOTICE;PyPI.md;.coverage;.coveragerc;.github;.gitignore;.gitattributes;.htmlcov;.idea;.isort.cfg;.mypy.ini;.mypy_cache;.pre-commit-config.yaml;.pylintrc;.pytest_cache;.readthedocs.yml;.tox;.toxrc;.tabignore;build;dist;docs/_build;out;poetry.lock;poetry.toml;run;.runtime
+LICENSE;NOTICE;PyPI.md;.coverage;.coveragerc;.github;.gitignore;.gitattributes;.htmlcov;.idea;.isort.cfg;.mypy.ini;.mypy_cache;.pre-commit-config.yaml;.pylintrc;.pytest_cache;.readthedocs.yml;.tabignore;build;dist;docs/_build;out;poetry.lock;poetry.toml;run;.run;.venv;.runtime
 ```
 
 When you're done, click **Ok**.  Then, go to the gear icon in the project panel 
@@ -240,7 +239,7 @@ source ~/.bash_profile
 |Field|Value|
 |-----|-----|
 |Name|`Format Code`|
-|Description|`Run the Black and isort code formatters`|
+|Description|`Run the code formatters`|
 |Group|`Developer Tools`|
 |Program|`$ProjectFileDir$/run`|
 |Arguments|`format`|
