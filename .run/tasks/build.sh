@@ -16,5 +16,7 @@ task_build() {
       echo "*** Config bundle step failed."
       exit 1
    fi
+
+   ls -l dist/vplan-config-$version.tar.gz
 }
 
