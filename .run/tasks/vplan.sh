@@ -6,6 +6,7 @@ help_vplan() {
 }
 
 task_vplan() {
+   # Note: not poetry_run because I don't want/need error handling here
    poetry run vplan --config config/local/vplan/client/application.yaml "$@"
 }
 
