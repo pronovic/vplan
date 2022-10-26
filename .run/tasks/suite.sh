@@ -7,7 +7,7 @@ help_suite() {
 task_suite() {
    run_task install
    run_task checks
-   run_task build -c
-   run_task test
+   run_task build
+   run_task test -c
 }
 
