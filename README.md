@@ -11,7 +11,7 @@ one or more SmartThings locations tied to a single SmartThings user.
 The platform is written in Python 3.  It has two components: a daemon process
 running as a systemd user service, and a command line tool.  The command line
 tool communicates with the daemon via a RESTful API using a private UNIX socket.
-You use the command line tool to configure your vacations plans, to enable or
+You use the command line tool to configure your vacation plans, to enable or
 disable vacation plans, and to test your devices.  
 
 The platform is lightweight and will work on most Linux systems that have
