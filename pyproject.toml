@@ -9,6 +9,7 @@ homepage = "https://github.com/pronovic/vplan"
 repository = "https://github.com/pronovic/vplan"
 include = [
    { path = 'Changelog', format = 'sdist' },
+   { path = 'NOTICE', format = 'sdist' },
    { path = 'LICENSE', format = 'sdist' },
    { path = 'README.md', format = 'sdist' },
    { path = 'tests', format = 'sdist' },
