@@ -1,6 +1,7 @@
 Version 0.6.2     unreleased
 
 	* Add NOTICE file to sdist, alongside existing LICENSE file.
+	* Automate the existing manual release process using GitHub Actions.
 
 Version 0.6.1     24 Oct 2022
 
