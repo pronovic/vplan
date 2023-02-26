@@ -1,12 +1,14 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+# pylint: disable=too-many-public-methods:
 
-import json
 from unittest.mock import MagicMock, patch
 
 import pytest
+import responses
 from click import ClickException
 from requests import HTTPError, Timeout
+from responses import matchers
 
 from vplan.client.client import (
     _raise_for_status,
@@ -32,18 +34,8 @@ from vplan.client.client import (
 )
 from vplan.interface import Account, Health, Plan, PlanSchema, Status, Version
 
-
-def _response(model=None, data=None, status_code=None):
-    """Build a mocked response for use with the requests library."""
-    response = MagicMock()
-    if model:
-        response.text = model.json()
-    if data:
-        response.text = json.dumps(data)
-    if status_code:
-        response.status_code = status_code
-    response.raise_for_status = MagicMock()
-    return response
+BASE_URL = MagicMock(return_value=MagicMock(return_value="http://whatever"))
+TIMEOUT_MATCHER = matchers.request_kwargs_matcher({"timeout": 1.0})
 
 
 class TestUtil:
@@ -55,239 +47,270 @@ class TestUtil:
             _raise_for_status(response)
 
 
-@patch("vplan.client.client.api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
+@patch("vplan.client.client.api_url", new_callable=BASE_URL)
 class TestHealthAndVersion:
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_health_error(self, requests_get, _api_url):
-        response = _response()
-        response.raise_for_status.side_effect = HTTPError("error")
-        requests_get.side_effect = [response]
-        assert retrieve_health() is False
-        requests_get.assert_called_once_with(url="http://whatever/health", timeout=1)
+    def test_retrieve_health_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/health", status=500, match=[TIMEOUT_MATCHER])
+            assert retrieve_health() is False
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_health_timeout(self, requests_get, _api_url):
-        response = _response()
-        response.raise_for_status.side_effect = Timeout("error")
-        requests_get.side_effect = [response]
-        assert retrieve_health() is False
-        requests_get.assert_called_once_with(url="http://whatever/health", timeout=1)
+    def test_retrieve_health_timeout(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/health", body=Timeout("error"), match=[TIMEOUT_MATCHER])
+            assert retrieve_health() is False
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_health_healthy(self, requests_get, _api_url):
-        response = _response(model=Health())
-        requests_get.side_effect = [response]
-        assert retrieve_health() is True
-        requests_get.assert_called_once_with(url="http://whatever/health", timeout=1)
+    def test_retrieve_health_healthy(self, _):
+        with responses.RequestsMock() as r:
+            health = Health()
+            r.get(url="http://whatever/health", body=health.json(), match=[TIMEOUT_MATCHER])
+            assert retrieve_health() is True
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_version_error(self, requests_get, _api_url):
-        response = _response()
-        response.raise_for_status.side_effect = HTTPError("error")
-        requests_get.side_effect = [response]
-        result = retrieve_version()
-        assert result is None
-        requests_get.assert_called_once_with(url="http://whatever/version", timeout=1)
+    def test_retrieve_version_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/version", status=500, match=[TIMEOUT_MATCHER])
+            assert retrieve_version() is None
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_version_timeout(self, requests_get, _api_url):
-        response = _response()
-        response.raise_for_status.side_effect = Timeout("error")
-        requests_get.side_effect = [response]
-        result = retrieve_version()
-        assert result is None
-        requests_get.assert_called_once_with(url="http://whatever/version", timeout=1)
+    def test_retrieve_version_timeout(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/version", body=Timeout("error"), match=[TIMEOUT_MATCHER])
+            assert retrieve_version() is None
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_version_healthy(self, requests_get, _api_url):
-        version = Version(package="a", api="b")
-        response = _response(model=version)
-        requests_get.side_effect = [response]
-        result = retrieve_version()
-        assert result == version
-        requests_get.assert_called_once_with(url="http://whatever/version", timeout=1)
+    def test_retrieve_version_healthy(self, _):
+        with responses.RequestsMock() as r:
+            version = Version(package="a", api="b")
+            r.get(url="http://whatever/version", body=version.json(), match=[TIMEOUT_MATCHER])
+            assert retrieve_version() == version
 
 
-@patch("vplan.client.client._raise_for_status")
-@patch("vplan.client.client.api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
+@patch("vplan.client.client.api_url", new_callable=BASE_URL)
 class TestAccount:
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_account_not_found(self, requests_get, _api_url, raise_for_status):
-        response = _response(status_code=404)
-        requests_get.side_effect = [response]
-        result = retrieve_account()
-        assert result is None
-        raise_for_status.assert_not_called()
-        requests_get.assert_called_once_with(url="http://whatever/account")
+    def test_retrieve_account_not_found(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/account", status=404)
+            assert retrieve_account() is None
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_account_found(self, requests_get, _api_url, raise_for_status):
-        account = Account(pat_token="token")
-        response = _response(model=account)
-        requests_get.side_effect = [response]
-        result = retrieve_account()
-        assert result == account
-        raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/account")
+    def test_retrieve_account_found(self, _):
+        with responses.RequestsMock() as r:
+            account = Account(pat_token="token")
+            r.get(url="http://whatever/account", body=account.json())
+            assert retrieve_account() == account
 
-    @patch("vplan.client.client.requests.post")
-    def test_create_or_replace_account(self, requests_post, _api_url, raise_for_status):
-        account = Account(pat_token="token")
-        response = _response()
-        requests_post.side_effect = [response]
-        create_or_replace_account(account)
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/account", data=account.json())
+    def test_retrieve_account_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/account", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                retrieve_account()
 
-    @patch("vplan.client.client.requests.delete")
-    def test_delete_account(self, requests_delete, _api_url, raise_for_status):
-        response = _response()
-        requests_delete.side_effect = [response]
-        delete_account()
-        raise_for_status.assert_called_once_with(response)
-        requests_delete.assert_called_once_with(url="http://whatever/account")
+    def test_create_or_replace_account(self, _):
+        with responses.RequestsMock() as r:
+            account = Account(pat_token="token")
+            r.post(url="http://whatever/account", body=account.json())
+            create_or_replace_account(account)
+
+    def test_create_or_replace_account_error(self, _):
+        with responses.RequestsMock() as r:
+            account = Account(pat_token="token")
+            r.post(url="http://whatever/account", body=account.json(), status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                create_or_replace_account(account)
+
+    def test_delete_account(self, _):
+        with responses.RequestsMock() as r:
+            r.delete(url="http://whatever/account")
+            delete_account()
+
+    def test_delete_account_error(self, _):
+        with responses.RequestsMock() as r:
+            r.delete(url="http://whatever/account", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                delete_account()
 
 
-@patch("vplan.client.client._raise_for_status")
-@patch("vplan.client.client.api_url", new_callable=MagicMock(return_value=MagicMock(return_value="http://whatever")))
+@patch("vplan.client.client.api_url", new_callable=BASE_URL)
 class TestPlan:
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_all_plans(self, requests_get, _api_url, raise_for_status):
-        plans = ["one", "two"]
-        response = _response(data=plans)
-        requests_get.side_effect = [response]
-        result = retrieve_all_plans()
-        assert result == plans
-        raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/plan")
+    def test_retrieve_all_plans(self, _):
+        with responses.RequestsMock() as r:
+            plans = ["one", "two"]
+            r.get(url="http://whatever/plan", json=plans)
+            assert retrieve_all_plans() == plans
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_plan_not_found(self, requests_get, _api_url, raise_for_status):
-        response = _response(status_code=404)
-        requests_get.side_effect = [response]
-        result = retrieve_plan("xxx")
-        assert result is None
-        raise_for_status.assert_not_called()
-        requests_get.assert_called_once_with(url="http://whatever/plan/xxx")
+    def test_retrieve_all_plans_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/plan", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                retrieve_all_plans()
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_plan_found(self, requests_get, _api_url, raise_for_status):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-        response = _response(model=schema)
-        requests_get.side_effect = [response]
-        result = retrieve_plan("xxx")
-        assert result == schema
-        raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/plan/xxx")
+    def test_retrieve_plan_not_found(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/plan/xxx", status=404)
+            assert retrieve_plan("xxx") is None
 
-    @patch("vplan.client.client.requests.post")
-    def test_create_plan(self, requests_post, _api_url, raise_for_status):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-        response = _response()
-        requests_post.side_effect = [response]
-        create_plan(schema)
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan", data=schema.json())
+    def test_retrieve_plan_found(self, _):
+        with responses.RequestsMock() as r:
+            schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+            r.get(url="http://whatever/plan/xxx", body=schema.json())
+            assert retrieve_plan("xxx") == schema
 
-    @patch("vplan.client.client.requests.put")
-    def test_update_plan(self, requests_put, _api_url, raise_for_status):
-        schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-        response = _response()
-        requests_put.side_effect = [response]
-        update_plan(schema)
-        raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/plan", data=schema.json())
+    def test_retrieve_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/plan/xxx", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                retrieve_plan("xxx")
 
-    @patch("vplan.client.client.requests.delete")
-    def test_delete_plan(self, requests_delete, _api_url, raise_for_status):
-        response = _response()
-        requests_delete.side_effect = [response]
-        delete_plan("xxx")
-        raise_for_status.assert_called_once_with(response)
-        requests_delete.assert_called_once_with(url="http://whatever/plan/xxx")
+    def test_create_plan(self, _):
+        with responses.RequestsMock() as r:
+            schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+            r.post(url="http://whatever/plan", body=schema.json())
+            create_plan(schema)
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_plan_status_not_found(self, requests_get, _api_url, raise_for_status):
-        response = _response(status_code=404)
-        requests_get.side_effect = [response]
-        result = retrieve_plan_status("xxx")
-        assert result is None
-        raise_for_status.assert_not_called()
-        requests_get.assert_called_once_with(url="http://whatever/plan/xxx/status")
+    def test_create_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+            r.post(url="http://whatever/plan", body=schema.json(), status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                create_plan(schema)
 
-    @patch("vplan.client.client.requests.get")
-    def test_retrieve_plan_status_found(self, requests_get, _api_url, raise_for_status):
-        status = Status(enabled=False)
-        response = _response(model=status)
-        requests_get.side_effect = [response]
-        result = retrieve_plan_status("xxx")
-        assert result == status
-        raise_for_status.assert_called_once_with(response)
-        requests_get.assert_called_once_with(url="http://whatever/plan/xxx/status")
+    def test_update_plan(self, _):
+        with responses.RequestsMock() as r:
+            schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+            r.put(url="http://whatever/plan", body=schema.json())
+            update_plan(schema)
 
-    @patch("vplan.client.client.requests.put")
-    def test_update_plan_status(self, requests_put, _api_url, raise_for_status):
-        status = Status(enabled=False)
-        response = _response()
-        requests_put.side_effect = [response]
-        update_plan_status("xxx", status)
-        raise_for_status.assert_called_once_with(response)
-        requests_put.assert_called_once_with(url="http://whatever/plan/xxx/status", data=status.json())
+    def test_update_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+            r.put(url="http://whatever/plan", body=schema.json(), status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                update_plan(schema)
 
-    @patch("vplan.client.client.requests.post")
-    def test_refresh_plan(self, requests_post, _api_url, raise_for_status):
-        response = _response()
-        requests_post.side_effect = [response]
-        refresh_plan("xxx")
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/refresh")
+    def test_delete_plan(self, _):
+        with responses.RequestsMock() as r:
+            r.delete(url="http://whatever/plan/xxx")
+            delete_plan("xxx")
 
-    @patch("vplan.client.client.requests.post")
-    def test_toggle_group(self, requests_post, _api_url, raise_for_status):
-        response = _response()
-        requests_post.side_effect = [response]
-        toggle_group("xxx", "yyy", 2, 5)
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/test/group/yyy", params={"toggles": 2, "delay_sec": 5})
+    def test_delete_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            r.delete(url="http://whatever/plan/xxx", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                delete_plan("xxx")
 
-    @patch("vplan.client.client.requests.post")
-    def test_toggle_device(self, requests_post, _api_url, raise_for_status):
-        response = _response()
-        requests_post.side_effect = [response]
-        toggle_device("xxx", "yyy", "zzz", "ccc", 2, 5)
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(
-            url="http://whatever/plan/xxx/test/device/yyy/zzz/ccc", params={"toggles": 2, "delay_sec": 5}
-        )
+    def test_retrieve_plan_status_not_found(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/plan/xxx/status", status=404)
+            assert retrieve_plan_status("xxx") is None
 
-    @patch("vplan.client.client.requests.post")
-    def test_turn_on_group(self, requests_post, _api_url, raise_for_status):
-        response = _response()
-        requests_post.side_effect = [response]
-        turn_on_group("xxx", "yyy")
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/group/yyy")
+    def test_retrieve_plan_status_found(self, _):
+        with responses.RequestsMock() as r:
+            status = Status(enabled=False)
+            r.get(url="http://whatever/plan/xxx/status", body=status.json())
+            assert retrieve_plan_status("xxx") == status
 
-    @patch("vplan.client.client.requests.post")
-    def test_turn_on_device(self, requests_post, _api_url, raise_for_status):
-        response = _response()
-        requests_post.side_effect = [response]
-        turn_on_device("xxx", "yyy", "zzz", "ccc")
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/on/device/yyy/zzz/ccc")
+    def test_retrieve_plan_status_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/plan/xxx/status", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                retrieve_plan_status("xxx")
 
-    @patch("vplan.client.client.requests.post")
-    def test_turn_off_group(self, requests_post, _api_url, raise_for_status):
-        response = _response()
-        requests_post.side_effect = [response]
-        turn_off_group("xxx", "yyy")
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/group/yyy")
+    def test_update_plan_status(self, _):
+        with responses.RequestsMock() as r:
+            status = Status(enabled=False)
+            r.put(url="http://whatever/plan/xxx/status", body=status.json())
+            update_plan_status("xxx", status)
 
-    @patch("vplan.client.client.requests.post")
-    def test_turn_off_device(self, requests_post, _api_url, raise_for_status):
-        response = _response()
-        requests_post.side_effect = [response]
-        turn_off_device("xxx", "yyy", "zzz", "ccc")
-        raise_for_status.assert_called_once_with(response)
-        requests_post.assert_called_once_with(url="http://whatever/plan/xxx/off/device/yyy/zzz/ccc")
+    def test_update_plan_status_error(self, _):
+        with responses.RequestsMock() as r:
+            status = Status(enabled=False)
+            r.put(url="http://whatever/plan/xxx/status", body=status.json(), status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                update_plan_status("xxx", status)
+
+    def test_refresh_plan(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/refresh")
+            refresh_plan("xxx")
+
+    def test_refresh_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/refresh", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                refresh_plan("xxx")
+
+    def test_toggle_group(self, _):
+        with responses.RequestsMock() as r:
+            r.post(
+                url="http://whatever/plan/xxx/test/group/yyy",
+                match=[matchers.query_param_matcher({"toggles": 2, "delay_sec": 5})],
+            )
+            toggle_group("xxx", "yyy", 2, 5)
+
+    def test_toggle_group_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(
+                url="http://whatever/plan/xxx/test/group/yyy",
+                match=[matchers.query_param_matcher({"toggles": 2, "delay_sec": 5})],
+                status=500,
+            )
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                toggle_group("xxx", "yyy", 2, 5)
+
+    def test_toggle_device(self, _):
+        with responses.RequestsMock() as r:
+            r.post(
+                url="http://whatever/plan/xxx/test/device/yyy/zzz/ccc",
+                match=[matchers.query_param_matcher({"toggles": 2, "delay_sec": 5})],
+            )
+            toggle_device("xxx", "yyy", "zzz", "ccc", 2, 5)
+
+    def test_toggle_device_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(
+                url="http://whatever/plan/xxx/test/device/yyy/zzz/ccc",
+                match=[matchers.query_param_matcher({"toggles": 2, "delay_sec": 5})],
+                status=500,
+            )
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                toggle_device("xxx", "yyy", "zzz", "ccc", 2, 5)
+
+    def test_turn_on_group(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/on/group/yyy")
+            turn_on_group("xxx", "yyy")
+
+    def test_turn_on_group_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/on/group/yyy", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                turn_on_group("xxx", "yyy")
+
+    def test_turn_on_device(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/on/device/yyy/zzz/ccc")
+            turn_on_device("xxx", "yyy", "zzz", "ccc")
+
+    def test_turn_on_device_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/on/device/yyy/zzz/ccc", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                turn_on_device("xxx", "yyy", "zzz", "ccc")
+
+    def test_turn_off_group(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/off/group/yyy")
+            turn_off_group("xxx", "yyy")
+
+    def test_turn_off_group_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/off/group/yyy", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                turn_off_group("xxx", "yyy")
+
+    def test_turn_off_device(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/off/device/yyy/zzz/ccc")
+            turn_off_device("xxx", "yyy", "zzz", "ccc")
+
+    def test_turn_off_device_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/off/device/yyy/zzz/ccc", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                turn_off_device("xxx", "yyy", "zzz", "ccc")
