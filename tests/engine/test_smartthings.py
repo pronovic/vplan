@@ -92,17 +92,6 @@ def fixture(filename: str) -> str:
         return fp.read()
 
 
-def _response(data=None, status_code=None):
-    """Build a mocked response for use with the requests library."""
-    response = MagicMock()
-    if data:
-        response.json = MagicMock(return_value=json.loads(data))
-    if status_code:
-        response.status_code = status_code
-    response.raise_for_status = MagicMock()
-    return response
-
-
 @pytest.fixture
 @patch("vplan.engine.smartthings._base_api_url", new_callable=BASE_URL)
 def test_context_dth(_):
@@ -388,7 +377,7 @@ class TestParsers:
 
 @patch("vplan.engine.smartthings._base_api_url", new_callable=BASE_URL)
 class TestContext:
-    def test_load_context_unknown_location(self, _api_url):
+    def test_load_context_unknown_location(self, _):
         with responses.RequestsMock() as r:
             r.get(
                 url="http://whatever/locations",
@@ -406,7 +395,7 @@ class TestContext:
             ("edge-devices.json", EDGE_DEVICE_BY_NAME),
         ],
     )
-    def test_load_context(self, _api_url, devices_file, devices_expected):
+    def test_load_context(self, _, devices_file, devices_expected):
         with responses.RequestsMock(registry=OrderedRegistry) as r:
             r.get(
                 url="http://whatever/locations",
@@ -449,6 +438,92 @@ class TestContext:
                 assert context.rule_by_id[RULE_ID]["name"] == RULE_NAME
             with pytest.raises(LookupError):
                 CONTEXT.get()  # the context should not be available outside the SmartThings() block above
+
+    def test_load_context_location_error(self, _):
+        with responses.RequestsMock(registry=OrderedRegistry) as r:
+            r.get(
+                url="http://whatever/locations",
+                status=500,
+                match=[TIMEOUT_MATCHER, HEADERS_MATCHER, LIMIT_100_MATCHER],
+            )
+            with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                with SmartThings(pat_token=PAT_TOKEN, location=LOCATION):
+                    CONTEXT.get()
+
+    def test_load_context_rooms_error(self, _):
+        with responses.RequestsMock(registry=OrderedRegistry) as r:
+            r.get(
+                url="http://whatever/locations",
+                body=fixture("locations.json"),
+                match=[TIMEOUT_MATCHER, HEADERS_MATCHER, LIMIT_100_MATCHER],
+            )
+            r.get(
+                url="http://whatever/locations/%s/rooms" % LOCATION_ID,
+                status=500,
+                match=[TIMEOUT_MATCHER, HEADERS_MATCHER, LIMIT_250_MATCHER],
+            )
+            with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                with SmartThings(pat_token=PAT_TOKEN, location=LOCATION):
+                    CONTEXT.get()
+
+    def test_load_context_devices_error(self, _):
+        with responses.RequestsMock(registry=OrderedRegistry) as r:
+            r.get(
+                url="http://whatever/locations",
+                body=fixture("locations.json"),
+                match=[TIMEOUT_MATCHER, HEADERS_MATCHER, LIMIT_100_MATCHER],
+            )
+            r.get(
+                url="http://whatever/locations/%s/rooms" % LOCATION_ID,
+                body=fixture("rooms.json"),
+                match=[TIMEOUT_MATCHER, HEADERS_MATCHER, LIMIT_250_MATCHER],
+            )
+            r.get(
+                url="http://whatever/devices",
+                status=500,
+                match=[
+                    TIMEOUT_MATCHER,
+                    HEADERS_MATCHER,
+                    matchers.query_param_matcher({"locationId": LOCATION_ID, "capability": "switch", "limit": "1000"}),
+                ],
+            )
+            with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                with SmartThings(pat_token=PAT_TOKEN, location=LOCATION):
+                    CONTEXT.get()
+
+    def test_load_context_rules_error(self, _):
+        with responses.RequestsMock(registry=OrderedRegistry) as r:
+            r.get(
+                url="http://whatever/locations",
+                body=fixture("locations.json"),
+                match=[TIMEOUT_MATCHER, HEADERS_MATCHER, LIMIT_100_MATCHER],
+            )
+            r.get(
+                url="http://whatever/locations/%s/rooms" % LOCATION_ID,
+                body=fixture("rooms.json"),
+                match=[TIMEOUT_MATCHER, HEADERS_MATCHER, LIMIT_250_MATCHER],
+            )
+            r.get(
+                url="http://whatever/devices",
+                body=fixture("dth-devices.json"),
+                match=[
+                    TIMEOUT_MATCHER,
+                    HEADERS_MATCHER,
+                    matchers.query_param_matcher({"locationId": LOCATION_ID, "capability": "switch", "limit": "1000"}),
+                ],
+            )
+            r.get(
+                url="http://whatever/rules",
+                status=500,
+                match=[
+                    TIMEOUT_MATCHER,
+                    HEADERS_MATCHER,
+                    matchers.query_param_matcher({"locationId": LOCATION_ID, "limit": "100"}),
+                ],
+            )
+            with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                with SmartThings(pat_token=PAT_TOKEN, location=LOCATION):
+                    CONTEXT.get()
 
 
 class TestRules:
@@ -665,6 +740,13 @@ class TestClient:
                 )
                 delete_rule("id")
 
+    def test_delete_rule_error(self, _, test_context_dth):
+        with test_context_dth:
+            with responses.RequestsMock() as r:
+                r.delete(url="http://whatever/rules/id", status=500)
+                with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                    delete_rule("id")
+
     def test_create_rule(self, _, test_context_dth):
         input_rule = {"input": "value"}
         output_rule = {"output": "value"}
@@ -682,6 +764,14 @@ class TestClient:
                     ],
                 )
                 assert create_rule(input_rule) == output_rule
+
+    def test_create_rule_error(self, _, test_context_dth):
+        input_rule = {"input": "value"}
+        with test_context_dth:
+            with responses.RequestsMock() as r:
+                r.post(url="http://whatever/rules", status=500)
+                with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                    create_rule(input_rule)
 
     @pytest.mark.parametrize(
         "state,command",
@@ -703,6 +793,13 @@ class TestClient:
                 )
                 set_switch(Device(room="Office", device="Desk Lamp"), state)
 
+    def test_set_switch_dth_error(self, _, test_context_dth):
+        with test_context_dth:
+            with responses.RequestsMock() as r:
+                r.post(url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/commands", status=500)
+                with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                    set_switch(Device(room="Office", device="Desk Lamp"), SwitchState.ON)
+
     @pytest.mark.parametrize(
         "state,command",
         [(SwitchState.ON, "on"), (SwitchState.OFF, "off")],
@@ -723,6 +820,13 @@ class TestClient:
                 )
                 set_switch(Device(room="Living Room", device="Tree Outlet", component="leftOutlet"), state)
 
+    def test_set_switch_edge_error(self, _, test_context_edge):
+        with test_context_edge:
+            with responses.RequestsMock() as r:
+                r.post(url="http://whatever/devices/343345ca-xxxx-xxxx-xxxx-bd52e260583b/commands", status=500)
+                with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                    set_switch(Device(room="Living Room", device="Tree Outlet", component="leftOutlet"), SwitchState.ON)
+
     @pytest.mark.parametrize("file,expected", [("switch_on.json", SwitchState.ON), ("switch_off.json", SwitchState.OFF)])
     def test_check_switch_dth(self, _, test_context_dth, file, expected):
         with test_context_dth:
@@ -735,6 +839,16 @@ class TestClient:
                 )
                 assert check_switch(Device(room="Office", device="Desk Lamp")) == expected
 
+    def test_check_switch_dth_error(self, _, test_context_dth):
+        with test_context_dth:
+            with responses.RequestsMock() as r:
+                r.get(
+                    url="http://whatever/devices/54e6a736-xxxx-xxxx-xxxx-febc0cacd2cc/components/main/capabilities/switch/status",
+                    status=500,
+                )
+                with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                    check_switch(Device(room="Office", device="Desk Lamp"))
+
     @pytest.mark.parametrize("file,expected", [("switch_on.json", SwitchState.ON), ("switch_off.json", SwitchState.OFF)])
     def test_check_switch_edge(self, _, test_context_edge, file, expected):
         with test_context_edge:
@@ -746,3 +860,13 @@ class TestClient:
                     match=[TIMEOUT_MATCHER, HEADERS_MATCHER],
                 )
                 assert check_switch(Device(room="Living Room", device="Tree Outlet", component="leftOutlet")) == expected
+
+    def test_check_switch_edge_error(self, _, test_context_edge):
+        with test_context_edge:
+            with responses.RequestsMock() as r:
+                r.get(
+                    url="http://whatever/devices/343345ca-xxxx-xxxx-xxxx-bd52e260583b/components/leftOutlet/capabilities/switch/status",
+                    status=500,
+                )
+                with pytest.raises(SmartThingsClientError, match=r"500 Server Error"):
+                    check_switch(Device(room="Living Room", device="Tree Outlet", component="leftOutlet"))

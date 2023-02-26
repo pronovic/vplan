@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+# pylint: disable=too-many-public-methods:
 
 from unittest.mock import MagicMock, patch
 
@@ -94,16 +95,35 @@ class TestAccount:
             r.get(url="http://whatever/account", body=account.json())
             assert retrieve_account() == account
 
+    def test_retrieve_account_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/account", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                retrieve_account()
+
     def test_create_or_replace_account(self, _):
         with responses.RequestsMock() as r:
             account = Account(pat_token="token")
             r.post(url="http://whatever/account", body=account.json())
             create_or_replace_account(account)
 
+    def test_create_or_replace_account_error(self, _):
+        with responses.RequestsMock() as r:
+            account = Account(pat_token="token")
+            r.post(url="http://whatever/account", body=account.json(), status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                create_or_replace_account(account)
+
     def test_delete_account(self, _):
         with responses.RequestsMock() as r:
             r.delete(url="http://whatever/account")
             delete_account()
+
+    def test_delete_account_error(self, _):
+        with responses.RequestsMock() as r:
+            r.delete(url="http://whatever/account", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                delete_account()
 
 
 @patch("vplan.client.client.api_url", new_callable=BASE_URL)
@@ -113,6 +133,12 @@ class TestPlan:
             plans = ["one", "two"]
             r.get(url="http://whatever/plan", json=plans)
             assert retrieve_all_plans() == plans
+
+    def test_retrieve_all_plans_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/plan", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                retrieve_all_plans()
 
     def test_retrieve_plan_not_found(self, _):
         with responses.RequestsMock() as r:
@@ -125,11 +151,24 @@ class TestPlan:
             r.get(url="http://whatever/plan/xxx", body=schema.json())
             assert retrieve_plan("xxx") == schema
 
+    def test_retrieve_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/plan/xxx", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                retrieve_plan("xxx")
+
     def test_create_plan(self, _):
         with responses.RequestsMock() as r:
             schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
             r.post(url="http://whatever/plan", body=schema.json())
             create_plan(schema)
+
+    def test_create_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+            r.post(url="http://whatever/plan", body=schema.json(), status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                create_plan(schema)
 
     def test_update_plan(self, _):
         with responses.RequestsMock() as r:
@@ -137,10 +176,23 @@ class TestPlan:
             r.put(url="http://whatever/plan", body=schema.json())
             update_plan(schema)
 
+    def test_update_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
+            r.put(url="http://whatever/plan", body=schema.json(), status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                update_plan(schema)
+
     def test_delete_plan(self, _):
         with responses.RequestsMock() as r:
             r.delete(url="http://whatever/plan/xxx")
             delete_plan("xxx")
+
+    def test_delete_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            r.delete(url="http://whatever/plan/xxx", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                delete_plan("xxx")
 
     def test_retrieve_plan_status_not_found(self, _):
         with responses.RequestsMock() as r:
@@ -153,16 +205,35 @@ class TestPlan:
             r.get(url="http://whatever/plan/xxx/status", body=status.json())
             assert retrieve_plan_status("xxx") == status
 
+    def test_retrieve_plan_status_error(self, _):
+        with responses.RequestsMock() as r:
+            r.get(url="http://whatever/plan/xxx/status", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                retrieve_plan_status("xxx")
+
     def test_update_plan_status(self, _):
         with responses.RequestsMock() as r:
             status = Status(enabled=False)
             r.put(url="http://whatever/plan/xxx/status", body=status.json())
             update_plan_status("xxx", status)
 
+    def test_update_plan_status_error(self, _):
+        with responses.RequestsMock() as r:
+            status = Status(enabled=False)
+            r.put(url="http://whatever/plan/xxx/status", body=status.json(), status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                update_plan_status("xxx", status)
+
     def test_refresh_plan(self, _):
         with responses.RequestsMock() as r:
             r.post(url="http://whatever/plan/xxx/refresh")
             refresh_plan("xxx")
+
+    def test_refresh_plan_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/refresh", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                refresh_plan("xxx")
 
     def test_toggle_group(self, _):
         with responses.RequestsMock() as r:
@@ -172,6 +243,16 @@ class TestPlan:
             )
             toggle_group("xxx", "yyy", 2, 5)
 
+    def test_toggle_group_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(
+                url="http://whatever/plan/xxx/test/group/yyy",
+                match=[matchers.query_param_matcher({"toggles": 2, "delay_sec": 5})],
+                status=500,
+            )
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                toggle_group("xxx", "yyy", 2, 5)
+
     def test_toggle_device(self, _):
         with responses.RequestsMock() as r:
             r.post(
@@ -180,22 +261,56 @@ class TestPlan:
             )
             toggle_device("xxx", "yyy", "zzz", "ccc", 2, 5)
 
+    def test_toggle_device_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(
+                url="http://whatever/plan/xxx/test/device/yyy/zzz/ccc",
+                match=[matchers.query_param_matcher({"toggles": 2, "delay_sec": 5})],
+                status=500,
+            )
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                toggle_device("xxx", "yyy", "zzz", "ccc", 2, 5)
+
     def test_turn_on_group(self, _):
         with responses.RequestsMock() as r:
             r.post(url="http://whatever/plan/xxx/on/group/yyy")
             turn_on_group("xxx", "yyy")
+
+    def test_turn_on_group_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/on/group/yyy", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                turn_on_group("xxx", "yyy")
 
     def test_turn_on_device(self, _):
         with responses.RequestsMock() as r:
             r.post(url="http://whatever/plan/xxx/on/device/yyy/zzz/ccc")
             turn_on_device("xxx", "yyy", "zzz", "ccc")
 
+    def test_turn_on_device_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/on/device/yyy/zzz/ccc", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                turn_on_device("xxx", "yyy", "zzz", "ccc")
+
     def test_turn_off_group(self, _):
         with responses.RequestsMock() as r:
             r.post(url="http://whatever/plan/xxx/off/group/yyy")
             turn_off_group("xxx", "yyy")
 
+    def test_turn_off_group_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/off/group/yyy", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                turn_off_group("xxx", "yyy")
+
     def test_turn_off_device(self, _):
         with responses.RequestsMock() as r:
             r.post(url="http://whatever/plan/xxx/off/device/yyy/zzz/ccc")
             turn_off_device("xxx", "yyy", "zzz", "ccc")
+
+    def test_turn_off_device_error(self, _):
+        with responses.RequestsMock() as r:
+            r.post(url="http://whatever/plan/xxx/off/device/yyy/zzz/ccc", status=500)
+            with pytest.raises(ClickException, match=r"500 Server Error"):
+                turn_off_device("xxx", "yyy", "zzz", "ccc")
