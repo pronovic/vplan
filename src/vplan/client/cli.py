@@ -13,7 +13,7 @@ from vplan.client.commands.plan import plan
 from vplan.client.config import DEFAULT_CONFIG, set_config_path
 
 
-@click.group(context_settings=dict(help_option_names=["-h", "--help"]))
+@click.group(context_settings={"help_option_names": ["-h", "--help"]})
 @click.version_option(package_name="vplan", prog_name="vplan")
 @click.option(
     "--config",
