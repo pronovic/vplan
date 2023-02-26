@@ -47,7 +47,7 @@ def _read_plan_yaml(yaml_path: str) -> PlanSchema:
         else:
             with open(yaml_path, "r", encoding="utf8") as fp:
                 result = PlanSchema.parse_raw(fp.read())
-        return result
+        return result  # type: ignore
     except ValidationError as e:
         raise click.ClickException("%s" % e) from e
 

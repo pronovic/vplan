@@ -66,7 +66,7 @@ def _load_config(config_path: Optional[str]) -> ClientConfig:
         raise click.UsageError("Client configuration is not readable: %s" % config_path)
     with open(config_path, "r", encoding="utf8") as fp:
         yaml = replace_envvars(fp.read())
-        return ClientConfig.parse_raw(yaml)
+        return ClientConfig.parse_raw(yaml)  # type: ignore
 
 
 # pylint: disable=global-statement

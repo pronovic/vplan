@@ -12,7 +12,6 @@ CLIENT = TestClient(API)
 
 
 class TestLifecycle:
-
     pytestmark = pytest.mark.asyncio
 
     @patch("vplan.engine.server.start_scheduler")

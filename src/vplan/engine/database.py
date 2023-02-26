@@ -113,7 +113,7 @@ def db_retrieve_plan(plan_name: str) -> PlanSchema:
     """Return the plan definition stored in the plan engine."""
     with db_session() as session:
         entity = session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).one()
-        return PlanSchema.parse_raw(entity.definition)
+        return PlanSchema.parse_raw(entity.definition)  # type: ignore
 
 
 def db_create_plan(schema: PlanSchema) -> None:
