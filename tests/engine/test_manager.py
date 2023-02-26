@@ -67,7 +67,6 @@ class TestDeviceState:
     @patch("vplan.engine.manager.sleep")
     @patch("vplan.engine.manager.db_retrieve_account")
     def test_toggle_devices(self, db_retrieve_account, sleep, set_switch, context):
-
         # See: https://stackoverflow.com/a/68578027
         call_order = []
         sleep.side_effect = lambda *a, **kw: call_order.append(sleep)

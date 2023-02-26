@@ -46,6 +46,7 @@ from vplan.interface import (
 
 _CLIENT_TIMEOUT_SEC = 5.0  # we want some fairly large timeout so that requests can't hang forever
 
+
 # noinspection PyMethodMayBeStatic
 # pylint: disable=invalid-name:
 class LocationContext:

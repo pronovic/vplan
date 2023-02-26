@@ -41,7 +41,7 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.validate_plan")
     def test_create_plan(self, validate_plan, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-        response = CLIENT.post(url="/plan", data=schema.json())
+        response = CLIENT.post(url="/plan", content=schema.json())
         assert response.status_code == 201
         assert not response.text
         validate_plan.assert_called_once_with(schema=schema)
@@ -56,7 +56,7 @@ class TestRoutes:
     def test_create_plan_invalid(self, validate_plan, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         validate_plan.side_effect = InvalidPlanError("error")
-        response = CLIENT.post(url="/plan", data=schema.json())
+        response = CLIENT.post(url="/plan", content=schema.json())
         assert response.status_code == 422
         assert not response.text
         validate_plan.assert_called_once_with(schema=schema)
@@ -71,7 +71,7 @@ class TestRoutes:
     def test_create_plan_duplicate(self, validate_plan, db_create_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         db_create_plan.side_effect = IntegrityError("x", "y", "z")
-        response = CLIENT.post(url="/plan", data=schema.json())
+        response = CLIENT.post(url="/plan", content=schema.json())
         assert response.status_code == 409
         assert not response.text
         validate_plan.assert_called_once_with(schema=schema)
@@ -85,7 +85,7 @@ class TestRoutes:
     @patch("vplan.engine.routers.plan.validate_plan")
     def test_update_plan(self, validate_plan, db_update_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-        response = CLIENT.put(url="/plan", data=schema.json())
+        response = CLIENT.put(url="/plan", content=schema.json())
         assert response.status_code == 204
         assert not response.text
         validate_plan.assert_called_once_with(schema=schema)
@@ -100,7 +100,7 @@ class TestRoutes:
     def test_update_plan_invalid(self, validate_plan, db_update_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         validate_plan.side_effect = InvalidPlanError("error")
-        response = CLIENT.put(url="/plan", data=schema.json())
+        response = CLIENT.put(url="/plan", content=schema.json())
         assert response.status_code == 422
         assert not response.text
         validate_plan.assert_called_once_with(schema=schema)
@@ -115,7 +115,7 @@ class TestRoutes:
     def test_update_plan_not_found(self, validate_plan, db_update_plan, schedule_immediate_refresh, schedule_daily_refresh):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         db_update_plan.side_effect = NoResultFound("hello")
-        response = CLIENT.put(url="/plan", data=schema.json())
+        response = CLIENT.put(url="/plan", content=schema.json())
         assert response.status_code == 404
         assert not response.text
         validate_plan.assert_called_once_with(schema=schema)
@@ -177,7 +177,7 @@ class TestRoutes:
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         db_retrieve_plan.return_value = schema
         status = Status(enabled=enabled)
-        response = CLIENT.put(url="/plan/thename/status", data=status.json())
+        response = CLIENT.put(url="/plan/thename/status", content=status.json())
         assert response.status_code == 204
         assert not response.text
         db_retrieve_plan.assert_called_once_with(plan_name="thename")
@@ -190,7 +190,7 @@ class TestRoutes:
     def test_update_status_not_found(self, db_update_plan_enabled, db_retrieve_plan, schedule_immediate_refresh):
         db_retrieve_plan.side_effect = NoResultFound("hello")
         status = Status(enabled=True)
-        response = CLIENT.put(url="/plan/thename/status", data=status.json())
+        response = CLIENT.put(url="/plan/thename/status", content=status.json())
         assert response.status_code == 404
         assert not response.text
         db_retrieve_plan.assert_called_once_with(plan_name="thename")

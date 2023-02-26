@@ -79,7 +79,7 @@ def _load_config(config_path: Optional[str] = None) -> ServerConfig:
         raise EngineError("Server configuration is not readable: %s" % config_path)
     with open(config_path, "r", encoding="utf8") as fp:
         yaml = replace_envvars(fp.read())
-        return ServerConfig.parse_raw(yaml)
+        return ServerConfig.parse_raw(yaml)  # type: ignore
 
 
 def reset() -> None:
