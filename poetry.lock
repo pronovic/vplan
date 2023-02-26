@@ -1177,6 +1177,27 @@ files = [
 requests = ">=1.1"
 
 [[package]]
+name = "responses"
+version = "0.22.0"
+description = "A utility library for mocking out the `requests` Python library."
+category = "dev"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "responses-0.22.0-py3-none-any.whl", hash = "sha256:dcf294d204d14c436fddcc74caefdbc5764795a40ff4e6a7740ed8ddbf3294be"},
+    {file = "responses-0.22.0.tar.gz", hash = "sha256:396acb2a13d25297789a5866b4881cf4e46ffd49cc26c43ab1117f40b973102e"},
+]
+
+[package.dependencies]
+requests = ">=2.22.0,<3.0"
+toml = "*"
+types-toml = "*"
+urllib3 = ">=1.25.10"
+
+[package.extras]
+tests = ["coverage (>=6.0.0)", "flake8", "mypy", "pytest (>=7.0.0)", "pytest-asyncio", "pytest-cov", "pytest-httpserver", "types-requests"]
+
+[[package]]
 name = "rfc3986"
 version = "1.5.0"
 description = "Validating URI References per RFC 3986"
@@ -1447,6 +1468,18 @@ files = [
 types-urllib3 = "<1.27"
 
 [[package]]
+name = "types-toml"
+version = "0.10.8.5"
+description = "Typing stubs for toml"
+category = "dev"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-toml-0.10.8.5.tar.gz", hash = "sha256:bf80fce7d2d74be91148f47b88d9ae5adeb1024abef22aa2fdbabc036d6b8b3c"},
+    {file = "types_toml-0.10.8.5-py3-none-any.whl", hash = "sha256:2432017febe43174af0f3c65f03116e3d3cf43e7e1406b8200e106da8cf98992"},
+]
+
+[[package]]
 name = "types-urllib3"
 version = "1.26.25.8"
 description = "Typing stubs for urllib3"
@@ -1636,4 +1669,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4"
-content-hash = "02084ecc2856a49617733c24638755ce3603b4f193a61e911b9276625813e02e"
+content-hash = "2e3defa5e937674d1ad0d20e8399de40024314f71a0b532332884ffc5107d373"
