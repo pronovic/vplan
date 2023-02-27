@@ -1,3 +1,7 @@
+Version 0.6.4     unreleased
+
+	* Rewrite request-related tests to use the responses framework.
+
 Version 0.6.3     26 Feb 2023
 
 	* Upgrade all dependencies to the latest major version.
