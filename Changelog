@@ -3,6 +3,7 @@ Version 0.6.4     unreleased
 	* Fix checktabs to be safe for file named '-'.
 	* Rewrite request-related tests to use the responses framework.
 	* Address requests CVE-2023-32681 and starlette CVE-2023-29159.
+	* Upgrade to pydantic-yaml, v0.11.2 which needs semver dependency.
 
 Version 0.6.3     26 Feb 2023
 
