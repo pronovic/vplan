@@ -10,7 +10,7 @@ from typing import Optional
 import click
 
 from vplan.client.client import create_or_replace_account, delete_account, retrieve_account, retrieve_all_plans
-from vplan.interface import Account
+from vplan.interface import Account, SmartThingsId
 
 
 def _mask_token(token: str) -> str:
@@ -67,7 +67,7 @@ def set_account(token: Optional[str]) -> None:
     """
     if not token:
         token = click.prompt("Enter PAT token", hide_input=True)
-    result = Account(pat_token=token)
+    result = Account(pat_token=SmartThingsId(token))
     create_or_replace_account(result)
     click.secho("Account information set")
 

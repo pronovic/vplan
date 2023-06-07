@@ -29,7 +29,7 @@ from vplan.engine.manager import (
     unschedule_daily_refresh,
     validate_plan,
 )
-from vplan.interface import Device, PlanSchema, Status, SwitchState
+from vplan.interface import Device, PlanSchema, SmartThingsId, Status, SwitchState
 
 ROUTER = APIRouter()
 
@@ -134,7 +134,7 @@ def toggle_group(plan_name: str, group_name: str, toggles: int, delay_sec: int) 
 )
 def toggle_device(plan_name: str, room: str, device: str, component: str, toggles: int, delay_sec: int) -> None:
     """Test a device that is part of a plan."""
-    item = Device(room=room, device=device, component=component)
+    item = Device(room=SmartThingsId(room), device=SmartThingsId(device), component=SmartThingsId(component))
     schema = db_retrieve_plan(plan_name=plan_name)
     location = schema.plan.location
     devices = schema.devices()
@@ -163,7 +163,7 @@ def switch_group(plan_name: str, state: str, group_name: str) -> None:
 )
 def switch_device(plan_name: str, state: str, room: str, device: str, component: str) -> None:
     """Turn on or off a device that is part of a plan."""
-    item = Device(room=room, device=device, component=component)
+    item = Device(room=SmartThingsId(room), device=SmartThingsId(device), component=SmartThingsId(component))
     schema = db_retrieve_plan(plan_name=plan_name)
     location = schema.plan.location
     devices = schema.devices()

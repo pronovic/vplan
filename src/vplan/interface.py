@@ -105,7 +105,7 @@ class SmartThingsId(ConstrainedStr):
 class Health(YamlModel):
     """API health data"""
 
-    status: str = Field("OK", description="Health status")
+    status: str = Field(default="OK", description="Health status")
 
 
 class Version(YamlModel):
@@ -135,7 +135,7 @@ class Device(YamlModel):
 
     room: SmartThingsId = Field(..., description="SmartThings room name where the device lives")
     device: SmartThingsId = Field(..., description="SmartThings device name")
-    component: SmartThingsId = Field("main", description="The component to trigger the command for (default=main)")
+    component: SmartThingsId = Field(default="main", description="The component to trigger the command for (default=main)")
 
 
 class DeviceGroup(YamlModel):

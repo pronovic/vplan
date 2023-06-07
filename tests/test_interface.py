@@ -3,8 +3,26 @@
 import os
 
 import pytest
+from pydantic_yaml import SemVer
 
-from vplan.interface import Account, Device, DeviceGroup, Health, Plan, PlanSchema, Status, Trigger, Version
+from vplan.interface import (
+    Account,
+    Device,
+    DeviceGroup,
+    Health,
+    Plan,
+    PlanSchema,
+    SimpleTime,
+    SmartThingsId,
+    Status,
+    TimeZone,
+    Trigger,
+    TriggerDay,
+    TriggerTime,
+    TriggerVariation,
+    Version,
+    VplanName,
+)
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long
@@ -19,42 +37,87 @@ VALID_PLAN_FILE_V110 = fixture("plan-v1.1.0.yaml")
 INVALID_PLAN_FILE = fixture("bad.yaml")
 
 PLAN_EXPECTED_V100 = PlanSchema(
-    version="1.0.0",
+    version=SemVer("1.0.0"),
     plan=Plan(
-        name="my-house",
-        location="My House",
-        refresh_time="00:30",
-        refresh_zone="America/Chicago",
+        name=VplanName("my-house"),
+        location=SmartThingsId("My House"),
+        refresh_time=SimpleTime("00:30"),
+        refresh_zone=TimeZone("America/Chicago"),
         groups=[
             DeviceGroup(
-                name="first-floor-lights",
+                name=VplanName("first-floor-lights"),
                 devices=[
-                    Device(room="Living Room", device="Sofa Table Lamp", component="main"),
-                    Device(room="Living Room", device="China Cabinet", component="main"),
+                    Device(
+                        room=SmartThingsId("Living Room"),
+                        device=SmartThingsId("Sofa Table Lamp"),
+                        component=SmartThingsId("main"),
+                    ),
+                    Device(
+                        room=SmartThingsId("Living Room"),
+                        device=SmartThingsId("China Cabinet"),
+                        component=SmartThingsId("main"),
+                    ),
                 ],
                 triggers=[
-                    Trigger(days=["weekdays"], on_time="19:30", off_time="22:45", variation="+/- 30 minutes"),
-                    Trigger(days=["weekends"], on_time="sunset", off_time="sunrise", variation="none"),
+                    Trigger(
+                        days=[TriggerDay("weekdays")],
+                        on_time=TriggerTime("19:30"),
+                        off_time=TriggerTime("22:45"),
+                        variation=TriggerVariation("+/- 30 minutes"),
+                    ),
+                    Trigger(
+                        days=[TriggerDay("weekends")],
+                        on_time=TriggerTime("sunset"),
+                        off_time=TriggerTime("sunrise"),
+                        variation=TriggerVariation("none"),
+                    ),
                 ],
             ),
             DeviceGroup(
-                name="offices",
+                name=VplanName("offices"),
                 devices=[
-                    Device(room="Ken's Office", device="Desk Lamp", component="main"),
-                    Device(room="Julie's Office", device="Dresser Lamp", component="main"),
+                    Device(
+                        room=SmartThingsId("Ken's Office"),
+                        device=SmartThingsId("Desk Lamp"),
+                        component=SmartThingsId("main"),
+                    ),
+                    Device(
+                        room=SmartThingsId("Julie's Office"),
+                        device=SmartThingsId("Dresser Lamp"),
+                        component=SmartThingsId("main"),
+                    ),
                 ],
                 triggers=[
-                    Trigger(days=["mon", "tue", "fri"], on_time="07:30", off_time="17:30", variation="- 1 hour"),
-                    Trigger(days=["thu"], on_time="09:30", off_time="12:30", variation="+ 1 hour"),
+                    Trigger(
+                        days=[TriggerDay("mon"), TriggerDay("tue"), TriggerDay("fri")],
+                        on_time=TriggerTime("07:30"),
+                        off_time=TriggerTime("17:30"),
+                        variation=TriggerVariation("- 1 hour"),
+                    ),
+                    Trigger(
+                        days=[TriggerDay("thu")],
+                        on_time=TriggerTime("09:30"),
+                        off_time=TriggerTime("12:30"),
+                        variation=TriggerVariation("+ 1 hour"),
+                    ),
                 ],
             ),
             DeviceGroup(
-                name="basement",
+                name=VplanName("basement"),
                 devices=[
-                    Device(room="Basement", device="Lamp Under Window", component="main"),
+                    Device(
+                        room=SmartThingsId("Basement"),
+                        device=SmartThingsId("Lamp Under Window"),
+                        component=SmartThingsId("main"),
+                    ),
                 ],
                 triggers=[
-                    Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 minutes"),
+                    Trigger(
+                        days=[TriggerDay("friday"), TriggerDay("weekend")],
+                        on_time=TriggerTime("19:45"),
+                        off_time=TriggerTime("midnight"),
+                        variation=TriggerVariation("+/- 45 minutes"),
+                    ),
                 ],
             ),
         ],
@@ -62,42 +125,87 @@ PLAN_EXPECTED_V100 = PlanSchema(
 )
 
 PLAN_EXPECTED_V110 = PlanSchema(
-    version="1.1.0",
+    version=SemVer("1.1.0"),
     plan=Plan(
-        name="my-house",
-        location="My House",
-        refresh_time="00:30",
-        refresh_zone="America/Chicago",
+        name=VplanName("my-house"),
+        location=SmartThingsId("My House"),
+        refresh_time=SimpleTime("00:30"),
+        refresh_zone=TimeZone("America/Chicago"),
         groups=[
             DeviceGroup(
-                name="first-floor-lights",
+                name=VplanName("first-floor-lights"),
                 devices=[
-                    Device(room="Living Room", device="Sofa Table Lamp", component="main"),
-                    Device(room="Living Room", device="China Cabinet", component="main"),
+                    Device(
+                        room=SmartThingsId("Living Room"),
+                        device=SmartThingsId("Sofa Table Lamp"),
+                        component=SmartThingsId("main"),
+                    ),
+                    Device(
+                        room=SmartThingsId("Living Room"),
+                        device=SmartThingsId("China Cabinet"),
+                        component=SmartThingsId("main"),
+                    ),
                 ],
                 triggers=[
-                    Trigger(days=["weekdays"], on_time="19:30", off_time="22:45", variation="+/- 30 minutes"),
-                    Trigger(days=["weekends"], on_time="sunset", off_time="sunrise", variation="none"),
+                    Trigger(
+                        days=[TriggerDay("weekdays")],
+                        on_time=TriggerTime("19:30"),
+                        off_time=TriggerTime("22:45"),
+                        variation=TriggerVariation("+/- 30 minutes"),
+                    ),
+                    Trigger(
+                        days=[TriggerDay("weekends")],
+                        on_time=TriggerTime("sunset"),
+                        off_time=TriggerTime("sunrise"),
+                        variation=TriggerVariation("none"),
+                    ),
                 ],
             ),
             DeviceGroup(
-                name="offices",
+                name=VplanName("offices"),
                 devices=[
-                    Device(room="Ken's Office", device="Desk Lamp", component="main"),
-                    Device(room="Julie's Office", device="Dresser Lamp", component="main"),
+                    Device(
+                        room=SmartThingsId("Ken's Office"),
+                        device=SmartThingsId("Desk Lamp"),
+                        component=SmartThingsId("main"),
+                    ),
+                    Device(
+                        room=SmartThingsId("Julie's Office"),
+                        device=SmartThingsId("Dresser Lamp"),
+                        component=SmartThingsId("main"),
+                    ),
                 ],
                 triggers=[
-                    Trigger(days=["mon", "tue", "fri"], on_time="07:30", off_time="17:30", variation="- 1 hour"),
-                    Trigger(days=["thu"], on_time="09:30", off_time="12:30", variation="+ 1 hour"),
+                    Trigger(
+                        days=[TriggerDay("mon"), TriggerDay("tue"), TriggerDay("fri")],
+                        on_time=TriggerTime("07:30"),
+                        off_time=TriggerTime("17:30"),
+                        variation=TriggerVariation("- 1 hour"),
+                    ),
+                    Trigger(
+                        days=[TriggerDay("thu")],
+                        on_time=TriggerTime("09:30"),
+                        off_time=TriggerTime("12:30"),
+                        variation=TriggerVariation("+ 1 hour"),
+                    ),
                 ],
             ),
             DeviceGroup(
-                name="basement",
+                name=VplanName("basement"),
                 devices=[
-                    Device(room="Basement", device="Lamp Under Window", component="rightOutlet"),
+                    Device(
+                        room=SmartThingsId("Basement"),
+                        device=SmartThingsId("Lamp Under Window"),
+                        component=SmartThingsId("rightOutlet"),
+                    ),
                 ],
                 triggers=[
-                    Trigger(days=["friday", "weekend"], on_time="19:45", off_time="midnight", variation="+/- 45 minutes"),
+                    Trigger(
+                        days=[TriggerDay("friday"), TriggerDay("weekend")],
+                        on_time=TriggerTime("19:45"),
+                        off_time=TriggerTime("midnight"),
+                        variation=TriggerVariation("+/- 45 minutes"),
+                    ),
                 ],
             ),
         ],
@@ -105,19 +213,19 @@ PLAN_EXPECTED_V110 = PlanSchema(
 )
 
 DEVICES_EXPECTED_V100 = [
-    Device(room="Living Room", device="Sofa Table Lamp", component="main"),
-    Device(room="Living Room", device="China Cabinet", component="main"),
-    Device(room="Ken's Office", device="Desk Lamp", component="main"),
-    Device(room="Julie's Office", device="Dresser Lamp", component="main"),
-    Device(room="Basement", device="Lamp Under Window", component="main"),
+    Device(room=SmartThingsId("Living Room"), device=SmartThingsId("Sofa Table Lamp"), component=SmartThingsId("main")),
+    Device(room=SmartThingsId("Living Room"), device=SmartThingsId("China Cabinet"), component=SmartThingsId("main")),
+    Device(room=SmartThingsId("Ken's Office"), device=SmartThingsId("Desk Lamp"), component=SmartThingsId("main")),
+    Device(room=SmartThingsId("Julie's Office"), device=SmartThingsId("Dresser Lamp"), component=SmartThingsId("main")),
+    Device(room=SmartThingsId("Basement"), device=SmartThingsId("Lamp Under Window"), component=SmartThingsId("main")),
 ]
 
 DEVICES_EXPECTED_V110 = [
-    Device(room="Living Room", device="Sofa Table Lamp", component="main"),
-    Device(room="Living Room", device="China Cabinet", component="main"),
-    Device(room="Ken's Office", device="Desk Lamp", component="main"),
-    Device(room="Julie's Office", device="Dresser Lamp", component="main"),
-    Device(room="Basement", device="Lamp Under Window", component="rightOutlet"),
+    Device(room=SmartThingsId("Living Room"), device=SmartThingsId("Sofa Table Lamp"), component=SmartThingsId("main")),
+    Device(room=SmartThingsId("Living Room"), device=SmartThingsId("China Cabinet"), component=SmartThingsId("main")),
+    Device(room=SmartThingsId("Ken's Office"), device=SmartThingsId("Desk Lamp"), component=SmartThingsId("main")),
+    Device(room=SmartThingsId("Julie's Office"), device=SmartThingsId("Dresser Lamp"), component=SmartThingsId("main")),
+    Device(room=SmartThingsId("Basement"), device=SmartThingsId("Lamp Under Window"), component=SmartThingsId("rightOutlet")),
 ]
 
 

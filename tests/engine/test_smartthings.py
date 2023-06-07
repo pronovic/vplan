@@ -36,7 +36,7 @@ from vplan.engine.smartthings import (
     replace_rules,
     set_switch,
 )
-from vplan.interface import Device, DeviceGroup, SwitchState, Trigger
+from vplan.interface import Device, DeviceGroup, SmartThingsId, SwitchState, Trigger
 
 # This is the data we expect when loading the SmartThings location context
 PAT_TOKEN = "AAA"
@@ -171,8 +171,8 @@ class TestUtil:
     @pytest.mark.parametrize(
         "device",
         [
-            Device(room="Office", device="Sauna"),
-            Device(room="Patio", device="Desk Lamp"),
+            Device(room=SmartThingsId("Office"), device=SmartThingsId("Sauna")),
+            Device(room=SmartThingsId("Patio"), device=SmartThingsId("Desk Lamp")),
         ],
     )
     def test_device_id_invalid_dth(self, test_context_dth, device):
@@ -183,8 +183,8 @@ class TestUtil:
     @pytest.mark.parametrize(
         "device",
         [
-            Device(room="Office", device="Sauna"),
-            Device(room="Patio", device="Desk Lamp"),
+            Device(room=SmartThingsId("Office"), device=SmartThingsId("Sauna")),
+            Device(room=SmartThingsId("Patio"), device=SmartThingsId("Desk Lamp")),
         ],
     )
     def test_device_id_invalid_edge(self, test_context_edge, device):
