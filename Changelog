@@ -1,3 +1,7 @@
+Version 0.6.5     unreleased
+
+	* Fix functional problems by pinning urllib<2.
+
 Version 0.6.4     08 Jun 2023
 
 	* Fix checktabs to be safe for file named '-'.
