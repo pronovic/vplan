@@ -1,4 +1,4 @@
-Version 0.6.5     unreleased
+Version 0.6.5     10 Jun 2023
 
 	* Fix functional problems by pinning urllib<2.
 
