@@ -10,7 +10,7 @@ from typing import List, Optional
 
 import click
 import requests
-import requests_unixsocket
+import vplan.unixsocket as requests_unixsocket
 from requests import HTTPError, Response
 
 from vplan.client.config import api_url
