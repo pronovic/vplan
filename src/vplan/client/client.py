@@ -10,9 +10,9 @@ from typing import List, Optional
 
 import click
 import requests
-import vplan.unixsocket as requests_unixsocket
 from requests import HTTPError, Response
 
+import vplan.unixsocket as requests_unixsocket
 from vplan.client.config import api_url
 from vplan.interface import Account, PlanSchema, Status, Version
 
