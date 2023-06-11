@@ -61,11 +61,13 @@ environment, etc.
 
 The platform is distributed at GitHub.  To install the software, download the `.whl` 
 file for the [latest release](https://github.com/pronovic/vplan/releases/latest), 
-and install it using `pip`, like:
+and install it using [pipx](https://pypa.github.io/pipx/), like:
 
 ```
-$ pip install vplan-0.6.0-py3-none-any.whl
+$ pipx install --force --include-deps ./vplan-0.7.1-py3-none-any.whl
 ```
+
+> On Debian, I install pipx using: `apt-get install pipx --no-install-suggests --no-install-recommends`
 
 Next, configure the platform.  Download the configuration bundle for the latest
 release.  Extract the tar file to your user configuration directory:
@@ -138,11 +140,13 @@ working.
 
 The process is similar to installing.  Download the `.whl` file for 
 the [latest release](https://github.com/pronovic/vplan/releases/latest), and install it 
-using `pip`, like:
+using [pipx](https://pypa.github.io/pipx/), like:
 
 ```
-$ pip install --force-reinstall vplan-0.6.0-py3-none-any.whl
+$ pipx install --force --include-deps ./vplan-0.7.1-py3-none-any.whl
 ```
+
+> On Debian, I install pipx using: `apt-get install pipx --no-install-suggests --no-install-recommends`
 
 Reload configuration and restart the systemd service::
 
