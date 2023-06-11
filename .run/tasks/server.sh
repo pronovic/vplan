@@ -29,6 +29,8 @@ task_server() {
       run_task rmdb
    fi
 
+   chmod 700 config/local/vplan/server/db
+
    poetry_run uvicorn vplan.engine.server:API \
       --port 8080 \
       --app-dir src --reload \
