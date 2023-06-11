@@ -17,7 +17,7 @@ from vplan.client.config import api_url
 from vplan.interface import Account, PlanSchema, Status, Version
 
 # Add support in requests for http+unix:// URLs to use a UNIX socket
-requests_unixsocket.monkeypatch()
+requests_unixsocket.monkeypatch()  # type: ignore
 
 
 def _url(endpoint: str) -> str:

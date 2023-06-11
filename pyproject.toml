@@ -73,6 +73,7 @@ httpx = "~0, >=0.23.3"
 responses = "~0, >=0.22.0"
 types-pyyaml = "^6.0.12.9"
 waitress = "^2.1.2"
+types-waitress = "^2.1.4.8"
 
 [tool.black]
 line-length = 132

@@ -1389,6 +1389,17 @@ files = [
 ]
 
 [[package]]
+name = "types-waitress"
+version = "2.1.4.8"
+description = "Typing stubs for waitress"
+optional = false
+python-versions = "*"
+files = [
+    {file = "types-waitress-2.1.4.8.tar.gz", hash = "sha256:c6fe82e81726a83dd4ae3c2957ddcb9ac03297316045d850508633a7837595ba"},
+    {file = "types_waitress-2.1.4.8-py3-none-any.whl", hash = "sha256:41214933536395fe6d512b8b4585a5b353a16c77d93f3b3d889a6553ee908d68"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.6.3"
 description = "Backported and Experimental Type Hints for Python 3.7+"
@@ -1599,4 +1610,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<4"
-content-hash = "622f6f2b4a5b7cb0c112c8a53108a807f2d811f40f0ba9c1f9c8d1c6ea86487c"
+content-hash = "8e72172815f90c8e09455c170d9cd1cb84d55da90b805cab10f2da7fe973683f"
