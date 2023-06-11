@@ -1,3 +1,7 @@
+Version 0.7.1     unreleased
+
+	* Add explicit dependency on pyyaml for use by uvicorn.
+
 Version 0.7.0     11 Jun 2023
 
 	* Pull in code from requests-unixsocket and patch to support new urllib3.
