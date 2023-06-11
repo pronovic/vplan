@@ -14,3 +14,14 @@ under the following license:
 
 The contents of the Apache License can be found in the LICENSE file, or 
 can be downloaded from http://www.apache.org/licenses/LICENSE-2.0 .
+
+The source code under src/vplan/unixsocket and tests/unixsocket originated at
+msabramo/requests-unixsocket on GitHub.  The code was pulled from the v0.3.0
+release on PyPI because there is no v0.3.0 tag at GitHub:
+
+   https://github.com/msabramo/requests-unixsocket
+   https://pypi.org/project/requests-unixsocket/0.3.0/#files
+
+The requests-unixsocket repository contains a LICENSE file for the Apache
+License, Version 2.0, but there is no copyright statement or other explicit
+attribution.  The PyPI entry and shows the author as <marc@marc-abramowitz.com>.

@@ -1,6 +1,10 @@
+Version 0.7.0     unreleased
+
+	* Pull in code from requests-unixsocket and patch to support new urllib3.
+
 Version 0.6.5     10 Jun 2023
 
-	* Fix functional problems by pinning urllib<2.
+	* Fix functional problems by pinning urllib3<2.
 
 Version 0.6.4     08 Jun 2023
 
