@@ -1,3 +1,5 @@
+# This originated at msabramo/requests-unixsocket on GitHub; see README.md for details
+
 """
 Utilities helpful for writing tests
 

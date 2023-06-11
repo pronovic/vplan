@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# This originated at msabramo/requests-unixsocket on GitHub; see README.md for details
+
 """Tests for requests_unixsocket"""
 
 import logging
