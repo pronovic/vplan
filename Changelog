@@ -1,4 +1,4 @@
-Version 0.7.1     unreleased
+Version 0.7.1     11 Jun 2023
 
 	* Add explicit dependency on pyyaml for use by uvicorn.
 	* Document new install method using pipx instead of pip.
