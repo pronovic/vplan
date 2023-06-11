@@ -1,4 +1,4 @@
-Version 0.7.0     unreleased
+Version 0.7.0     11 Jun 2023
 
 	* Pull in code from requests-unixsocket and patch to support new urllib3.
 
