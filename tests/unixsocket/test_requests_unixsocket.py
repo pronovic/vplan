@@ -93,7 +93,7 @@ def test_unix_domain_adapter_monkeypatch():
 
         for method in ["get", "post", "head", "patch", "put", "delete", "options"]:
             logger.debug("Calling session.%s(%r) ...", method, url)
-            r = getattr(requests, method)(url)
+            r = getattr(requests, method)(url, timeout=1.0)
             logger.debug("Received response: %r with text: %r and headers: %r", r, r.text, r.headers)
             assert r.status_code == 200
             assert r.headers["server"] == "waitress"

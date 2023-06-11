@@ -1,3 +1,5 @@
+# pylint: disable=super-with-arguments,protected-access,implicit-str-concat,logging-not-lazy
+
 # This originated at msabramo/requests-unixsocket on GitHub; see README.md for details
 
 """

@@ -1,3 +1,5 @@
+# pylint: disable=super-with-arguments,keyword-arg-before-vararg,invalid-name,redefined-outer-name,unused-argument:
+
 # This originated at msabramo/requests-unixsocket on GitHub; see README.md for details
 
 import sys
@@ -15,7 +17,7 @@ class Session(requests.Session):
         self.mount(url_scheme, UnixAdapter())
 
 
-class monkeypatch(object):
+class monkeypatch:
     def __init__(self, url_scheme=DEFAULT_SCHEME):
         self.session = Session()
         requests = self._get_global_requests_module()

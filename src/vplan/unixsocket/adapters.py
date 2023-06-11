@@ -1,3 +1,5 @@
+# pylint: disable=super-with-arguments,keyword-arg-before-vararg,ungrouped-imports:
+
 # This originated at msabramo/requests-unixsocket on GitHub; see README.md for details
 
 import socket
@@ -18,7 +20,7 @@ except ImportError:
 
 # The following was adapted from some code from docker-py
 # https://github.com/docker/docker-py/blob/master/docker/transport/unixconn.py
-class UnixHTTPConnection(httplib.HTTPConnection, object):
+class UnixHTTPConnection(httplib.HTTPConnection):
     def __init__(self, unix_socket_url, timeout=60):
         """Create an HTTP connection to a unix domain socket
 
