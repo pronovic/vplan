@@ -4,23 +4,14 @@
 
 import socket
 
+import urllib3
 from requests.adapters import HTTPAdapter
 from requests.compat import unquote, urlparse
-
-try:
-    import http.client as httplib
-except ImportError:
-    import httplib
-
-try:
-    from requests.packages import urllib3
-except ImportError:
-    import urllib3
 
 
 # The following was adapted from some code from docker-py
 # https://github.com/docker/docker-py/blob/master/docker/transport/unixconn.py
-class UnixHTTPConnection(httplib.HTTPConnection):
+class UnixHTTPConnection(urllib3.connection.HTTPConnection):
     def __init__(self, unix_socket_url, timeout=60):
         """Create an HTTP connection to a unix domain socket
 
