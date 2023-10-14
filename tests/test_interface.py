@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 # vim: set ft=python ts=4 sw=4 expandtab:
+# pylint: disable=use-implicit-booleaness-not-comparison:
+
 import os
 
 import pytest

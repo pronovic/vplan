@@ -1,3 +1,9 @@
+Version 0.7.2     unreleased
+
+	* Upgrade major dependencies.
+	* Upgrade build process to Poetry v1.6.1.
+	* Add support for Python v3.12.
+
 Version 0.7.1     11 Jun 2023
 
 	* Add explicit dependency on pyyaml for use by uvicorn.
