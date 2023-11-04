@@ -40,7 +40,7 @@ sure that you have a working Python 3 enviroment and install Poetry itself.
 
 ### Poetry Version
 
-The project is designed to work with Poetry >= 1.5.1.  If you already have an older
+The project is designed to work with Poetry >= 1.7.0.  If you already have an older
 version of Poetry installed on your system, upgrade it first.  If it's very old, you
 may need to uninstall it instead:
 
@@ -63,15 +63,8 @@ Once that's done, make sure the `python` on your `$PATH` is Python 3 from
 Homebrew (in `/usr/local`), rather than the standard Python 2 that comes with
 MacOS.
 
-Although Poetry can also be installed from Homebrew, it works better to use
-to [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer):
-
-```
-curl -sSL https://install.python-poetry.org | python3 -
-```
-
-> _Note:_ The installer prints the location of the installed `poetry` script.
-> Make sure to add this to your `$PATH`, otherwise you won't be able to run it.
+Although Poetry can also be installed from Homebrew, it works better to follow
+the [official instructions](https://python-poetry.org/docs/#installation).
 
 ### Debian
 
@@ -97,14 +90,7 @@ the process is a little more complicated.  The approach I used before upgrading
 to _bullseye_ was based on `update-alternatives`, as discussed on
 [StackExchange](https://unix.stackexchange.com/a/410851).
 
-Next, install Poetry using the [official installer](https://python-poetry.org/docs/#installing-with-the-official-installer):
-
-```
-curl -sSL https://install.python-poetry.org | python3 -
-```
-
-> _Note:_ The installer prints the location of the installed `poetry` script.
-> Make sure to add this to your `$PATH`, otherwise you won't be able to run it.
+Next, install Poetry following the [official instructions](https://python-poetry.org/docs/#installation).
 
 ## Developer Tasks
 
