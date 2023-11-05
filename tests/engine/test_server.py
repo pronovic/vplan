@@ -6,7 +6,7 @@ from unittest.mock import patch
 import pytest
 from fastapi.testclient import TestClient
 
-from vplan.engine.server import API, API_VERSION, shutdown_event, startup_event
+from vplan.engine.server import API, API_VERSION, lifespan
 
 CLIENT = TestClient(API)
 
@@ -14,18 +14,18 @@ CLIENT = TestClient(API)
 class TestLifecycle:
     pytestmark = pytest.mark.asyncio
 
+    @patch("vplan.engine.server.shutdown_scheduler")
     @patch("vplan.engine.server.start_scheduler")
     @patch("vplan.engine.server.setup_database")
     @patch("vplan.engine.server.setup_directories")
-    async def test_startup_event(self, setup_directories, setup_database, start_scheduler):
-        await startup_event()
-        setup_directories.assert_called_once()
-        setup_database.assert_called_once()
-        start_scheduler.assert_called_once()
-
-    @patch("vplan.engine.server.shutdown_scheduler")
-    async def test_shutdown_event(self, shutdown_scheduler):
-        await shutdown_event()
+    async def test_lifespan(self, setup_directories, setup_database, start_scheduler, shutdown_scheduler):
+        async with lifespan(None):
+            # these are called when the lifespan starts
+            setup_directories.assert_called_once()
+            setup_database.assert_called_once()
+            start_scheduler.assert_called_once()
+            shutdown_scheduler.assert_not_called()
+        # and then this is called when the lifespan completes, after the yield
         shutdown_scheduler.assert_called_once()
 
 

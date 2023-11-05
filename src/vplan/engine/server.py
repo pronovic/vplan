@@ -5,7 +5,9 @@
 The RESTful API.
 """
 import logging
+from contextlib import asynccontextmanager
 from importlib.metadata import version as metadata_version
+from typing import AsyncIterator
 
 from fastapi import FastAPI, Request
 from sqlalchemy.exc import IntegrityError, NoResultFound
@@ -19,8 +21,20 @@ from vplan.engine.scheduler import shutdown_scheduler, start_scheduler
 from vplan.engine.util import setup_directories
 from vplan.interface import Health, Version
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncIterator[None]:
+    setup_directories()
+    setup_database()
+    start_scheduler()
+    logging.info("Server startup complete")
+    yield
+    shutdown_scheduler()
+    logging.info("Server shutdown complete")
+
+
 API_VERSION = "2.0.0"
-API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None)  # no Swagger or ReDoc endpoints
+API = FastAPI(version=API_VERSION, docs_url=None, redoc_url=None, lifespan=lifespan)  # no Swagger or ReDoc endpoints
 API.include_router(account.ROUTER)
 API.include_router(plan.ROUTER)
 
@@ -47,22 +61,6 @@ async def already_exists_handler(_: Request, e: IntegrityError) -> Response:
 async def invalid_plan_handler(_: Request, e: InvalidPlanError) -> Response:
     logging.error("Invalid plan: %s", e)
     return EmptyResponse(status_code=422)
-
-
-@API.on_event("startup")
-async def startup_event() -> None:
-    """Do setup at server startup."""
-    setup_directories()
-    setup_database()
-    start_scheduler()
-    logging.info("Server startup complete")
-
-
-@API.on_event("shutdown")
-async def shutdown_event() -> None:
-    """Do cleanup at server shutdown."""
-    shutdown_scheduler()
-    logging.info("Server shutdown complete")
 
 
 @API.get("/health")
