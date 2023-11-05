@@ -2,6 +2,7 @@ Version 0.7.3     unreleased
 
 	* Update urllib3 to address Dependabot warnings.
 	* Upgrade to Poetry v1.7.0 for official Python 3.12 support.
+	* Convert to modern FastAPI lifecycle context manager for startup/shutdown.
 
 Version 0.7.2     14 Oct 2023
 
