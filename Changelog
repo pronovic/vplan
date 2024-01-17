@@ -1,4 +1,4 @@
-Version 0.7.4     unreleased
+Version 0.7.4     17 Jan 2024
 
 	* Require minimum Python version v3.10.
 	* Update jinja2 to address CVE-2024-22195 from Dependabot.
