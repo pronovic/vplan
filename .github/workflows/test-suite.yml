@@ -19,7 +19,7 @@ jobs:
     secrets: inherit
     with:
       matrix-os-version: "[ 'ubuntu-latest' ]"
-      matrix-python-version: "[ '3.9', '3.10', '3.11', '3.12' ]"
+      matrix-python-version: "[ '3.10', '3.11', '3.12' ]"
       poetry-version: "1.7.0"
   release:
     name: "Release"
@@ -28,6 +28,6 @@ jobs:
     needs: [ linux-build-and-test ]
     secrets: inherit
     with:
-      python-version: "3.9"
+      python-version: "3.10"
       poetry-version: "1.7.0"
       publish-pypi: false
