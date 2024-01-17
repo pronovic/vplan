@@ -4,6 +4,7 @@
 
 import json
 import os
+from typing import Dict, Pattern
 from unittest.mock import MagicMock, call, patch
 
 import pytest
@@ -44,7 +45,7 @@ LOCATION = "My House"
 LOCATION_ID = "15526d0a-xxxx-xxxx-xxxx-b6247aacbbb2"
 RULE_ID = "88c05897-xxxx-xxxx-xxxx-ae6451501c27"
 RULE_NAME = "vplan/winter/office/trigger[0]/on"
-HEADERS = {
+HEADERS: Dict[str, str | Pattern[str]] = {
     "Accept": "application/vnd.smartthings+json;v=1",
     "Accept-Language": "en_US",
     "Content-Type": "application/json",
