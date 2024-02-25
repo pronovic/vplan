@@ -20,7 +20,7 @@ jobs:
     with:
       matrix-os-version: "[ 'ubuntu-latest' ]"
       matrix-python-version: "[ '3.10', '3.11', '3.12' ]"
-      poetry-version: "1.7.0"
+      poetry-version: "1.8.0"
   release:
     name: "Release"
     if: github.ref_type == 'tag'
@@ -29,5 +29,5 @@ jobs:
     secrets: inherit
     with:
       python-version: "3.10"
-      poetry-version: "1.7.0"
+      poetry-version: "1.8.0"
       publish-pypi: false
