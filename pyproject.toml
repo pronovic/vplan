@@ -45,7 +45,7 @@ pydantic-yaml = "~0, >=0.11.2"  # v1.x is an interface change
 semver = "^3.0.2"
 click = "^8.1.7"
 requests = "^2.31.0"
-SQLAlchemy = "^1.4.49"
+SQLAlchemy = "^1.4.49"          # v2.x is a major interface change
 APScheduler = "^3.10.4"
 python-dotenv = "^1.0.0"
 tenacity = "^8.2.3"
@@ -72,7 +72,7 @@ colorama = "~0, >=0.4.6"
 httpx = "~0, >=0.25.0"
 responses = "~0, >=0.23.0"
 types-pyyaml = "^6.0.12.12"
-waitress = "^2.1.2"
+waitress = "^3.0.0"
 types-waitress = "^2.1.4.9"
 
 [tool.black]
