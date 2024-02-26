@@ -157,7 +157,6 @@ class Plan(YamlModel):
 
 
 class PlanSchema(VersionedYamlModel):
-
     """
     Versioned schema for a vacation lighting plan.
 

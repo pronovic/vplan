@@ -11,7 +11,6 @@ from starlette.responses import Response
 
 
 class EmptyResponse(Response):
-
     """Response to be sent with status code 1xx, 204, 205, 304, or whenever an empty response is intended."""
 
     # This can probably be removed when a future FastAPI release supports it directly.

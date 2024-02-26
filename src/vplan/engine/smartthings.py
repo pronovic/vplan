@@ -50,7 +50,6 @@ _CLIENT_TIMEOUT_SEC = 5.0  # we want some fairly large timeout so that requests 
 # noinspection PyMethodMayBeStatic
 # pylint: disable=invalid-name:
 class LocationContext:
-
     """
     Context that we maintain for a location to make other requests easier.
 
