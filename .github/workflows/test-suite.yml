@@ -15,19 +15,17 @@ concurrency:
 jobs:
   linux-build-and-test:
     name: "Linux"
-    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-build-and-test.yml@v4
+    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-build-and-test.yml@v5
     secrets: inherit
     with:
       matrix-os-version: "[ 'ubuntu-latest' ]"
       matrix-python-version: "[ '3.10', '3.11', '3.12' ]"
-      poetry-version: "1.8.0"
   release:
     name: "Release"
     if: github.ref_type == 'tag'
-    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-release.yml@v4
+    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-release.yml@v5
     needs: [ linux-build-and-test ]
     secrets: inherit
     with:
       python-version: "3.10"
-      poetry-version: "1.8.0"
       publish-pypi: false
