@@ -27,5 +27,5 @@ jobs:
     needs: [ linux-build-and-test ]
     secrets: inherit
     with:
-      python-version: "3.10"
+      python-version: "3.10"   # run release with oldest supported Python version
       publish-pypi: false
