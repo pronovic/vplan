@@ -3,6 +3,8 @@ Version 0.7.6     unreleased
 	* Pull in latest updates from run-script-framework.
 	* Simplify GHA integration with coveralls.io.
 	* Update transitive dependencies to address Dependabot warnings.
+	* Update pydantic dependency to deal with problem in Python 3.12.4.
+	* Restrict Python to <3.13 because of limits of pydantic v1 (now EOL).
 
 Version 0.7.5     26 Feb 2024
 
