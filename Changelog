@@ -2,7 +2,6 @@ Version 0.7.6     unreleased
 
 	* Pull in latest updates from run-script-framework.
 	* Simplify GHA integration with coveralls.io.
-	* Update transitive dependencies to address Dependabot warnings.
 
 Version 0.7.5     26 Feb 2024
 
