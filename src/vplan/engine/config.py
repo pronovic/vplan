@@ -10,8 +10,8 @@ from os import R_OK, access
 from os.path import isfile
 from typing import Optional
 
-from pydantic import ConstrainedStr, Field, NonNegativeInt  # pylint: disable=no-name-in-module
-from pydantic_yaml import YamlModel
+from pydantic import BaseModel, ConstrainedStr, Field, NonNegativeInt  # pylint: disable=no-name-in-module
+from pydantic_yaml import parse_yaml_raw_as
 
 from vplan.engine.exception import EngineError
 from vplan.util import replace_envvars
@@ -27,14 +27,14 @@ class LogLevel(ConstrainedStr):
     regex = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET)$")
 
 
-class DailyJobConfig(YamlModel):
+class DailyJobConfig(BaseModel):
     """Daily job configuration."""
 
     jitter_sec: NonNegativeInt = Field(..., description="Jitter in seconds for the daily job time")
     misfire_grace_sec: NonNegativeInt = Field(..., description="Misfire grace period in seconds, if job can't be run on time")
 
 
-class RetryConfig(YamlModel):
+class RetryConfig(BaseModel):
     """Retry configuration."""
 
     max_attempts: NonNegativeInt = Field(..., description="Maximum number of attempts for the daily job, including initial attempt")
@@ -42,20 +42,20 @@ class RetryConfig(YamlModel):
     max_sec: NonNegativeInt = Field(..., description="Maximum delay for the retry exponential backoff, in seconds")
 
 
-class SchedulerConfig(YamlModel):
+class SchedulerConfig(BaseModel):
     """Scheduler configuration."""
 
     database_url: str = Field(..., description="SQLAlchemy database URL to use for the APScheduler job store")
     daily_job: DailyJobConfig = Field(..., description="Daily job configuration")
 
 
-class SmartThingsConfig(YamlModel):
+class SmartThingsConfig(BaseModel):
     """SmartThings API configuration."""
 
     base_api_url: str = Field(..., description="URL for the SmartThings API")
 
 
-class ServerConfig(YamlModel):
+class ServerConfig(BaseModel):
     """Server configuration."""
 
     database_dir: str = Field(..., description="Directory where all server databases are stored")
@@ -79,7 +79,7 @@ def _load_config(config_path: Optional[str] = None) -> ServerConfig:
         raise EngineError("Server configuration is not readable: %s" % config_path)
     with open(config_path, "r", encoding="utf8") as fp:
         yaml = replace_envvars(fp.read())
-        return ServerConfig.parse_raw(yaml)  # type: ignore
+        return parse_yaml_raw_as(ServerConfig, yaml)
 
 
 def reset() -> None:

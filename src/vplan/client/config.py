@@ -5,25 +5,26 @@
 Client configuration
 """
 import os
+from enum import Enum
 from os import R_OK, access
 from os.path import isfile
 from typing import Any, Dict, Optional
 
 import click
-from pydantic import Field, validator  # pylint: disable=no-name-in-module
-from pydantic_yaml import YamlEnum, YamlModel
+from pydantic import BaseModel, Field, validator  # pylint: disable=no-name-in-module
+from pydantic_yaml import parse_yaml_raw_as
 
 from vplan.util import homedir, replace_envvars
 
 DEFAULT_CONFIG = os.path.join(homedir(), ".config/vplan/client/application.yaml")
 
 
-class ConnectionMode(str, YamlEnum):
+class ConnectionMode(str, Enum):
     PORT = "port"
     SOCKET = "socket"
 
 
-class ClientConfig(YamlModel):
+class ClientConfig(BaseModel):
     """Client configuration."""
 
     mode: ConnectionMode = Field(..., title="Connection mode, either port or socket")
@@ -66,7 +67,7 @@ def _load_config(config_path: Optional[str]) -> ClientConfig:
         raise click.UsageError("Client configuration is not readable: %s" % config_path)
     with open(config_path, "r", encoding="utf8") as fp:
         yaml = replace_envvars(fp.read())
-        return ClientConfig.parse_raw(yaml)  # type: ignore
+        return parse_yaml_raw_as(ClientConfig, yaml)
 
 
 # pylint: disable=global-statement

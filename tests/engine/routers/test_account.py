@@ -4,6 +4,7 @@
 from unittest.mock import patch
 
 from fastapi.testclient import TestClient
+from pydantic_yaml import parse_yaml_raw_as
 
 from vplan.engine.server import API
 from vplan.interface import Account
@@ -18,7 +19,7 @@ class TestRoutes:
         db_retrieve_account.return_value = account
         response = CLIENT.get(url="/account")
         assert response.status_code == 200
-        assert Account.parse_raw(response.text) == account
+        assert parse_yaml_raw_as(Account, response.text) == account
 
     @patch("vplan.engine.routers.account.db_create_or_replace_account")
     def test_create_or_replace_account(self, db_create_or_replace_account):

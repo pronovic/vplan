@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from click.testing import CliRunner, Result
+from pydantic_yaml import to_yaml_str
 
 from vplan.client.cli import vplan as command
 from vplan.interface import DeviceGroup, Plan, PlanSchema, Status
@@ -56,7 +57,7 @@ class TestCreate:
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         sys.stdin = MagicMock()
         sys.stdin.read = MagicMock()
-        sys.stdin.read.return_value = schema.yaml()
+        sys.stdin.read.return_value = to_yaml_str(schema)
         result = invoke(["create", "-"])
         assert result.exit_code == 0
         assert result.output == "Created plan: name\n"
@@ -66,7 +67,7 @@ class TestCreate:
     def test_command_file(self, create_plan, tmpdir):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         p = tmpdir.join("plan.yaml")
-        p.write(schema.yaml())
+        p.write(to_yaml_str(schema))
         result = invoke(["create", "%s" % p])
         assert result.exit_code == 0
         assert result.output == "Created plan: name\n"
@@ -79,10 +80,10 @@ class TestCreate:
         assert result.exit_code == 1
         assert (
             result.output
-            == r"""Error: 2 validation errors for PlanSchema
-plan -> refresh_time
+            == r"""Error: 2 validation errors for ParsingModel[PlanSchema]
+__root__ -> plan -> refresh_time
   string does not match regex "^((\d{2}):(\d{2}))$" (type=value_error.str.regex; pattern=^((\d{2}):(\d{2}))$)
-plan -> groups -> 0 -> name
+__root__ -> plan -> groups -> 0 -> name
   string does not match regex "^[a-z0-9-]+$" (type=value_error.str.regex; pattern=^[a-z0-9-]+$)
 """
         )
@@ -167,7 +168,7 @@ class TestExport:
         retrieve_plan.return_value = schema
         result = invoke(["export", "plan-name"])
         assert result.exit_code == 0
-        assert result.output == "%s\n" % schema.yaml(sort_keys=False)
+        assert result.output == "%s\n" % to_yaml_str(schema, sort_keys=False)
         retrieve_plan.assert_called_once_with("plan-name")
 
     @pytest.mark.parametrize(
@@ -182,7 +183,7 @@ class TestExport:
         result = invoke(["export", "plan-name", option, p])
         assert result.exit_code == 0
         assert result.output == "Plan written to: %s\n" % p
-        assert p.read() == schema.yaml(sort_keys=False)
+        assert p.read() == to_yaml_str(schema, sort_keys=False)
         retrieve_plan.assert_called_once_with("plan-name")
 
 
@@ -456,7 +457,7 @@ class TestUpdate:
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         sys.stdin = MagicMock()
         sys.stdin.read = MagicMock()
-        sys.stdin.read.return_value = schema.yaml()
+        sys.stdin.read.return_value = to_yaml_str(schema)
         result = invoke(["update", "-"])
         assert result.exit_code == 0
         assert result.output == "Updated plan: name\n"
@@ -466,7 +467,7 @@ class TestUpdate:
     def test_command_file(self, update_plan, tmpdir):
         schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
         p = tmpdir.join("plan.yaml")
-        p.write(schema.yaml())
+        p.write(to_yaml_str(schema))
         result = invoke(["update", "%s" % p])
         assert result.exit_code == 0
         assert result.output == "Updated plan: name\n"
@@ -479,10 +480,10 @@ class TestUpdate:
         assert result.exit_code == 1
         assert (
             result.output
-            == r"""Error: 2 validation errors for PlanSchema
-plan -> refresh_time
+            == r"""Error: 2 validation errors for ParsingModel[PlanSchema]
+__root__ -> plan -> refresh_time
   string does not match regex "^((\d{2}):(\d{2}))$" (type=value_error.str.regex; pattern=^((\d{2}):(\d{2}))$)
-plan -> groups -> 0 -> name
+__root__ -> plan -> groups -> 0 -> name
   string does not match regex "^[a-z0-9-]+$" (type=value_error.str.regex; pattern=^[a-z0-9-]+$)
 """
         )

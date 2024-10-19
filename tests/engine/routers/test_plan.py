@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+from pydantic_yaml import parse_yaml_raw_as
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from vplan.engine.exception import InvalidPlanError
@@ -32,7 +33,7 @@ class TestRoutes:
         db_retrieve_plan.return_value = schema
         response = CLIENT.get(url="/plan/xxx")
         assert response.status_code == 200
-        assert PlanSchema.parse_raw(response.text) == schema
+        assert parse_yaml_raw_as(PlanSchema, response.text) == schema
         db_retrieve_plan.assert_called_once_with(plan_name="xxx")
 
     @patch("vplan.engine.routers.plan.schedule_daily_refresh")
@@ -158,7 +159,7 @@ class TestRoutes:
         db_retrieve_plan_enabled.return_value = enabled
         response = CLIENT.get(url="/plan/name/status")
         assert response.status_code == 200
-        assert Status.parse_raw(response.text) == Status(enabled=enabled)
+        assert parse_yaml_raw_as(Status, response.text) == Status(enabled=enabled)
         db_retrieve_plan_enabled.assert_called_once_with(plan_name="name")
 
     @patch("vplan.engine.routers.plan.db_retrieve_plan_enabled")
