@@ -1,11 +1,9 @@
-# Since this file was taken from elsewhere, it does not adhere to our coding style
-# type: ignore
-# pylint: skip-file
+# pylint: disable=line-too-long:
 
 from functools import wraps
 from typing import Any, Callable, Optional, Tuple, Type, Union, no_type_check
 
-from pydantic import BaseModel, errors, validator
+from pydantic import BaseModel, errors, validator  # pylint: disable=no-name-in-module
 from semver import VersionInfo
 
 # This code was taken from the pydantic-yaml project.  In v1 of pydantic-yaml, the
@@ -47,16 +45,16 @@ from semver import VersionInfo
 Comparator = Callable[["SemVer", Any], bool]
 
 
-# noinspection PyBroadException
 def _comparator(operator: Comparator) -> Comparator:
     """Wrap a Version binary op method in a type-check."""
 
+    # noinspection PyBroadException
     @wraps(operator)
     def wrapper(self: "SemVer", other: Any) -> bool:
         if not isinstance(other, SemVer):
             try:
                 other = SemVer(other)
-            except Exception:
+            except Exception:  # pylint: disable=broad-exception-caught:
                 return NotImplemented
         return operator(self, other)
 
@@ -91,7 +89,7 @@ class SemVer(str):
         return str(VersionInfo(major, minor, patch, prerelease, build))
 
     @classmethod
-    def __get_validators__(cls):
+    def __get_validators__(cls) -> object:
         yield cls.validate
 
     @classmethod
@@ -101,14 +99,14 @@ class SemVer(str):
             raise errors.NotNoneError()
         if not cls.allow_prerelease and (vi.prerelease is None):
             raise errors.NotNoneError()
-        return cls(value)
+        return cls(value)  # type: ignore
 
     @property
     def info(self) -> VersionInfo:
         return self._info
 
     @info.setter
-    def info(self, value):
+    def info(self, value: str) -> None:
         raise AttributeError("attribute 'info' is readonly")
 
     @property
@@ -117,7 +115,7 @@ class SemVer(str):
         return self._info.major
 
     @major.setter
-    def major(self, value):
+    def major(self, value: int) -> None:
         raise AttributeError("attribute 'major' is readonly")
 
     @property
@@ -126,7 +124,7 @@ class SemVer(str):
         return self._info.minor
 
     @minor.setter
-    def minor(self, value):
+    def minor(self, value: int) -> None:
         raise AttributeError("attribute 'minor' is readonly")
 
     @property
@@ -135,7 +133,7 @@ class SemVer(str):
         return self._info.patch
 
     @patch.setter
-    def patch(self, value):
+    def patch(self, value: int) -> None:
         raise AttributeError("attribute 'patch' is readonly")
 
     @property
@@ -144,7 +142,7 @@ class SemVer(str):
         return self._info.prerelease
 
     @prerelease.setter
-    def prerelease(self, value):
+    def prerelease(self, value: int) -> None:
         raise AttributeError("attribute 'prerelease' is readonly")
 
     @property
@@ -153,38 +151,38 @@ class SemVer(str):
         return self._info.build
 
     @build.setter
-    def build(self, value):
+    def build(self, value: int) -> None:
         raise AttributeError("attribute 'build' is readonly")
 
     def __hash__(self) -> int:
-        return super.__hash__(self)  # use string hashing
+        return str.__hash__(self)  # use string hashing
 
     @_comparator
-    def __eq__(self, other: "SemVer"):
+    def __eq__(self, other: "SemVer") -> bool:
         return self._info == other._info
 
     @_comparator
-    def __ne__(self, other: "SemVer"):
+    def __ne__(self, other: "SemVer") -> bool:
         return self._info != other._info
 
     @_comparator
-    def __lt__(self, other: "SemVer"):
+    def __lt__(self, other: "SemVer") -> bool:
         return self._info < other._info
 
     @_comparator
-    def __le__(self, other: "SemVer"):
+    def __le__(self, other: "SemVer") -> bool:
         return self._info <= other._info
 
     @_comparator
-    def __gt__(self, other: "SemVer"):
+    def __gt__(self, other: "SemVer") -> bool:
         return self._info > other._info
 
     @_comparator
-    def __ge__(self, other: "SemVer"):
+    def __ge__(self, other: "SemVer") -> bool:
         return self._info >= other._info
 
 
-def _chk_between(v, lo=None, hi=None):
+def _chk_between(v: Optional[Any], lo: Optional[SemVer] = None, hi: Optional[SemVer] = None) -> None:
     if v is None:
         return
     if (hi is not None) and (v > hi):
@@ -196,12 +194,12 @@ def _chk_between(v, lo=None, hi=None):
 def _get_minmax_robust(cls: Type["VersionedModel"]) -> Tuple[Optional[SemVer], Optional[SemVer]]:
     min_, max_ = None, None
     for supcls in cls.mro():
-        Config = getattr(supcls, "Config", None)
-        if Config is not None:
+        config = getattr(supcls, "Config", None)
+        if config is not None:
             if min_ is None:
-                min_ = getattr(Config, "min_version", None)
+                min_ = getattr(config, "min_version", None)
             if max_ is None:
-                max_ = getattr(Config, "max_version", None)
+                max_ = getattr(config, "max_version", None)
     return min_, max_
 
 
@@ -267,10 +265,10 @@ class VersionedModel(BaseModel):
         if not issubclass(fld.type_, SemVer):
             raise TypeError(f"Field type for `version` must be SemVer, got {fld.type_!r}")
 
-    # noinspection PyTypeChecker
+    # noinspection PyTypeChecker,PyMethodParameters
     @validator("version", always=True)
-    def _check_semver(cls, v):
-        min_, max_ = _get_minmax_robust(cls)
+    def _check_semver(cls, v: Any) -> Any:  # pylint: disable=no-self-argument:
+        min_, max_ = _get_minmax_robust(cls)  # type: ignore
         _chk_between(v, lo=min_, hi=max_)
         return v
 
