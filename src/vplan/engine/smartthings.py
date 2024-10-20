@@ -150,7 +150,7 @@ class LocationContext:
         response = requests.get(url=url, headers=self.headers, params=params, timeout=_CLIENT_TIMEOUT_SEC)
         _raise_for_status(response)
         result = response.json()
-        return result["items"] if "items" in result else []  # type: ignore
+        return result["items"] if "items" in result else []
 
     def _retrieve_rooms(self) -> List[Dict[str, Any]]:
         """Retrieve all rooms associated with a token."""
@@ -159,7 +159,7 @@ class LocationContext:
         response = requests.get(url=url, headers=self.headers, params=params, timeout=_CLIENT_TIMEOUT_SEC)
         _raise_for_status(response)
         result = response.json()
-        return result["items"] if "items" in result else []  # type: ignore
+        return result["items"] if "items" in result else []
 
     def _retrieve_devices(self) -> List[Dict[str, Any]]:
         """Retrieve all devices associated with a token."""
@@ -168,7 +168,7 @@ class LocationContext:
         response = requests.get(url=url, headers=self.headers, params=params, timeout=_CLIENT_TIMEOUT_SEC)
         _raise_for_status(response)
         result = response.json()
-        return result["items"] if "items" in result else []  # type: ignore
+        return result["items"] if "items" in result else []
 
     def _retrieve_rules(self) -> List[Dict[str, Any]]:
         """Retrieve all rules associated with a token."""
@@ -177,7 +177,7 @@ class LocationContext:
         response = requests.get(url=url, headers=self.headers, params=params, timeout=_CLIENT_TIMEOUT_SEC)
         _raise_for_status(response)
         result = response.json()
-        return result["items"] if "items" in result else []  # type: ignore
+        return result["items"] if "items" in result else []
 
 
 # Context managed by the SmartThings context manager
