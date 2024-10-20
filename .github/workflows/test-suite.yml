@@ -19,7 +19,7 @@ jobs:
     secrets: inherit
     with:
       matrix-os-version: "[ 'ubuntu-latest' ]"
-      matrix-python-version: "[ '3.10', '3.11', '3.12' ]"
+      matrix-python-version: "[ '3.10', '3.11', '3.12', '3.13' ]"
   release:
     name: "Release"
     if: github.ref_type == 'tag'
