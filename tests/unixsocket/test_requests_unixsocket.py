@@ -9,8 +9,7 @@ import logging
 
 import pytest
 import requests
-
-import vplan.unixsocket as requests_unixsocket
+import requests_unixsocket
 
 from .testutils import UnixSocketServerThread
 

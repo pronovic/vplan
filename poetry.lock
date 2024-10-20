@@ -1059,13 +1059,13 @@ files = [
 
 [[package]]
 name = "requests"
-version = "2.31.0"
+version = "2.32.3"
 description = "Python HTTP for Humans."
 optional = false
-python-versions = ">=3.7"
+python-versions = ">=3.8"
 files = [
-    {file = "requests-2.31.0-py3-none-any.whl", hash = "sha256:58cd2187c01e70e6e26505bca751777aa9f2ee0b7f4300988b709f44e013003f"},
-    {file = "requests-2.31.0.tar.gz", hash = "sha256:942c5a758f98d790eaed1a29cb6eefc7ffb0d1cf7af05c3d2791656dbd6ad1e1"},
+    {file = "requests-2.32.3-py3-none-any.whl", hash = "sha256:70761cfe03c773ceb22aa2f671b4757976145175cdfca038c02654d061d6dcc6"},
+    {file = "requests-2.32.3.tar.gz", hash = "sha256:55365417734eb18255590a9ff9eb97e9e1da868d4ccd6402399eaf68af20a760"},
 ]
 
 [package.dependencies]
@@ -1077,6 +1077,21 @@ urllib3 = ">=1.21.1,<3"
 [package.extras]
 socks = ["PySocks (>=1.5.6,!=1.5.7)"]
 use-chardet-on-py3 = ["chardet (>=3.0.2,<6)"]
+
+[[package]]
+name = "requests-unixsocket2"
+version = "0.4.2"
+description = "Use requests to talk HTTP via a UNIX domain socket"
+optional = false
+python-versions = "<4.0.0,>=3.8.1"
+files = [
+    {file = "requests_unixsocket2-0.4.2-py3-none-any.whl", hash = "sha256:701fcd49d74bc0f759bbe45c4dfda0045fd89652948c2b473b1a312214c3770b"},
+    {file = "requests_unixsocket2-0.4.2.tar.gz", hash = "sha256:929c58ecc5981f3d127661ceb9ec8c76e0f08d31c52e44ab1462ac0dcd55b5f5"},
+]
+
+[package.dependencies]
+requests = ">=2.32.3,<3.0.0"
+urllib3 = ">=2.2.2,<3.0"
 
 [[package]]
 name = "responses"
@@ -1542,4 +1557,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10,<3.13"
-content-hash = "9e5f8c1e066062461353df720740e49b0aef5f32d81ee8962aaaeb816107e280"
+content-hash = "f625cc3fa7338b2a640713b575c6cd5a010fcbc7416c7e720bb94e0a85da9875"
