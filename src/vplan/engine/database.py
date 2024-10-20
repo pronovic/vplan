@@ -73,7 +73,7 @@ def setup_database() -> None:
 
 def db_session() -> Session:
     """Return a new session for use as a context manager."""
-    return sessionmaker(bind=engine()).begin()  # pylint: disable=no-member
+    return sessionmaker(bind=engine(), future=True).begin()  # pylint: disable=no-member
 
 
 def db_retrieve_all_tables() -> List[str]:
