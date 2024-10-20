@@ -97,7 +97,11 @@ SmartThingsId = Annotated[
     "A SmartThings identifier (either a name or id), opaque to us.",
 ]
 
-SemVer = Annotated[str, AfterValidator(_validate_semver), "Semantic version string."]
+SemVer = Annotated[
+    str,
+    AfterValidator(_validate_semver),
+    "Semantic version string.",
+]
 
 
 class Health(BaseModel):
