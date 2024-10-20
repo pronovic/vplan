@@ -8,10 +8,11 @@ import os
 from enum import Enum
 from os import R_OK, access
 from os.path import isfile
-from typing import Any, Dict, Optional
+from typing import Optional
 
 import click
-from pydantic import BaseModel, Field, validator  # pylint: disable=no-name-in-module
+from pydantic import BaseModel, Field, field_validator
+from pydantic_core.core_schema import ValidationInfo
 from pydantic_yaml import parse_yaml_raw_as
 
 from vplan.util import homedir, replace_envvars
@@ -24,24 +25,25 @@ class ConnectionMode(str, Enum):
     SOCKET = "socket"
 
 
+# noinspection PyNestedDecorators
 class ClientConfig(BaseModel):
     """Client configuration."""
 
     mode: ConnectionMode = Field(..., title="Connection mode, either port or socket")
-    api_endpoint: Optional[str] = Field(title="HTTP endpoint, used in port mode")
-    api_socket: Optional[str] = Field(title="Path to a UNIX socket, used in socket mode")
+    api_endpoint: Optional[str] = Field(title="HTTP endpoint, used in port mode", default=None)
+    api_socket: Optional[str] = Field(title="Path to a UNIX socket, used in socket mode", default=None)
 
-    # noinspection PyMethodParameters
-    @validator("api_endpoint")
-    def _validate_api_endpoint(cls, api_endpoint: str, values: Dict[str, Any]) -> str:  # pylint: disable=no-self-argument
-        if values["mode"] == ConnectionMode.PORT.value and not api_endpoint:
+    @field_validator("api_endpoint")
+    @classmethod
+    def _validate_api_endpoint(cls, api_endpoint: str, values: ValidationInfo) -> str:
+        if values.data["mode"] == ConnectionMode.PORT.value and not api_endpoint:
             raise ValueError("api_endpoint required in PORT mode")
         return api_endpoint
 
-    # noinspection PyMethodParameters
-    @validator("api_socket")
-    def _validate_api_socket(cls, api_socket: str, values: Dict[str, Any]) -> str:  # pylint: disable=no-self-argument
-        if values["mode"] == ConnectionMode.SOCKET.value and not api_socket:
+    @field_validator("api_socket")
+    @classmethod
+    def _validate_api_socket(cls, api_socket: str, values: ValidationInfo) -> str:
+        if values.data["mode"] == ConnectionMode.SOCKET.value and not api_socket:
             raise ValueError("api_socket required in SOCKET mode")
         return api_socket
 

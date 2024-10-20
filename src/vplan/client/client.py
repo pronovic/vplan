@@ -79,7 +79,7 @@ def retrieve_account() -> Optional[Account]:
 def create_or_replace_account(account: Account) -> None:
     """Create or replace account information stored in the plan engine."""
     url = _account()
-    response = requests.post(url=url, data=account.json())
+    response = requests.post(url=url, data=account.model_dump_json())
     _raise_for_status(response)
 
 
@@ -112,14 +112,14 @@ def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
 def create_plan(schema: PlanSchema) -> None:
     """Create a plan in the plan engine."""
     url = _plan()
-    response = requests.post(url=url, data=schema.json())
+    response = requests.post(url=url, data=schema.model_dump_json())
     _raise_for_status(response)
 
 
 def update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     url = _plan()
-    response = requests.put(url=url, data=schema.json())
+    response = requests.put(url=url, data=schema.model_dump_json())
     _raise_for_status(response)
 
 
@@ -143,7 +143,7 @@ def retrieve_plan_status(plan_name: str) -> Optional[Status]:
 def update_plan_status(plan_name: str, status: Status) -> None:
     """Set the enabled/disabled status of a plan in the plan engine."""
     url = _plan("/%s/status" % plan_name)
-    response = requests.put(url=url, data=status.json())
+    response = requests.put(url=url, data=status.model_dump_json())
     _raise_for_status(response)
 
 

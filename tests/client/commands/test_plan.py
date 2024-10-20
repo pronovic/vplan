@@ -78,15 +78,9 @@ class TestCreate:
         p = fixture("bad.yaml")
         result = invoke(["create", p])
         assert result.exit_code == 1
-        assert (
-            result.output
-            == r"""Error: 2 validation errors for ParsingModel[PlanSchema]
-__root__ -> plan -> refresh_time
-  string does not match regex "^((\d{2}):(\d{2}))$" (type=value_error.str.regex; pattern=^((\d{2}):(\d{2}))$)
-__root__ -> plan -> groups -> 0 -> name
-  string does not match regex "^[a-z0-9-]+$" (type=value_error.str.regex; pattern=^[a-z0-9-]+$)
-"""
-        )
+        assert "Error: 2 validation errors" in result.output
+        assert "plan.refresh_time" in result.output  # first error
+        assert "plan.groups.0.name" in result.output  # second error
         create_plan.assert_not_called()
 
 
@@ -168,7 +162,7 @@ class TestExport:
         retrieve_plan.return_value = schema
         result = invoke(["export", "plan-name"])
         assert result.exit_code == 0
-        assert result.output == "%s\n" % to_yaml_str(schema, sort_keys=False)
+        assert result.output == "%s\n" % to_yaml_str(schema)
         retrieve_plan.assert_called_once_with("plan-name")
 
     @pytest.mark.parametrize(
@@ -183,7 +177,7 @@ class TestExport:
         result = invoke(["export", "plan-name", option, p])
         assert result.exit_code == 0
         assert result.output == "Plan written to: %s\n" % p
-        assert p.read() == to_yaml_str(schema, sort_keys=False)
+        assert p.read() == to_yaml_str(schema)
         retrieve_plan.assert_called_once_with("plan-name")
 
 
@@ -478,15 +472,9 @@ class TestUpdate:
         p = fixture("bad.yaml")
         result = invoke(["update", p])
         assert result.exit_code == 1
-        assert (
-            result.output
-            == r"""Error: 2 validation errors for ParsingModel[PlanSchema]
-__root__ -> plan -> refresh_time
-  string does not match regex "^((\d{2}):(\d{2}))$" (type=value_error.str.regex; pattern=^((\d{2}):(\d{2}))$)
-__root__ -> plan -> groups -> 0 -> name
-  string does not match regex "^[a-z0-9-]+$" (type=value_error.str.regex; pattern=^[a-z0-9-]+$)
-"""
-        )
+        assert "Error: 2 validation errors" in result.output
+        assert "plan.refresh_time" in result.output  # first error
+        assert "plan.groups.0.name" in result.output  # second error
         update_plan.assert_not_called()
 
 

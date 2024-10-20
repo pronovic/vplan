@@ -14,6 +14,7 @@ from vplan.interface import (
     Health,
     Plan,
     PlanSchema,
+    SemVer,
     SimpleTime,
     SmartThingsId,
     Status,
@@ -25,7 +26,6 @@ from vplan.interface import (
     Version,
     VplanName,
 )
-from vplan.model import SemVer
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long

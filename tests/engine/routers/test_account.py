@@ -24,7 +24,7 @@ class TestRoutes:
     @patch("vplan.engine.routers.account.db_create_or_replace_account")
     def test_create_or_replace_account(self, db_create_or_replace_account):
         account = Account(pat_token="token")
-        response = CLIENT.post(url="/account", content=account.json())
+        response = CLIENT.post(url="/account", content=account.model_dump_json())
         assert response.status_code == 204
         assert not response.text
         db_create_or_replace_account.assert_called_once_with(account)
