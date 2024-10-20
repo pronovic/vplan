@@ -154,6 +154,7 @@ class Plan(BaseModel):
     groups: List[DeviceGroup] = Field(description="List of device groups managed by the plan", default_factory=lambda: [])
 
 
+# noinspection PyNestedDecorators
 class PlanSchema(BaseModel):
     """
     Versioned schema for a vacation lighting plan.
@@ -169,8 +170,8 @@ class PlanSchema(BaseModel):
     version: SemVer = Field(..., description="Plan schema version")
     plan: Plan = Field(..., description="Vacation plan")
 
-    @classmethod
     @field_validator("version")
+    @classmethod
     def _validate_version(cls, version: SemVer) -> str:
         min_version = "1.0.0"
         max_version = "1.1.0"
