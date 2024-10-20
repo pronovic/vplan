@@ -9,6 +9,7 @@ from typing import Optional, Tuple
 
 import click
 from pydantic import ValidationError
+from pydantic_yaml import parse_yaml_raw_as, to_yaml_str
 
 from vplan.client.client import (
     create_plan,
@@ -43,11 +44,11 @@ def _read_plan_yaml(yaml_path: str) -> PlanSchema:
     try:
         if yaml_path == "-":
             data = sys.stdin.read()
-            result = PlanSchema.parse_raw(data)
+            result = parse_yaml_raw_as(PlanSchema, data)
         else:
             with open(yaml_path, "r", encoding="utf8") as fp:
-                result = PlanSchema.parse_raw(fp.read())
-        return result  # type: ignore
+                result = parse_yaml_raw_as(PlanSchema, fp.read())
+        return result
     except ValidationError as e:
         raise click.ClickException("%s" % e) from e
 
@@ -184,7 +185,7 @@ def export(plan_name: str, yaml_path: Optional[str]) -> None:
     result = retrieve_plan(plan_name)
     if not result:
         raise click.ClickException("Plan does not exist: %s" % plan_name)
-    yaml = result.yaml(sort_keys=False)
+    yaml = to_yaml_str(result, sort_keys=False)
     if not yaml_path:
         click.echo(yaml)
     else:

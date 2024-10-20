@@ -5,7 +5,7 @@
 import os
 
 import pytest
-from pydantic_yaml import SemVer
+from pydantic_yaml import parse_yaml_file_as
 
 from vplan.interface import (
     Account,
@@ -25,6 +25,7 @@ from vplan.interface import (
     Version,
     VplanName,
 )
+from vplan.model import SemVer
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long
@@ -417,17 +418,17 @@ class TestModelsAndValidation:
 
 class TestYamlParsing:
     def test_parsing_valid_v100(self):
-        schema = PlanSchema.parse_file(VALID_PLAN_FILE_V100)
+        schema = parse_yaml_file_as(PlanSchema, VALID_PLAN_FILE_V100)
         assert schema == PLAN_EXPECTED_V100
         assert schema.devices() == DEVICES_EXPECTED_V100
         assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
 
     def test_parsing_valid_v110(self):
-        schema = PlanSchema.parse_file(VALID_PLAN_FILE_V110)
+        schema = parse_yaml_file_as(PlanSchema, VALID_PLAN_FILE_V110)
         assert schema == PLAN_EXPECTED_V110
         assert schema.devices() == DEVICES_EXPECTED_V110
         assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
 
     def test_parsing_invalid(self):
         with pytest.raises(ValueError):
-            PlanSchema.parse_file(INVALID_PLAN_FILE)
+            parse_yaml_file_as(PlanSchema, INVALID_PLAN_FILE)

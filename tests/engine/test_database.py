@@ -5,6 +5,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+from pydantic_yaml import parse_yaml_file_as
 from sqlalchemy.exc import IntegrityError, NoResultFound
 
 from vplan.engine.database import (
@@ -104,6 +105,6 @@ class TestDatabase:
             db_retrieve_plan("bbb")
 
     def test_plan_full_yaml(self, database):
-        schema = PlanSchema.parse_file(PLAN_FILE)
+        schema = parse_yaml_file_as(PlanSchema, PLAN_FILE)
         db_create_plan(schema)
         assert db_retrieve_plan(schema.plan.name) == schema

@@ -10,6 +10,7 @@ from typing import List, Optional
 
 import click
 import requests
+from pydantic_yaml import parse_yaml_raw_as
 from requests import HTTPError, Response
 
 import vplan.unixsocket as requests_unixsocket
@@ -60,7 +61,7 @@ def retrieve_version() -> Optional[Version]:
     try:
         response = requests.get(url=url, timeout=1)
         response.raise_for_status()
-        return Version.parse_raw(response.text)  # type: ignore
+        return parse_yaml_raw_as(Version, response.text)
     except:  # pylint: disable=bare-except
         return None
 
@@ -72,7 +73,7 @@ def retrieve_account() -> Optional[Account]:
     if response.status_code == 404:
         return None
     _raise_for_status(response)
-    return Account.parse_raw(response.text)  # type: ignore
+    return parse_yaml_raw_as(Account, response.text)
 
 
 def create_or_replace_account(account: Account) -> None:
@@ -105,7 +106,7 @@ def retrieve_plan(plan_name: str) -> Optional[PlanSchema]:
     if response.status_code == 404:
         return None
     _raise_for_status(response)
-    return PlanSchema.parse_raw(response.text)  # type: ignore
+    return parse_yaml_raw_as(PlanSchema, response.text)
 
 
 def create_plan(schema: PlanSchema) -> None:
@@ -136,7 +137,7 @@ def retrieve_plan_status(plan_name: str) -> Optional[Status]:
     if response.status_code == 404:
         return None
     _raise_for_status(response)
-    return Status.parse_raw(response.text)  # type: ignore
+    return parse_yaml_raw_as(Status, response.text)
 
 
 def update_plan_status(plan_name: str, status: Status) -> None:

@@ -10,6 +10,7 @@ from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/
 import logging
 from typing import List, Optional
 
+from pydantic_yaml import parse_yaml_raw_as, to_yaml_str
 from sqlalchemy import Boolean, Column, String, create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, registry, sessionmaker
@@ -113,7 +114,7 @@ def db_retrieve_plan(plan_name: str) -> PlanSchema:
     """Return the plan definition stored in the plan engine."""
     with db_session() as session:
         entity = session.query(_PlanEntity).where(_PlanEntity.plan_name == plan_name).one()
-        return PlanSchema.parse_raw(entity.definition)  # type: ignore
+        return parse_yaml_raw_as(PlanSchema, entity.definition)
 
 
 def db_create_plan(schema: PlanSchema) -> None:
@@ -122,7 +123,7 @@ def db_create_plan(schema: PlanSchema) -> None:
         entity = _PlanEntity()
         entity.plan_name = schema.plan.name
         entity.enabled = False
-        entity.definition = schema.yaml()
+        entity.definition = to_yaml_str(schema)
         session.add(entity)
 
 
@@ -130,7 +131,7 @@ def db_update_plan(schema: PlanSchema) -> None:
     """Update an existing plan in the plan engine."""
     with db_session() as session:
         entity = session.query(_PlanEntity).where(_PlanEntity.plan_name == schema.plan.name).one()
-        entity.definition = schema.yaml()
+        entity.definition = to_yaml_str(schema)
 
 
 def db_delete_plan(plan_name: str) -> None:

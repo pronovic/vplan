@@ -11,9 +11,10 @@ from enum import Enum
 from typing import List, Optional, Type, Union
 
 import pytz
-from pydantic import ConstrainedList, ConstrainedStr, Field  # pylint: disable=no-name-in-module
-from pydantic_yaml import SemVer, VersionedYamlModel, YamlModel
+from pydantic import BaseModel, ConstrainedList, ConstrainedStr, Field  # pylint: disable=no-name-in-module
 from pytz import UnknownTimeZoneError
+
+from vplan.model import SemVer, VersionedModel
 
 VPLAN_NAME_REGEX = re.compile(r"^[a-z0-9-]+$")
 TRIGGER_DAY_REGEX = re.compile(
@@ -102,26 +103,26 @@ class SmartThingsId(ConstrainedStr):
     min_length = 1
 
 
-class Health(YamlModel):
+class Health(BaseModel):
     """API health data"""
 
     status: str = Field(default="OK", description="Health status")
 
 
-class Version(YamlModel):
+class Version(BaseModel):
     """API version data"""
 
     package: str = Field(..., description="Python package version")
     api: str = Field(..., description="API interface version")
 
 
-class Status(YamlModel):
+class Status(BaseModel):
     """The status of a plan or an account."""
 
     enabled: bool = Field(..., description="Whether the plan or account is enabled.")
 
 
-class Trigger(YamlModel):
+class Trigger(BaseModel):
     """A trigger, tied to a device group"""
 
     days: List[TriggerDay] = Field(..., description="Days of the week that the trigger executes")
@@ -130,7 +131,7 @@ class Trigger(YamlModel):
     variation: TriggerVariation = Field(..., description="Variation rules applied to the trigger on/off times")
 
 
-class Device(YamlModel):
+class Device(BaseModel):
     """A device, tied to a device group."""
 
     room: SmartThingsId = Field(..., description="SmartThings room name where the device lives")
@@ -138,7 +139,7 @@ class Device(YamlModel):
     component: SmartThingsId = Field(default="main", description="The component to trigger the command for (default=main)")
 
 
-class DeviceGroup(YamlModel):
+class DeviceGroup(BaseModel):
     """A device group, tied to a vacation lighting plan."""
 
     name: VplanName = Field(..., description="Device group name")
@@ -146,7 +147,7 @@ class DeviceGroup(YamlModel):
     triggers: List[Trigger] = Field(..., description="List of triggers for the group")
 
 
-class Plan(YamlModel):
+class Plan(BaseModel):
     """Vacation lighting plan."""
 
     name: VplanName = Field(..., description="Vacation plan name")
@@ -156,7 +157,7 @@ class Plan(YamlModel):
     groups: List[DeviceGroup] = Field(description="List of device groups managed by the plan", default_factory=lambda: [])
 
 
-class PlanSchema(VersionedYamlModel):
+class PlanSchema(VersionedModel):
     """
     Versioned schema for a vacation lighting plan.
 
@@ -185,7 +186,7 @@ class PlanSchema(VersionedYamlModel):
         return result
 
 
-class Account(YamlModel):
+class Account(BaseModel):
     """A SmartThings account containing a PAT token.."""
 
     pat_token: SmartThingsId = Field(..., description="SmartThings PAT token")
