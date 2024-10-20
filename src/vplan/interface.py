@@ -90,7 +90,6 @@ TimeZone = Annotated[
     "A time zone that is valid for pytz (and hence for apscheduler).",
 ]
 
-
 SmartThingsId = Annotated[
     str,
     StringConstraints(min_length=1),
