@@ -75,6 +75,7 @@ disable=fixme,
         no-else-raise,
         duplicate-code,
         consider-using-f-string,
+        too-many-positional-arguments,
         no-member, # not reliable for Pydantic; and not really needed because we use MyPy anyway
         unsubscriptable-object # bug in Pylint & Python 3.9 gives "Value 'Optional' is unsubscriptable"
 
