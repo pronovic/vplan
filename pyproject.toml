@@ -99,7 +99,7 @@ line_length = 132
 skip_glob = [ "docs", "notes" ]
 
 [tool.pytest.ini_options]
-asyncio_mode = "strict"
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
    "ignore:.*pkg_resources is deprecated as an API", # not sure where this is coming from, but we don't use it directly
    "ignore:.*The 'app' shortcut is now deprecated"   # not sure where this is coming from, but we don't use it directly
