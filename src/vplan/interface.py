@@ -26,6 +26,9 @@ SIMPLE_TIME_REGEX = re.compile(r"^((\d{2}):(\d{2}))$")
 ONLY_ACCOUNT = "default"
 VPLAN_RULE_PREFIX = "vplan"
 
+MIN_PLAN_SCHEMA_VERSION = "1.0.0"
+MAX_PLAN_SCHEMA_VERSION = "1.1.0"
+
 
 def _validate_time_zone(value: str) -> str:
     """Validate a pytz timezone name."""
@@ -176,9 +179,10 @@ class PlanSchema(BaseModel):
     @field_validator("version")
     @classmethod
     def _validate_version(cls, version: SemVer) -> str:
-        min_version = "1.0.0"
-        max_version = "1.1.0"
-        if semver.compare(version, min_version) < 0 or semver.compare(version, max_version) > 0:
+        def compare(left: str, right: str) -> int:
+            return semver.VersionInfo.parse(left).compare(right)
+
+        if compare(version, MIN_PLAN_SCHEMA_VERSION) < 0 or compare(version, MAX_PLAN_SCHEMA_VERSION) > 0:
             raise ValueError("Invalid plan schema version")
         return version
 
