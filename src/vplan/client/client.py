@@ -10,10 +10,10 @@ from typing import List, Optional
 
 import click
 import requests
+import requests_unixsocket
 from pydantic_yaml import parse_yaml_raw_as
 from requests import HTTPError, Response
 
-import vplan.unixsocket as requests_unixsocket
 from vplan.client.config import api_url
 from vplan.interface import Account, PlanSchema, Status, Version
 

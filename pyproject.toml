@@ -45,7 +45,8 @@ pydantic = "^1.10.17"           # v2.x is a major interface change
 pydantic-yaml = "^1.3.0"
 semver = "^3.0.2"
 click = "^8.1.7"
-requests = "^2.31.0"
+requests = "^2.32.3"
+requests-unixsocket2 = "^0.4.2"
 SQLAlchemy = "^1.4.49"          # v2.x is a major interface change
 APScheduler = "^3.10.4"
 python-dotenv = "^1.0.0"
@@ -99,6 +100,7 @@ line_length = 132
 skip_glob = [ "docs", "notes" ]
 
 [tool.pytest.ini_options]
+asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
    "ignore:.*pkg_resources is deprecated as an API", # not sure where this is coming from, but we don't use it directly
    "ignore:.*The 'app' shortcut is now deprecated"   # not sure where this is coming from, but we don't use it directly

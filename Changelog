@@ -5,6 +5,7 @@ Version 0.7.6     unreleased
 	* Update transitive dependencies to address Dependabot warnings.
 	* Update pydantic dependency to deal with problem in Python 3.12.4.
 	* Deal with interface changes and upgrade to pydantic-yaml v1.
+	* Migrate to requests-unixsocket2, which supports newer requests versions.
 	* Restrict Python to <3.13 because of limits of pydantic v1 (now EOL).
 	* Upgrade to Poetry v1.8.4 to allow official Python 3.13 support later.
 
