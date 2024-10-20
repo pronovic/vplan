@@ -6,6 +6,7 @@ from typing import Any, Callable, Optional, Tuple, Type, Union, no_type_check
 from pydantic import BaseModel, errors, validator  # pylint: disable=no-name-in-module
 from semver import VersionInfo
 
+# ---------------------------------------------------------------------------------
 # This code was taken from the pydantic-yaml project.  In v1 of pydantic-yaml, the
 # interface totally changed.  All of the YAML specific model types were removed in
 # favor of a new mixin approach.  Unfortunately, there was effectively no replacement

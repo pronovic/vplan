@@ -1,6 +1,4 @@
-# Since this file was taken from elsewhere, it does not adhere to our coding style
-# type: ignore
-# pylint: skip-file
+# pylint: disable=line-too-long:
 
 import os
 
@@ -9,6 +7,7 @@ from pydantic import ValidationError
 
 from vplan.model import SemVer, VersionedModel
 
+# ---------------------------------------------------------------------------------
 # This code was taken from the pydantic-yaml project.  In v1 of pydantic-yaml, the
 # interface totally changed.  All of the YAML specific model types were removed in
 # favor of a different approach.  Unfortunately, there was effectively no replacement
@@ -53,16 +52,16 @@ def test_versioned_model():
     file = fixture("versioned.json")
 
     class A(VersionedModel):
-        foo: str = "bar"
+        foo: str = "bar"  # type: ignore[annotation-unchecked]
 
     class B(VersionedModel):
-        foo: str = "bar"
+        foo: str = "bar"  # type: ignore[annotation-unchecked]
 
         class Config:
             min_version = "2.0.0"
 
     class C(VersionedModel):
-        foo: str = "baz"
+        foo: str = "baz"  # type: ignore[annotation-unchecked]
 
         class Config:
             max_version = "0.5.0"
@@ -77,7 +76,7 @@ def test_versioned_model():
 
     with pytest.raises(ValueError):
 
-        class BadVersionConstraint(VersionedModel):
+        class BadVersionConstraint(VersionedModel):  # pylint: disable=unused-variable:
             class Config:
                 min_version = "3.0.0"
                 max_version = "2.1.0"
@@ -89,12 +88,12 @@ def test_versioned_docs():
     class A(VersionedModel):
         """Model with min, max constraints as None."""
 
-        foo: str = "bar"
+        foo: str = "bar"  # type: ignore[annotation-unchecked]
 
     class B(VersionedModel):
         """Model with a maximum version set."""
 
-        foo: str = "bar"
+        foo: str = "bar"  # type: ignore[annotation-unchecked]
 
         class Config:
             min_version = "2.0.0"
