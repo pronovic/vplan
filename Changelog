@@ -6,7 +6,7 @@ Version 0.7.6     unreleased
 	* Update pydantic dependency to deal with problem in Python 3.12.4.
 	* Upgrade to pydantic v2 and pydantic-yaml v1 and handle interface changes.
 	* Migrate to requests-unixsocket2, which supports newer requests versions.
-	* Upgrade to Poetry v1.8.4 to allow official Python 3.13 support later.
+	* Upgrade to Poetry v1.8.4 for official Python 3.13 support.
 
 Version 0.7.5     26 Feb 2024
 
