@@ -1,11 +1,11 @@
-Version 0.7.6     unreleased
+Version 0.7.6     20 Oct 2024
 
 	* Pull in latest updates from run-script-framework.
 	* Simplify GHA integration with coveralls.io.
 	* Update transitive dependencies to address Dependabot warnings.
-	* Update pydantic dependency to deal with problem in Python 3.12.4.
-	* Upgrade to pydantic v2 and pydantic-yaml v1 and handle interface changes.
+	* Major upgrades for pydantic v2, pydantic-yaml v1, and sqlalchemy v2.
 	* Migrate to requests-unixsocket2, which supports newer requests versions.
+	* Add support for Python 3.13, no need to drop older versions.
 	* Upgrade to Poetry v1.8.4 for official Python 3.13 support.
 
 Version 0.7.5     26 Feb 2024
