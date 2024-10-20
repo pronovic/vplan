@@ -62,7 +62,7 @@ class TestHealthAndVersion:
     def test_retrieve_health_healthy(self, _):
         with responses.RequestsMock() as r:
             health = Health()
-            r.get(url="http://whatever/health", body=health.json(), match=[TIMEOUT_MATCHER])
+            r.get(url="http://whatever/health", body=health.model_dump_json(), match=[TIMEOUT_MATCHER])
             assert retrieve_health() is True
 
     def test_retrieve_version_error(self, _):
@@ -78,7 +78,7 @@ class TestHealthAndVersion:
     def test_retrieve_version_healthy(self, _):
         with responses.RequestsMock() as r:
             version = Version(package="a", api="b")
-            r.get(url="http://whatever/version", body=version.json(), match=[TIMEOUT_MATCHER])
+            r.get(url="http://whatever/version", body=version.model_dump_json(), match=[TIMEOUT_MATCHER])
             assert retrieve_version() == version
 
 
@@ -92,7 +92,7 @@ class TestAccount:
     def test_retrieve_account_found(self, _):
         with responses.RequestsMock() as r:
             account = Account(pat_token="token")
-            r.get(url="http://whatever/account", body=account.json())
+            r.get(url="http://whatever/account", body=account.model_dump_json())
             assert retrieve_account() == account
 
     def test_retrieve_account_error(self, _):
@@ -104,13 +104,13 @@ class TestAccount:
     def test_create_or_replace_account(self, _):
         with responses.RequestsMock() as r:
             account = Account(pat_token="token")
-            r.post(url="http://whatever/account", body=account.json())
+            r.post(url="http://whatever/account", body=account.model_dump_json())
             create_or_replace_account(account)
 
     def test_create_or_replace_account_error(self, _):
         with responses.RequestsMock() as r:
             account = Account(pat_token="token")
-            r.post(url="http://whatever/account", body=account.json(), status=500)
+            r.post(url="http://whatever/account", body=account.model_dump_json(), status=500)
             with pytest.raises(ClickException, match=r"500 Server Error"):
                 create_or_replace_account(account)
 
@@ -148,7 +148,7 @@ class TestPlan:
     def test_retrieve_plan_found(self, _):
         with responses.RequestsMock() as r:
             schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-            r.get(url="http://whatever/plan/xxx", body=schema.json())
+            r.get(url="http://whatever/plan/xxx", body=schema.model_dump_json())
             assert retrieve_plan("xxx") == schema
 
     def test_retrieve_plan_error(self, _):
@@ -160,26 +160,26 @@ class TestPlan:
     def test_create_plan(self, _):
         with responses.RequestsMock() as r:
             schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-            r.post(url="http://whatever/plan", body=schema.json())
+            r.post(url="http://whatever/plan", body=schema.model_dump_json())
             create_plan(schema)
 
     def test_create_plan_error(self, _):
         with responses.RequestsMock() as r:
             schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-            r.post(url="http://whatever/plan", body=schema.json(), status=500)
+            r.post(url="http://whatever/plan", body=schema.model_dump_json(), status=500)
             with pytest.raises(ClickException, match=r"500 Server Error"):
                 create_plan(schema)
 
     def test_update_plan(self, _):
         with responses.RequestsMock() as r:
             schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-            r.put(url="http://whatever/plan", body=schema.json())
+            r.put(url="http://whatever/plan", body=schema.model_dump_json())
             update_plan(schema)
 
     def test_update_plan_error(self, _):
         with responses.RequestsMock() as r:
             schema = PlanSchema(version="1.0.0", plan=Plan(name="name", location="location", refresh_time="00:30"))
-            r.put(url="http://whatever/plan", body=schema.json(), status=500)
+            r.put(url="http://whatever/plan", body=schema.model_dump_json(), status=500)
             with pytest.raises(ClickException, match=r"500 Server Error"):
                 update_plan(schema)
 
@@ -202,7 +202,7 @@ class TestPlan:
     def test_retrieve_plan_status_found(self, _):
         with responses.RequestsMock() as r:
             status = Status(enabled=False)
-            r.get(url="http://whatever/plan/xxx/status", body=status.json())
+            r.get(url="http://whatever/plan/xxx/status", body=status.model_dump_json())
             assert retrieve_plan_status("xxx") == status
 
     def test_retrieve_plan_status_error(self, _):
@@ -214,13 +214,13 @@ class TestPlan:
     def test_update_plan_status(self, _):
         with responses.RequestsMock() as r:
             status = Status(enabled=False)
-            r.put(url="http://whatever/plan/xxx/status", body=status.json())
+            r.put(url="http://whatever/plan/xxx/status", body=status.model_dump_json())
             update_plan_status("xxx", status)
 
     def test_update_plan_status_error(self, _):
         with responses.RequestsMock() as r:
             status = Status(enabled=False)
-            r.put(url="http://whatever/plan/xxx/status", body=status.json(), status=500)
+            r.put(url="http://whatever/plan/xxx/status", body=status.model_dump_json(), status=500)
             with pytest.raises(ClickException, match=r"500 Server Error"):
                 update_plan_status("xxx", status)
 

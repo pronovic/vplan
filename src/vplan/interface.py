@@ -8,13 +8,12 @@ from __future__ import annotations  # see: https://stackoverflow.com/a/33533514/
 
 import re
 from enum import Enum
-from typing import List, Optional, Type, Union
+from typing import Annotated, List, Optional
 
 import pytz
-from pydantic import BaseModel, ConstrainedList, ConstrainedStr, Field  # pylint: disable=no-name-in-module
+import semver
+from pydantic import AfterValidator, BaseModel, Field, StringConstraints, field_validator
 from pytz import UnknownTimeZoneError
-
-from vplan.model import SemVer, VersionedModel
 
 VPLAN_NAME_REGEX = re.compile(r"^[a-z0-9-]+$")
 TRIGGER_DAY_REGEX = re.compile(
@@ -28,6 +27,21 @@ ONLY_ACCOUNT = "default"
 VPLAN_RULE_PREFIX = "vplan"
 
 
+def _validate_time_zone(value: str) -> str:
+    """Validate a pytz timezone name."""
+    try:
+        pytz.timezone(value.strip())
+    except UnknownTimeZoneError as e:
+        raise ValueError("Invalid time zone") from e
+    return value
+
+
+def _validate_semver(value: str) -> str:
+    """Validate a semantic version."""
+    semver.Version.parse(value)  # throws ValueError if version is invalid
+    return value
+
+
 class SwitchState(str, Enum):
     """States that a switch can be in."""
 
@@ -35,72 +49,58 @@ class SwitchState(str, Enum):
     OFF = "off"
 
 
-class VplanName(ConstrainedStr):
-    """A name used as an identifier in the vplan infrastructure."""
+VplanName = Annotated[
+    str,
+    AfterValidator(lambda s: s.strip()),
+    StringConstraints(min_length=1, max_length=50, pattern=VPLAN_NAME_REGEX),
+    "A name used as an identifier in the vplan infrastructure.",
+]
 
-    min_length = 1
-    max_length = 50
-    strip_whitespace = True
-    regex = VPLAN_NAME_REGEX
+TriggerDay = Annotated[
+    str,
+    AfterValidator(lambda s: s.lower().strip()),
+    StringConstraints(pattern=TRIGGER_DAY_REGEX),
+    "Legal values for the trigger day list.",
+]
 
+TriggerTime = Annotated[
+    str,
+    AfterValidator(lambda s: s.lower().strip()),
+    StringConstraints(pattern=TRIGGER_TIME_REGEX),
+    "A trigger time, either a logical time or HH24:MM.",
+]
 
-class TriggerDay(ConstrainedStr):
-    """Legal values for the trigger day list."""
+TriggerVariation = Annotated[
+    str,
+    AfterValidator(lambda s: s.lower().strip()),
+    StringConstraints(pattern=TRIGGER_VARIATION_REGEX),
+    "A trigger variation, either disabled or a description of the variation.",
+]
 
-    to_lower = True
-    strip_whitespace = True
-    regex = TRIGGER_DAY_REGEX
+SimpleTime = Annotated[
+    str,
+    AfterValidator(lambda s: s.lower().strip()),
+    StringConstraints(pattern=SIMPLE_TIME_REGEX),
+    "A simple time in format HH24:MM.",
+]
 
+TimeZone = Annotated[
+    str,
+    AfterValidator(_validate_time_zone),
+    "A time zone that is valid for pytz (and hence for apscheduler).",
+]
 
-class TriggerDayList(ConstrainedList):
-    """A list of trigger days."""
+SmartThingsId = Annotated[
+    str,
+    StringConstraints(min_length=1),
+    "A SmartThings identifier (either a name or id), opaque to us.",
+]
 
-    min_items = 1
-    item_type = Type[TriggerDay]
-
-
-class TriggerTime(ConstrainedStr):
-    """A trigger time, either a logical time or HH24:MM."""
-
-    to_lower = True
-    strip_whitespace = True
-    regex = TRIGGER_TIME_REGEX
-
-
-class TriggerVariation(ConstrainedStr):
-    """A trigger variation, either disabled or a description of the variation."""
-
-    to_lower = True
-    strip_whitespace = True
-    regex = TRIGGER_VARIATION_REGEX
-
-
-class SimpleTime(ConstrainedStr):
-    """A simple time in format HH24:MM."""
-
-    to_lower = True
-    strip_whitespace = True
-    regex = SIMPLE_TIME_REGEX
-
-
-class TimeZone(ConstrainedStr):
-    """A time zone that is valid for pytz (and hence for apscheduler)."""
-
-    strip_whitespace = True
-
-    @classmethod
-    def validate(cls, value: Union[str]) -> Union[str]:
-        try:
-            pytz.timezone(value)
-        except UnknownTimeZoneError as e:
-            raise ValueError("Invalid time zone") from e
-        return value
-
-
-class SmartThingsId(ConstrainedStr):
-    """A SmartThings identifier (either a name or id), opaque to us."""
-
-    min_length = 1
+SemVer = Annotated[
+    str,
+    AfterValidator(_validate_semver),
+    "Semantic version string.",
+]
 
 
 class Health(BaseModel):
@@ -157,7 +157,8 @@ class Plan(BaseModel):
     groups: List[DeviceGroup] = Field(description="List of device groups managed by the plan", default_factory=lambda: [])
 
 
-class PlanSchema(VersionedModel):
+# noinspection PyNestedDecorators
+class PlanSchema(BaseModel):
     """
     Versioned schema for a vacation lighting plan.
 
@@ -169,12 +170,17 @@ class PlanSchema(VersionedModel):
     `switch` capability.
     """
 
-    class Config:
-        min_version = "1.0.0"
-        max_version = "1.1.0"
-
     version: SemVer = Field(..., description="Plan schema version")
     plan: Plan = Field(..., description="Vacation plan")
+
+    @field_validator("version")
+    @classmethod
+    def _validate_version(cls, version: SemVer) -> str:
+        min_version = "1.0.0"
+        max_version = "1.1.0"
+        if semver.compare(version, min_version) < 0 or semver.compare(version, max_version) > 0:
+            raise ValueError("Invalid plan schema version")
+        return version
 
     def devices(self, group_name: Optional[str] = None) -> List[Device]:
         """Return a list of devices in a plan, optionally filtered by group name."""

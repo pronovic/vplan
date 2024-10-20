@@ -14,6 +14,7 @@ from vplan.interface import (
     Health,
     Plan,
     PlanSchema,
+    SemVer,
     SimpleTime,
     SmartThingsId,
     Status,
@@ -25,7 +26,6 @@ from vplan.interface import (
     Version,
     VplanName,
 )
-from vplan.model import SemVer
 
 VALID_NAME = "abcd-1234-efgh-5678-ijkl-9012-mnop-3456-qrst-7890"
 TOO_LONG_NAME = "%sX" % VALID_NAME  # one character too long
@@ -37,7 +37,10 @@ def fixture(filename: str) -> str:
 
 VALID_PLAN_FILE_V100 = fixture("plan-v1.0.0.yaml")
 VALID_PLAN_FILE_V110 = fixture("plan-v1.1.0.yaml")
-INVALID_PLAN_FILE = fixture("bad.yaml")
+
+INVALID_PLAN_FILE_MIN_VER = fixture("plan-min-ver.yaml")  # less than minimum version
+INVALID_PLAN_FILE_MAX_VER = fixture("plan-max-ver.yaml")  # more than maximum version
+INVALID_PLAN_FILE_BAD_SYNTAX = fixture("plan-bad-syntax.yaml")  # bad syntax
 
 PLAN_EXPECTED_V100 = PlanSchema(
     version=SemVer("1.0.0"),
@@ -429,6 +432,14 @@ class TestYamlParsing:
         assert schema.devices() == DEVICES_EXPECTED_V110
         assert schema.devices("first-floor-lights") == schema.plan.groups[0].devices
 
-    def test_parsing_invalid(self):
-        with pytest.raises(ValueError):
-            parse_yaml_file_as(PlanSchema, INVALID_PLAN_FILE)
+    def test_parsing_invalid_minimum_version(self):
+        with pytest.raises(ValueError, match=r"Invalid plan schema version"):
+            parse_yaml_file_as(PlanSchema, INVALID_PLAN_FILE_MIN_VER)
+
+    def test_parsing_invalid_maximum_version(self):
+        with pytest.raises(ValueError, match=r"Invalid plan schema version"):
+            parse_yaml_file_as(PlanSchema, INVALID_PLAN_FILE_MIN_VER)
+
+    def test_parsing_invalid_bad_syntax(self):
+        with pytest.raises(ValueError, match=r"2 validation errors for PlanSchema"):
+            parse_yaml_file_as(PlanSchema, INVALID_PLAN_FILE_BAD_SYNTAX)

@@ -5,12 +5,11 @@
 Server configuration
 """
 import os
-import re
 from os import R_OK, access
 from os.path import isfile
-from typing import Optional
+from typing import Annotated, Optional
 
-from pydantic import BaseModel, ConstrainedStr, Field, NonNegativeInt  # pylint: disable=no-name-in-module
+from pydantic import AfterValidator, BaseModel, Field, NonNegativeInt, StringConstraints
 from pydantic_yaml import parse_yaml_raw_as
 
 from vplan.engine.exception import EngineError
@@ -20,11 +19,12 @@ from vplan.util import replace_envvars
 CONFIG_VAR = "VPLAN_CONFIG_PATH"
 
 
-class LogLevel(ConstrainedStr):
-    """Legal log levels."""
-
-    strip_whitespace = True
-    regex = re.compile(r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET)$")
+LogLevel = Annotated[
+    str,
+    AfterValidator(lambda s: s.strip()),
+    StringConstraints(pattern=r"^(CRITICAL|ERROR|WARNING|INFO|DEBUG|NOTSET)$"),
+    "Legal log levels.",
+]
 
 
 class DailyJobConfig(BaseModel):
