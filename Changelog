@@ -1,3 +1,7 @@
+Version 0.7.7     unreleased
+
+	* Upgrade waitress to address high-severity DOS-related vulnerabilities.
+
 Version 0.7.6     20 Oct 2024
 
 	* Pull in latest updates from run-script-framework.
