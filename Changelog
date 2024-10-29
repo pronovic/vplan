@@ -1,4 +1,4 @@
-Version 0.7.7     unreleased
+Version 0.7.7     29 Oct 2024
 
 	* Upgrade waitress to address high-severity DOS-related vulnerabilities.
 
