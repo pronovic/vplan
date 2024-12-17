@@ -15,17 +15,17 @@ concurrency:
 jobs:
   linux-build-and-test:
     name: "Linux"
-    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-build-and-test.yml@v6
+    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-build-and-test.yml@v7
     secrets: inherit
     with:
       matrix-os-version: "[ 'ubuntu-latest' ]"
-      matrix-python-version: "[ '3.10', '3.11', '3.12', '3.13' ]"
+      matrix-python-version: "[ '3.10', '3.11', '3.12', '3.13' ]"  # run Linux tests on all supported Python versions
+      persist-python-version: "3.10"  # persist artifacts for the oldest supported Python version
   release:
     name: "Release"
     if: github.ref_type == 'tag'
-    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-release.yml@v6
+    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-release.yml@v7
     needs: [ linux-build-and-test ]
     secrets: inherit
     with:
-      python-version: "3.10"   # run release with oldest supported Python version
       publish-pypi: false
