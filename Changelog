@@ -1,6 +1,7 @@
 Version 0.7.9     unreleased
 
 	* Migrate to Poetry v2 and project-managed Poetry plugins.
+	* Remove leftover unixsocket tests; should have been removed in v0.7.6.
 
 Version 0.7.8     02 Jan 2025
 
