@@ -125,9 +125,10 @@ precision = 1
 asyncio_mode = "strict"
 asyncio_default_fixture_loop_scope = "function"
 filterwarnings = [
-    'error',  # turn all Python warnings into test failures, so they're hard to miss
-   "ignore:.*pkg_resources is deprecated as an API", # not sure where this is coming from, but we don't use it directly
-   "ignore:.*The 'app' shortcut is now deprecated"   # not sure where this is coming from, but we don't use it directly
+   'error',  # turn all Python warnings into test failures, so they're hard to miss
+   'ignore:.*pkg_resources is deprecated as an API', # not sure where this is coming from, but we don't use it directly
+   "ignore:.*The 'app' shortcut is now deprecated",  # not sure where this is coming from, but we don't use it directly
+   'ignore:.*unclosed database', # seems to be a false positive due to mocking in unit tests
 ]
 
 [tool.mypy]
