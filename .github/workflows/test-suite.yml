@@ -15,7 +15,7 @@ concurrency:
 jobs:
   linux-build-and-test:
     name: "Linux"
-    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-build-and-test.yml@v7
+    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-build-and-test.yml@v8
     secrets: inherit
     with:
       matrix-os-version: "[ 'ubuntu-latest' ]"
@@ -24,7 +24,7 @@ jobs:
   release:
     name: "Release"
     if: github.ref_type == 'tag'
-    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-release.yml@v7
+    uses: pronovic/gha-shared-workflows/.github/workflows/poetry-release.yml@v8
     needs: [ linux-build-and-test ]
     secrets: inherit
     with:
