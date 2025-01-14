@@ -1,9 +1,7 @@
 # Security Policy
 
-## Supported Versions
-
-This repository uses [Semantic Versioning](https://semver.org/).  The latest MAJOR version is always supported for security updates.  Older MAJOR versions are supported for at least one year after the new version has been released.  In general, only the last 4 versions of the Python interpreter are supported.
-
-## Reporting a Vulnerability
-
-To report a security issue, please use the GitHub Security Advisory ["Report a Vulnerability"](https://github.com/pronovic/vplan/security/advisories/new) tab.
+As of January 2025, I have migrated my home automation infrastructure from
+SmartThings to Home Assistant, so I no longer use this software.  It does work,
+and is still a decent example of how to accomplish SmartThings automation via
+the public API and a personal access token.  However, the repository is
+archived and you should consider this code to be unmaintained.
