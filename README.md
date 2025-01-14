@@ -6,6 +6,14 @@
 [![release](https://img.shields.io/github/v/release/pronovic/vplan)](https://github.com/pronovic/vplan/releases/latest)
 [![Poetry](https://img.shields.io/endpoint?url=https://python-poetry.org/badge/v0.json)](https://python-poetry.org/)
 
+_Note: As of January 2025, I have migrated my home automation infrastructure
+from SmartThings to Home Assistant, so I no longer use this software.  It does
+work, and is still a decent example of how to accomplish SmartThings automation
+via the public API and a personal access token.  However, the repository is
+archived and you should consider this code to be unmaintained._
+
+---
+
 Vacation Plan Manager is a platform that manages a vacation lighting plan for
 one or more SmartThings locations tied to a single SmartThings user.  
 
